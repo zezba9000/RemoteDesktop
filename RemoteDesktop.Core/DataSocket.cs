@@ -309,7 +309,7 @@ namespace RemoteDesktop.Core
 						if (bytesRead < metaDataSize)
 						{
 							Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-							socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);
+							try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 							return;
 						}
 						else
@@ -329,7 +329,7 @@ namespace RemoteDesktop.Core
 								FireEndDataRecievedCallback();
 								Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
 								segmentSizeBufferRead = 0;
-								socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());
+								try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
 								return;
 							}
 						}
@@ -364,7 +364,7 @@ namespace RemoteDesktop.Core
 					if (state.bytesRead != state.size)
 					{
 						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-						socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);
+						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 					}
 
 					// check overflow for additional stream segment
@@ -373,7 +373,7 @@ namespace RemoteDesktop.Core
 						FireEndDataRecievedCallback();
 						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
 						segmentSizeBufferRead = 0;
-						socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());
+						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
 					}
 
 					// process remaining data
