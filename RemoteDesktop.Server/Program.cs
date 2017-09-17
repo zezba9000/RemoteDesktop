@@ -46,6 +46,9 @@ namespace RemoteDesktop.Server
 		private Rectangle screenRect;
 		private Bitmap bitmap;
 		private Graphics graphics;
+		PixelFormat format = PixelFormat.Format24bppRgb;
+		int screenIndex;
+		bool compress;
 		private Timer timer;
 
 		public MainApplicationContext(int port)
@@ -68,13 +71,15 @@ namespace RemoteDesktop.Server
 			socket.ConnectedCallback += Socket_ConnectedCallback;
 			socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
 			socket.DataRecievedCallback += Socket_DataRecievedCallback;
+			socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+			socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
 			socket.Listen(IPAddress.Any, port);
 
 			// start network discovery
 			networkDiscovery = new NetworkDiscovery(NetworkTypes.Server);
 			networkDiscovery.Register("SimpleRemoteDesktop", port);
 		}
-
+		
 		void Exit(object sender, EventArgs e)
 		{
 			// dispose
@@ -119,30 +124,59 @@ namespace RemoteDesktop.Server
 			Application.Exit();
 		}
 
-		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
-		{
-			
-		}
-
-		private void Socket_ConnectionFailedCallback(string error)
-		{
-			
-		}
-
-		private void Socket_ConnectedCallback()
+		private void Socket_StartDataRecievedCallback(MetaData metaData)
 		{
 			lock (this)
 			{
 				if (isDisposed) return;
 
-				if (timer == null)
+				if (metaData.type == MetaDataTypes.UpdateSettings)
 				{
-					timer = new Timer();
-					timer.Interval = 1000 / 30;
-					timer.Tick += Timer_Tick;
+					DebugLog.Log("Updating settings");
+					format = metaData.format;
+					screenIndex = metaData.screenIndex;
+					compress = metaData.compressed;
+				}
+				else if (metaData.type == MetaDataTypes.StartCapture)
+				{
+					if (timer == null)
+					{
+						timer = new Timer();
+						timer.Interval = 1000 / 30;
+						timer.Tick += Timer_Tick;
+					}
+					
 					timer.Start();
 				}
+				else if (metaData.type == MetaDataTypes.StopCapture)
+				{
+					timer.Stop();
+				}
+				else
+				{
+					throw new Exception("Invalid meta data type: " + metaData.type);
+				}
 			}
+		}
+
+		private void Socket_EndDataRecievedCallback()
+		{
+			// do nothing
+		}
+
+		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
+		{
+			// do nothing
+		}
+
+		private void Socket_ConnectionFailedCallback(string error)
+		{
+			DebugLog.LogError("Failed to connect: " + error);
+		}
+
+		private void Socket_ConnectedCallback()
+		{
+			DebugLog.Log("Connected to client");
 		}
 
 		private void Timer_Tick(object sender, EventArgs e)
@@ -152,21 +186,27 @@ namespace RemoteDesktop.Server
 				if (isDisposed) return;
 
 				CaptureScreen();
-				socket.SendImage(bitmap, screenRect.Width, screenRect.Height, bitmap.PixelFormat);
+				socket.SendImage(bitmap, screenIndex, compress);
 			}
 		}
 
 		private void CaptureScreen()
 		{
-			if (bitmap == null)
+			if (bitmap == null || bitmap.PixelFormat != format)
 			{
-				var screen = Screen.PrimaryScreen;
+				// get screen to catpure
+				var screens = Screen.AllScreens;
+				var screen = (screenIndex < screens.Length) ? screens[screenIndex] : screens[0];
 				screenRect = screen.Bounds;
 
-				bitmap = new Bitmap(screenRect.Width, screenRect.Height, PixelFormat.Format24bppRgb);
+				// create bitmap resources
+				if (bitmap != null) bitmap.Dispose();
+				if (graphics != null) graphics.Dispose();
+				bitmap = new Bitmap(screenRect.Width, screenRect.Height, format);
 				graphics = Graphics.FromImage(bitmap);
 			}
 
+			// capture screen
 			graphics.CopyFromScreen(0, 0, 0, 0, bitmap.Size);
 		}
 	}

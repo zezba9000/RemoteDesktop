@@ -18,6 +18,7 @@ using System.Threading;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.IO.Compression;
 
 namespace RemoteDesktop.Client
 {
@@ -30,13 +31,12 @@ namespace RemoteDesktop.Client
 		private DataSocket socket;
 		private WriteableBitmap bitmap;
 		private IntPtr bitmapBackbuffer;
+		private MetaData metaData;
+		private MemoryStream gzipStream;
 
 		public MainWindow()
 		{
 			InitializeComponent();
-			
-			bitmap = new WriteableBitmap(1920, 1080, 96, 96, PixelFormats.Rgb24, null);
-			image.Source = bitmap;
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
@@ -51,6 +51,12 @@ namespace RemoteDesktop.Client
 			{
 				socket.Dispose();
 				socket = null;
+			}
+
+			if (gzipStream != null)
+			{
+				gzipStream.Dispose();
+				gzipStream = null;
 			}
 
 			base.OnClosing(e);
@@ -104,22 +110,73 @@ namespace RemoteDesktop.Client
 			socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
 			socket.Connect(host.endpoints[0]);
 		}
+
+		private PixelFormat ConvertPixelFormat(System.Drawing.Imaging.PixelFormat format)
+		{
+			switch (format)
+			{
+				case System.Drawing.Imaging.PixelFormat.Format24bppRgb: return PixelFormats.Rgb24;
+				case System.Drawing.Imaging.PixelFormat.Format16bppRgb565: return PixelFormats.Bgr565;
+				default: throw new Exception("Unsuported format: " + format);
+			}
+		}
+
+		private System.Drawing.Imaging.PixelFormat ConvertPixelFormat(PixelFormat format)
+		{
+			if (format == PixelFormats.Rgb24) return System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+			else if (format == PixelFormats.Bgr565) return System.Drawing.Imaging.PixelFormat.Format16bppRgb565;
+			else throw new Exception("Unsuported format: " + format);
+		}
 		
 		private void Socket_StartDataRecievedCallback(MetaData metaData)
 		{
+			if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
+			this.metaData = metaData;
+
+			// init compression
+			if (metaData.compressed)
+			{
+				if (gzipStream == null) gzipStream = new MemoryStream();
+				else gzipStream.SetLength(0);
+			}
+
+			// create bitmap
+			if (bitmap == null || bitmap.Width != metaData.width || bitmap.Height != metaData.height || ConvertPixelFormat(bitmap.Format) != metaData.format)
+			{
+				bitmap = new WriteableBitmap(metaData.width, metaData.height, 96, 96, ConvertPixelFormat(metaData.format), null);
+				image.Source = bitmap;
+			}
+
 			bitmap.Lock();
 			bitmapBackbuffer = bitmap.BackBuffer;
 		}
 
-		private void Socket_EndDataRecievedCallback()
+		private unsafe void Socket_EndDataRecievedCallback()
 		{
+			if (metaData.compressed)
+			{
+				gzipStream.Position = 0;
+				using (var bitmapStream = new UnmanagedMemoryStream((byte*)bitmapBackbuffer, metaData.imageDataSize, metaData.imageDataSize, FileAccess.Write))
+				using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
+				{
+					gzip.CopyTo(bitmapStream);
+				}
+			}
+
 			bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
 			bitmap.Unlock();
 		}
 
 		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
 		{
-			Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
+			if (metaData.compressed)
+			{
+				gzipStream.Write(data, 0, dataSize);
+			}
+			else
+			{
+				Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
+			}
 		}
 
 		private void Socket_ConnectionFailedCallback(string error)

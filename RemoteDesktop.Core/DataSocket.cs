@@ -11,6 +11,7 @@ using System.Windows.Threading;
 using System.Runtime.InteropServices;
 using System.Drawing.Imaging;
 using System.Drawing;
+using System.IO.Compression;
 
 namespace RemoteDesktop.Core
 {
@@ -19,11 +20,22 @@ namespace RemoteDesktop.Core
 		public int size, bytesRead;
 	}
 
+	public enum MetaDataTypes
+	{
+		None,
+		UpdateSettings,
+		StartCapture,
+		StopCapture,
+		ImageData
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
 	public struct MetaData
 	{
-		public int size;
-		public int width, height;
+		public MetaDataTypes type;
+		public bool compressed;
+		public int dataSize, imageDataSize;
+		public int width, height, screenIndex;
 		public PixelFormat format;
 	}
 
@@ -261,7 +273,7 @@ namespace RemoteDesktop.Core
 						FireStartDataRecievedCallback(metaData);
 
 						// get data size
-						state.size = metaData.size;//BitConverter.ToInt64(metaDataSizeBuffer, 0);
+						state.size = metaData.dataSize;//BitConverter.ToInt64(metaDataSizeBuffer, 0);
 						if (state.size == 0) throw new Exception("Invalid chunk size");
 					
 						state.bytesRead += bytesRead;
@@ -342,18 +354,50 @@ namespace RemoteDesktop.Core
 			while (size != 0);
 		}
 		
-		public unsafe void SendImage(Bitmap bitmap, int width, int height, PixelFormat format)
+		public unsafe void SendImage(Bitmap bitmap, int screenIndex, bool compress)
 		{
-			try
+			//try
 			{
+				// get data length
+				int dataLength, imageDataSize;
+				switch (bitmap.PixelFormat)
+				{
+					case PixelFormat.Format24bppRgb: imageDataSize = bitmap.Width * bitmap.Height * 3; break;
+					case PixelFormat.Format16bppRgb565: imageDataSize = ((bitmap.Width * bitmap.Height * 16) / 8); break;
+					default: throw new Exception("Unsuported format: " + bitmap.PixelFormat);
+				}
+
+				dataLength = imageDataSize;
+
+				// lock bitmap
+				var locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+
+				// compress if needed
+				MemoryStream compressedStream = null;
+				if (compress)
+				{
+					compressedStream = new MemoryStream();
+					using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
+					using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
+					{
+						bitmapStream.CopyTo(gzip);
+					}
+
+					compressedStream.Flush();
+					dataLength = (int)compressedStream.Length;
+				}
+
 				// send meta data
-				int dataLength = bitmap.Width * bitmap.Height * 3;
 				var metaData = new MetaData()
 				{
-					size = dataLength,
-					width = width,
-					height = height,
-					format = format
+					type = MetaDataTypes.ImageData,
+					compressed = compress,
+					dataSize = dataLength,
+					imageDataSize = imageDataSize,
+					width = bitmap.Width,
+					height = bitmap.Height,
+					screenIndex = screenIndex,
+					format = bitmap.PixelFormat
 				};
 
 				var binaryMetaData = (byte*)&metaData;
@@ -361,12 +405,20 @@ namespace RemoteDesktop.Core
 				SendBinary(metaDataBuffer);
 				
 				// send bitmap data
-				var locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-				var data = (byte*)locked.Scan0;
-				SendBinary(data, dataLength);
+				if (compress)
+				{
+					compressedStream.Position = 0;
+					SendBinary(compressedStream.ToArray());
+					compressedStream.Dispose();
+				}
+				else
+				{
+					var data = (byte*)locked.Scan0;
+					SendBinary(data, dataLength);
+				}
 				bitmap.UnlockBits(locked);
 			}
-			catch {}
+			//catch {}
 		}
 
 		private static bool IsConnected(Socket socket)
