@@ -130,14 +130,17 @@ namespace RemoteDesktop.Server
 			{
 				if (isDisposed) return;
 
-				if (metaData.type == MetaDataTypes.UpdateSettings)
+				// update settings
+				if (metaData.type == MetaDataTypes.UpdateSettings || metaData.type == MetaDataTypes.StartCapture)
 				{
 					DebugLog.Log("Updating settings");
 					format = metaData.format;
 					screenIndex = metaData.screenIndex;
 					compress = metaData.compressed;
 				}
-				else if (metaData.type == MetaDataTypes.StartCapture)
+				
+				// start / stop
+				if (metaData.type == MetaDataTypes.StartCapture)
 				{
 					if (timer == null)
 					{
@@ -151,10 +154,6 @@ namespace RemoteDesktop.Server
 				else if (metaData.type == MetaDataTypes.StopCapture)
 				{
 					timer.Stop();
-				}
-				else
-				{
-					throw new Exception("Invalid meta data type: " + metaData.type);
 				}
 			}
 		}

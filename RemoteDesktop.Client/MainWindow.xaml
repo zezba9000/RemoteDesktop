@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         Title="Remote Desktop" Height="350" Width="525" WindowStartupLocation="CenterScreen">
     <Grid>
-		<Button Name="actionButton" Content="Refresh" HorizontalAlignment="Left" Margin="206,10,0,0" VerticalAlignment="Top" Width="75" Click="actionButton_Click"/>
-		<Button Name="connectButton" Content="Connect" HorizontalAlignment="Left" Margin="286,10,0,0" VerticalAlignment="Top" Width="75" Click="connectButton_Click"/>
+		<Button Name="refreshButton" Content="Refresh" HorizontalAlignment="Left" Margin="286,10,0,0" VerticalAlignment="Top" Width="75" Click="refreshButton_Click"/>
+		<Button Name="connectButton" Content="Connect" HorizontalAlignment="Left" Margin="206,10,0,0" VerticalAlignment="Top" Width="75" Click="connectButton_Click"/>
 		<ComboBox Name="serverComboBox" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="191" Height="20"/>
 		<TextBox Name="serverTextBox" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="191" Height="20" Visibility="Hidden"/>
 		<Image Name="image" Margin="10,35,10,10"/>

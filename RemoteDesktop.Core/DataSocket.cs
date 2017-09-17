@@ -259,6 +259,22 @@ namespace RemoteDesktop.Core
 						{
 							ReceiveBufferShiftDown(count);
 							bytesRead -= count;
+
+							// create meta data object
+							var handle = GCHandle.Alloc(metaDataSizeBuffer, GCHandleType.Pinned);
+							metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
+							handle.Free();
+
+							// check if message type (if so finish and exit)
+							if (metaData.dataSize == -1)
+							{
+								FireStartDataRecievedCallback(metaData);
+								FireEndDataRecievedCallback();
+								Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
+								segmentSizeBufferRead = 0;
+								socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());
+								return;
+							}
 						}
 					}
 
@@ -266,14 +282,10 @@ namespace RemoteDesktop.Core
 					int overflow = 0;
 					if (state.size == 0)
 					{
-						// create meta data object
-						var handle = GCHandle.Alloc(metaDataSizeBuffer, GCHandleType.Pinned);
-						metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
-						handle.Free();
 						FireStartDataRecievedCallback(metaData);
 
 						// get data size
-						state.size = metaData.dataSize;//BitConverter.ToInt64(metaDataSizeBuffer, 0);
+						state.size = metaData.dataSize;
 						if (state.size == 0) throw new Exception("Invalid chunk size");
 					
 						state.bytesRead += bytesRead;
@@ -356,7 +368,7 @@ namespace RemoteDesktop.Core
 		
 		public unsafe void SendImage(Bitmap bitmap, int screenIndex, bool compress)
 		{
-			//try
+			try
 			{
 				// get data length
 				int dataLength, imageDataSize;
@@ -399,11 +411,9 @@ namespace RemoteDesktop.Core
 					screenIndex = screenIndex,
 					format = bitmap.PixelFormat
 				};
-
-				var binaryMetaData = (byte*)&metaData;
-				for (int i = 0; i != metaDataSize; ++i) metaDataBuffer[i] = binaryMetaData[i];
-				SendBinary(metaDataBuffer);
 				
+				SendMetaData(metaData);
+
 				// send bitmap data
 				if (compress)
 				{
@@ -418,7 +428,14 @@ namespace RemoteDesktop.Core
 				}
 				bitmap.UnlockBits(locked);
 			}
-			//catch {}
+			catch {}
+		}
+
+		public unsafe void SendMetaData(MetaData metaData)
+		{
+			var binaryMetaData = (byte*)&metaData;
+			for (int i = 0; i != metaDataSize; ++i) metaDataBuffer[i] = binaryMetaData[i];
+			SendBinary(metaDataBuffer);
 		}
 
 		private static bool IsConnected(Socket socket)

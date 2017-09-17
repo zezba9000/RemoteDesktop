@@ -33,6 +33,7 @@ namespace RemoteDesktop.Client
 		private IntPtr bitmapBackbuffer;
 		private MetaData metaData;
 		private MemoryStream gzipStream;
+		private bool isStreaming, skipImageUpdate;
 
 		public MainWindow()
 		{
@@ -62,6 +63,12 @@ namespace RemoteDesktop.Client
 			base.OnClosing(e);
 		}
 
+		protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+		{
+			skipImageUpdate = true;
+			base.OnRenderSizeChanged(sizeInfo);
+		}
+
 		private void Refresh()
 		{
 			networkDiscovery = new NetworkDiscovery(NetworkTypes.Client);
@@ -77,7 +84,7 @@ namespace RemoteDesktop.Client
 			});
 		}
 
-		private void actionButton_Click(object sender, RoutedEventArgs e)
+		private void refreshButton_Click(object sender, RoutedEventArgs e)
 		{
 			var thread = new Thread(Refresh);
 			thread.Start();
@@ -85,6 +92,28 @@ namespace RemoteDesktop.Client
 
 		private void connectButton_Click(object sender, RoutedEventArgs e)
 		{
+			if (isStreaming)
+			{
+				refreshButton.IsEnabled = true;
+				serverComboBox.IsEnabled = true;
+				connectButton.Content = "Connect";
+				isStreaming = false;
+
+				var metaData = new MetaData()
+				{
+					type = MetaDataTypes.StopCapture,
+					dataSize = -1
+				};
+			
+				socket.SendMetaData(metaData);
+				return;
+			}
+
+			refreshButton.IsEnabled = false;
+			serverComboBox.IsEnabled = false;
+			connectButton.Content = "Stop";
+			isStreaming = true;
+
 			NetworkHost host = null;
 			if (serverComboBox.SelectedIndex == -1)
 			{
@@ -133,6 +162,12 @@ namespace RemoteDesktop.Client
 			if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 			this.metaData = metaData;
 
+			if (skipImageUpdate)
+			{
+				bitmapBackbuffer = IntPtr.Zero;
+				return;
+			}
+
 			// init compression
 			if (metaData.compressed)
 			{
@@ -153,6 +188,13 @@ namespace RemoteDesktop.Client
 
 		private unsafe void Socket_EndDataRecievedCallback()
 		{
+			if (skipImageUpdate)
+			{
+				skipImageUpdate = false;
+				if (bitmapBackbuffer != IntPtr.Zero) bitmap.Unlock();
+				return;
+			}
+
 			if (metaData.compressed)
 			{
 				gzipStream.Position = 0;
@@ -169,6 +211,8 @@ namespace RemoteDesktop.Client
 
 		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
 		{
+			if (skipImageUpdate) return;
+
 			if (metaData.compressed)
 			{
 				gzipStream.Write(data, 0, dataSize);
@@ -186,7 +230,16 @@ namespace RemoteDesktop.Client
 
 		private void Socket_ConnectedCallback()
 		{
+			var metaData = new MetaData()
+			{
+				type = MetaDataTypes.StartCapture,
+				compressed = false,
+				screenIndex = 0,
+				format = System.Drawing.Imaging.PixelFormat.Format24bppRgb,
+				dataSize = -1
+			};
 			
+			socket.SendMetaData(metaData);
 		}
 	}
 }
