@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO.Compression;
+using System.Threading;
 
 namespace RemoteDesktop.Core
 {
@@ -25,7 +26,8 @@ namespace RemoteDesktop.Core
 		None,
 		UpdateSettings,
 		StartCapture,
-		StopCapture,
+		PauseCapture,
+		ResumeCapture,
 		ImageData
 	}
 
@@ -42,31 +44,32 @@ namespace RemoteDesktop.Core
 	public class DataSocket : IDisposable
 	{
 		public delegate void ConnectionCallbackMethod();
+		public delegate void DisconnectedCallbackMethod();
 		public delegate void ConnectionFailedCallbackMethod(string error);
 		public delegate void DataRecievedCallbackMethod(byte[] data, int dataSize, int offset);
 		public delegate void StartDataRecievedCallbackMethod(MetaData metaData);
 		public delegate void EndDataRecievedCallbackMethod();
 
 		public event ConnectionCallbackMethod ConnectedCallback;
+		public event DisconnectedCallbackMethod DisconnectedCallback;
 		public event ConnectionFailedCallbackMethod ConnectionFailedCallback;
 		public event DataRecievedCallbackMethod DataRecievedCallback;
 		public event StartDataRecievedCallbackMethod StartDataRecievedCallback;
 		public event EndDataRecievedCallbackMethod EndDataRecievedCallback;
 
 		private NetworkTypes type;
-		private Dispatcher dispatcher;
 		private Socket listenSocket, socket;
 		private bool isDisposed, disconnected;
+		private Timer disconnectionTimer;
 		
 		private byte[] receiveBuffer, sendBuffer, metaDataSizeBuffer, metaDataBuffer;
 		private int segmentSizeBufferRead;
 		private readonly int metaDataSize;
 		private MetaData metaData;
 
-		public DataSocket(NetworkTypes type, Dispatcher dispatcher)
+		public DataSocket(NetworkTypes type)
 		{
 			this.type = type;
-			this.dispatcher = dispatcher;
 			
 			receiveBuffer = new byte[1024];
 			sendBuffer = new byte[1024];
@@ -77,10 +80,19 @@ namespace RemoteDesktop.Core
 
 		public void Dispose()
 		{
+			disconnected = true;
+
+			// dispose timer
+			if (disconnectionTimer != null)
+			{
+				disconnectionTimer.Dispose();
+				disconnectionTimer = null;
+			}
+
 			lock (this)
 			{
 				isDisposed = true;
-
+				
 				// dispose listener socket
 				if (listenSocket != null)
 				{
@@ -121,25 +133,61 @@ namespace RemoteDesktop.Core
 			}
 		}
 
+		private void StartDisconnectionTimer()
+		{
+			disconnectionTimer = new Timer(timerTic, null, 100, 1000);
+		}
+
+		private void timerTic(object state)
+		{
+			lock (this)
+			{
+				if (isDisposed) return;
+
+				if (!IsConnected())
+				{
+					disconnectionTimer.Dispose();
+					FireDisconnectedCallback();
+				}
+			}
+		}
+
 		public void Listen(IPAddress ipAddress, int port)
 		{
 			if (type != NetworkTypes.Server) throw new Exception("Only allowed for server!");
 
-			listenSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-			listenSocket.Bind(new IPEndPoint(ipAddress, port));
-			listenSocket.Listen(1);
-			listenSocket.BeginAccept(ConnectionEstablishedCallback, null);
+			lock (this)
+			{
+				listenSocket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				listenSocket.Bind(new IPEndPoint(ipAddress, port));
+				listenSocket.Listen(1);
+				listenSocket.BeginAccept(ConnectionEstablishedCallback, null);
+			}
+		}
+
+		public void ReListen()
+		{
+			if (type != NetworkTypes.Server) throw new Exception("Only allowed for server!");
+			lock (this)
+			{
+				if (listenSocket == null) throw new Exception("Must call listen before this method.");
+				if (IsConnected()) throw new Exception("Socket already connected");
+				listenSocket.BeginAccept(ConnectionEstablishedCallback, null);
+			}
 		}
 
 		public void Connect(IPAddress ipAddress, int port)
 		{
-			Connect(new IPEndPoint(ipAddress, port));
+			lock (this) Connect(new IPEndPoint(ipAddress, port));
 		}
 
 		public void Connect(IPEndPoint endPoint)
 		{
-			socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-			socket.BeginConnect(endPoint, ConnectionEstablishedCallback, null);
+			lock (this)
+			{
+				socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				socket.BeginConnect(endPoint, ConnectionEstablishedCallback, null);
+			}
 		}
 
 		private void ConnectionEstablishedCallback(IAsyncResult ar)
@@ -147,6 +195,10 @@ namespace RemoteDesktop.Core
 			lock (this)
 			{
 				if (isDisposed) return;
+				disconnected = false;
+
+				// start diconnection timer
+				StartDisconnectionTimer();
 
 				// connect
 				if (type == NetworkTypes.Server)
@@ -160,6 +212,7 @@ namespace RemoteDesktop.Core
 						string error = string.Format("socket.EndConnect failed: {0}\n{1}", e.SocketErrorCode, e.Message);
 						FireConnectionFailedCallback(error);
 						DebugLog.LogError(error);
+						disconnected = true;
 						return;
 					}
 					catch (Exception e)
@@ -167,6 +220,7 @@ namespace RemoteDesktop.Core
 						string error = "socket.EndConnect failed: " + e.Message;
 						FireConnectionFailedCallback(error);
 						DebugLog.LogError(error);
+						disconnected = true;
 						return;
 					}
 
@@ -183,6 +237,7 @@ namespace RemoteDesktop.Core
 						string error = string.Format("socket.EndConnect failed: {0}\n{1}", e.SocketErrorCode, e.Message);
 						FireConnectionFailedCallback(error);
 						DebugLog.LogError(error);
+						disconnected = true;
 						return;
 					}
 					catch (Exception e)
@@ -190,6 +245,7 @@ namespace RemoteDesktop.Core
 						string error = "socket.EndConnect failed: " + e.Message;
 						FireConnectionFailedCallback(error);
 						DebugLog.LogError(error);
+						disconnected = true;
 						return;
 					}
 
@@ -204,6 +260,7 @@ namespace RemoteDesktop.Core
 				catch (Exception e)
 				{
 					DebugLog.LogError("Failed to BeginReceive SocketConnection: " + e.Message);
+					disconnected = true;
 					return;
 				}
 			}
@@ -368,6 +425,8 @@ namespace RemoteDesktop.Core
 		
 		public unsafe void SendImage(Bitmap bitmap, int screenIndex, bool compress)
 		{
+			BitmapData locked = null;
+			MemoryStream compressedStream = null;
 			try
 			{
 				// get data length
@@ -382,10 +441,9 @@ namespace RemoteDesktop.Core
 				dataLength = imageDataSize;
 
 				// lock bitmap
-				var locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+				locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
 				// compress if needed
-				MemoryStream compressedStream = null;
 				if (compress)
 				{
 					compressedStream = new MemoryStream();
@@ -419,16 +477,22 @@ namespace RemoteDesktop.Core
 				{
 					compressedStream.Position = 0;
 					SendBinary(compressedStream.ToArray());
-					compressedStream.Dispose();
 				}
 				else
 				{
 					var data = (byte*)locked.Scan0;
 					SendBinary(data, dataLength);
 				}
-				bitmap.UnlockBits(locked);
 			}
-			catch {}
+			catch
+			{
+				// do nothing...
+			}
+			finally
+			{
+				if (locked != null) bitmap.UnlockBits(locked);
+				if (compressedStream != null) compressedStream.Dispose();
+			}
 		}
 
 		public unsafe void SendMetaData(MetaData metaData)
@@ -462,32 +526,23 @@ namespace RemoteDesktop.Core
 
 		private void FireConnectionFailedCallback(string error)
 		{
-			if (dispatcher.CheckAccess())
-			{
-				if (ConnectionFailedCallback != null) ConnectionFailedCallback(error);
-			}
-			else
-			{
-				dispatcher.Invoke(delegate()
-				{
-					if (ConnectionFailedCallback != null) ConnectionFailedCallback(error);
-				});
-			}
+			if (ConnectionFailedCallback != null) ConnectionFailedCallback(error);
 		}
 
 		private void FireConnectedCallback()
 		{
-			if (dispatcher.CheckAccess())
+			if (ConnectedCallback != null) ConnectedCallback();
+		}
+
+		private void FireDisconnectedCallback()
+		{
+			if (disconnectionTimer != null)
 			{
-				if (ConnectedCallback != null) ConnectedCallback();
+				disconnectionTimer.Dispose();
+				disconnectionTimer = null;
 			}
-			else
-			{
-				dispatcher.Invoke(delegate()
-				{
-					if (ConnectedCallback != null) ConnectedCallback();
-				});
-			}
+
+			if (DisconnectedCallback != null) DisconnectedCallback();
 		}
 
 		private void FireDataRecievedCallback(byte[] data, int dataSize, int offset)
@@ -497,32 +552,12 @@ namespace RemoteDesktop.Core
 
 		private void FireStartDataRecievedCallback(MetaData metaData)
 		{
-			if (dispatcher.CheckAccess())
-			{
-				if (StartDataRecievedCallback != null) StartDataRecievedCallback(metaData);
-			}
-			else
-			{
-				dispatcher.Invoke(delegate()
-				{
-					if (StartDataRecievedCallback != null) StartDataRecievedCallback(metaData);
-				}, DispatcherPriority.Render);
-			}
+			if (StartDataRecievedCallback != null) StartDataRecievedCallback(metaData);
 		}
 
 		private void FireEndDataRecievedCallback()
 		{
-			if (dispatcher.CheckAccess())
-			{
-				if (EndDataRecievedCallback != null) EndDataRecievedCallback();
-			}
-			else
-			{
-				dispatcher.Invoke(delegate()
-				{
-					if (EndDataRecievedCallback != null) EndDataRecievedCallback();
-				}, DispatcherPriority.Render);
-			}
+			if (EndDataRecievedCallback != null) EndDataRecievedCallback();
 		}
 	}
 }

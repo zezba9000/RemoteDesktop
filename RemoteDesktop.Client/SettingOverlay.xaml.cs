@@ -25,9 +25,16 @@ namespace RemoteDesktop.Client
 			InitializeComponent();
 		}
 
+		public void Show()
+		{
+			
+			Visibility = Visibility.Visible;
+		}
+
 		private void applyButton_Click(object sender, RoutedEventArgs e)
 		{
 			
+			Visibility = Visibility.Hidden;
 		}
 	}
 }

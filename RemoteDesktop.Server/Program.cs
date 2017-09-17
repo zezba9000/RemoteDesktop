@@ -50,6 +50,7 @@ namespace RemoteDesktop.Server
 		int screenIndex;
 		bool compress;
 		private Timer timer;
+		private Dispatcher dispatcher;
 
 		public MainApplicationContext(int port)
 		{
@@ -67,8 +68,10 @@ namespace RemoteDesktop.Server
 			};
 
 			// star socket
-			socket = new DataSocket(NetworkTypes.Server, Dispatcher.CurrentDispatcher);
+			dispatcher = Dispatcher.CurrentDispatcher;
+			socket = new DataSocket(NetworkTypes.Server);
 			socket.ConnectedCallback += Socket_ConnectedCallback;
+			socket.DisconnectedCallback += Socket_DisconnectedCallback;
 			socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
 			socket.DataRecievedCallback += Socket_DataRecievedCallback;
 			socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
@@ -79,7 +82,7 @@ namespace RemoteDesktop.Server
 			networkDiscovery = new NetworkDiscovery(NetworkTypes.Server);
 			networkDiscovery.Register("SimpleRemoteDesktop", port);
 		}
-		
+
 		void Exit(object sender, EventArgs e)
 		{
 			// dispose
@@ -142,18 +145,31 @@ namespace RemoteDesktop.Server
 				// start / stop
 				if (metaData.type == MetaDataTypes.StartCapture)
 				{
-					if (timer == null)
+					dispatcher.InvokeAsync(delegate()
 					{
-						timer = new Timer();
-						timer.Interval = 1000 / 30;
-						timer.Tick += Timer_Tick;
-					}
+						if (timer == null)
+						{
+							timer = new Timer();
+							timer.Interval = 1000 / 30;
+							timer.Tick += Timer_Tick;
+						}
 					
-					timer.Start();
+						timer.Start();
+					});
 				}
-				else if (metaData.type == MetaDataTypes.StopCapture)
+				else if (metaData.type == MetaDataTypes.PauseCapture)
 				{
-					timer.Stop();
+					dispatcher.InvokeAsync(delegate()
+					{
+						timer.Stop();
+					});
+				}
+				else if (metaData.type == MetaDataTypes.ResumeCapture)
+				{
+					dispatcher.InvokeAsync(delegate()
+					{
+						timer.Start();
+					});
 				}
 			}
 		}
@@ -176,6 +192,16 @@ namespace RemoteDesktop.Server
 		private void Socket_ConnectedCallback()
 		{
 			DebugLog.Log("Connected to client");
+		}
+
+		private void Socket_DisconnectedCallback()
+		{
+			DebugLog.Log("Disconnected from client");
+			dispatcher.InvokeAsync(delegate()
+			{
+				if (timer != null) timer.Stop();
+				socket.ReListen();
+			});
 		}
 
 		private void Timer_Tick(object sender, EventArgs e)

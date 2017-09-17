@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Settings>
+	<ImageQuality>24bit</ImageQuality>
+	<ImageScale>100%</ImageScale>
+	<CompressImageFrames>True</CompressImageFrames>
+	<CustomSocketAddress Enabled="False">0.0.0.0</CustomSocketAddress>
+</Settings>

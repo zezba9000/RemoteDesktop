@@ -22,6 +22,13 @@ using System.IO.Compression;
 
 namespace RemoteDesktop.Client
 {
+	enum UIStates
+	{
+		Stopped,
+		Streaming,
+		Paused
+	}
+
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
@@ -33,7 +40,8 @@ namespace RemoteDesktop.Client
 		private IntPtr bitmapBackbuffer;
 		private MetaData metaData;
 		private MemoryStream gzipStream;
-		private bool isStreaming, skipImageUpdate;
+		private bool skipImageUpdate;
+		private UIStates uiState = UIStates.Stopped;
 
 		public MainWindow()
 		{
@@ -48,10 +56,13 @@ namespace RemoteDesktop.Client
 				networkDiscovery = null;
 			}
 
-			if (socket != null)
+			lock (this)
 			{
-				socket.Dispose();
-				socket = null;
+				if (socket != null)
+				{
+					socket.Dispose();
+					socket = null;
+				}
 			}
 
 			if (gzipStream != null)
@@ -69,6 +80,12 @@ namespace RemoteDesktop.Client
 			base.OnRenderSizeChanged(sizeInfo);
 		}
 
+		protected override void OnLocationChanged(EventArgs e)
+		{
+			skipImageUpdate = true;
+			base.OnLocationChanged(e);
+		}
+
 		private void Refresh()
 		{
 			networkDiscovery = new NetworkDiscovery(NetworkTypes.Client);
@@ -84,24 +101,66 @@ namespace RemoteDesktop.Client
 			});
 		}
 
+		private void SetConnectionUIStates(UIStates state)
+		{
+			uiState = state;
+			serverComboBox.IsEnabled = state == UIStates.Stopped;
+			connectButton.Content = state != UIStates.Stopped ? (state == UIStates.Streaming ? "Pause" : "Play") : "Connect";
+			refreshButton.Content = state != UIStates.Stopped ? "Stop" : "Refresh";
+			notConnectedImage.Visibility = state == UIStates.Stopped ? Visibility.Visible : Visibility.Hidden;
+			if (state == UIStates.Stopped)
+			{
+				unsafe
+				{
+					bitmap.Lock();
+					var buffer = (byte*)bitmap.BackBuffer;
+					for (int i = 0; i != metaData.imageDataSize; ++i) buffer[i] = 255;
+					bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+					bitmap.Unlock();
+				}
+			}
+		}
+
 		private void refreshButton_Click(object sender, RoutedEventArgs e)
 		{
+			// handle stop
+			if (uiState == UIStates.Streaming)
+			{
+				SetConnectionUIStates(UIStates.Stopped);
+				var metaData = new MetaData()
+				{
+					type = MetaDataTypes.PauseCapture,
+					dataSize = -1
+				};
+			
+				socket.SendMetaData(metaData);
+
+				Thread.Sleep(1000);
+				lock (this)
+				{
+					socket.Dispose();
+					socket = null;
+				}
+
+				return;
+			}
+
+			// handle refresh
 			var thread = new Thread(Refresh);
 			thread.Start();
 		}
 
 		private void connectButton_Click(object sender, RoutedEventArgs e)
 		{
-			if (isStreaming)
+			// handle pause
+			if (uiState == UIStates.Streaming || uiState == UIStates.Paused)
 			{
-				refreshButton.IsEnabled = true;
-				serverComboBox.IsEnabled = true;
-				connectButton.Content = "Connect";
-				isStreaming = false;
+				var state = uiState;
+				SetConnectionUIStates(state == UIStates.Streaming ? UIStates.Paused : UIStates.Streaming);
 
 				var metaData = new MetaData()
 				{
-					type = MetaDataTypes.StopCapture,
+					type = state == UIStates.Streaming ? MetaDataTypes.PauseCapture : MetaDataTypes.ResumeCapture,
 					dataSize = -1
 				};
 			
@@ -109,10 +168,8 @@ namespace RemoteDesktop.Client
 				return;
 			}
 
-			refreshButton.IsEnabled = false;
-			serverComboBox.IsEnabled = false;
-			connectButton.Content = "Stop";
-			isStreaming = true;
+			// handle connect
+			SetConnectionUIStates(UIStates.Streaming);
 
 			NetworkHost host = null;
 			if (serverComboBox.SelectedIndex == -1)
@@ -131,8 +188,9 @@ namespace RemoteDesktop.Client
 				host = (NetworkHost)serverComboBox.SelectedValue;
 			}
 
-			socket = new DataSocket(NetworkTypes.Client, Dispatcher);
+			socket = new DataSocket(NetworkTypes.Client);//, Dispatcher);
 			socket.ConnectedCallback += Socket_ConnectedCallback;
+			socket.DisconnectedCallback += Socket_DisconnectedCallback;
 			socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
 			socket.DataRecievedCallback += Socket_DataRecievedCallback;
 			socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
@@ -162,12 +220,6 @@ namespace RemoteDesktop.Client
 			if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 			this.metaData = metaData;
 
-			if (skipImageUpdate)
-			{
-				bitmapBackbuffer = IntPtr.Zero;
-				return;
-			}
-
 			// init compression
 			if (metaData.compressed)
 			{
@@ -175,26 +227,24 @@ namespace RemoteDesktop.Client
 				else gzipStream.SetLength(0);
 			}
 
-			// create bitmap
-			if (bitmap == null || bitmap.Width != metaData.width || bitmap.Height != metaData.height || ConvertPixelFormat(bitmap.Format) != metaData.format)
+			// invoke UI thread
+			Dispatcher.InvokeAsync(delegate()
 			{
-				bitmap = new WriteableBitmap(metaData.width, metaData.height, 96, 96, ConvertPixelFormat(metaData.format), null);
-				image.Source = bitmap;
-			}
+				// create bitmap
+				if (bitmap == null || bitmap.Width != metaData.width || bitmap.Height != metaData.height || ConvertPixelFormat(bitmap.Format) != metaData.format)
+				{
+					bitmap = new WriteableBitmap(metaData.width, metaData.height, 96, 96, ConvertPixelFormat(metaData.format), null);
+					image.Source = bitmap;
+				}
 
-			bitmap.Lock();
-			bitmapBackbuffer = bitmap.BackBuffer;
+				// lock bitmap
+				bitmap.Lock();
+				bitmapBackbuffer = bitmap.BackBuffer;
+			});
 		}
 
 		private unsafe void Socket_EndDataRecievedCallback()
 		{
-			if (skipImageUpdate)
-			{
-				skipImageUpdate = false;
-				if (bitmapBackbuffer != IntPtr.Zero) bitmap.Unlock();
-				return;
-			}
-
 			if (metaData.compressed)
 			{
 				gzipStream.Position = 0;
@@ -205,13 +255,19 @@ namespace RemoteDesktop.Client
 				}
 			}
 
-			bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
-			bitmap.Unlock();
+			bitmapBackbuffer = IntPtr.Zero;
+			Dispatcher.InvokeAsync(delegate()
+			{
+				if (!skipImageUpdate) bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+				else skipImageUpdate = false;
+				bitmap.Unlock();
+			});
 		}
 
 		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
 		{
-			if (skipImageUpdate) return;
+			while (bitmapBackbuffer == IntPtr.Zero && uiState == UIStates.Streaming) Thread.Sleep(1);
+			if (uiState != UIStates.Streaming) return;
 
 			if (metaData.compressed)
 			{
@@ -225,7 +281,7 @@ namespace RemoteDesktop.Client
 
 		private void Socket_ConnectionFailedCallback(string error)
 		{
-			
+			DebugLog.LogError("Failed to connect: " + error);
 		}
 
 		private void Socket_ConnectedCallback()
@@ -240,6 +296,25 @@ namespace RemoteDesktop.Client
 			};
 			
 			socket.SendMetaData(metaData);
+		}
+
+		private void Socket_DisconnectedCallback()
+		{
+			lock (this)
+			{
+				socket.Dispose();
+				socket = null;
+			}
+
+			Dispatcher.InvokeAsync(delegate()
+			{
+				SetConnectionUIStates(UIStates.Stopped);
+			});
+		}
+
+		private void settingsButton_Click(object sender, RoutedEventArgs e)
+		{
+			settingsOverlay.Show();
 		}
 	}
 }
