@@ -83,20 +83,24 @@ namespace RemoteDesktop.Core
 				}
 
 				// dispose normal socket
-				try
+				if (socket != null)
 				{
-					socket.Shutdown(SocketShutdown.Both);
-				}
-				catch { }
+					try
+					{
+						socket.Shutdown(SocketShutdown.Both);
+					}
+					catch { }
 
-				try
-				{
-					if (IsConnected(socket)) socket.Disconnect(false);
-				}
-				catch { }
+					try
+					{
+						if (IsConnected(socket)) socket.Disconnect(false);
+					}
+					catch { }
 
-				socket.Close();
-				socket.Dispose();
+					socket.Close();
+					socket.Dispose();
+					socket = null;
+				}
 
 				// null types
 				receiveBuffer = null;
@@ -263,7 +267,6 @@ namespace RemoteDesktop.Core
 						state.bytesRead += bytesRead;
 						overflow = (int)(state.bytesRead - state.size);
 						state.bytesRead = Math.Min(state.bytesRead, state.size);
-						//receiveStream.Write(receiveBuffer, 0, (int)state.bytesRead);
 						FireDataRecievedCallback(receiveBuffer, (int)state.bytesRead, 0);
 					}
 					else
@@ -273,7 +276,6 @@ namespace RemoteDesktop.Core
 						overflow = (int)(state.bytesRead - state.size);
 						state.bytesRead = Math.Min(state.bytesRead, state.size);
 						int byteCount = (overflow > 0) ? bytesRead - overflow : bytesRead;
-						//receiveStream.Write(receiveBuffer, 0, byteCount);
 						FireDataRecievedCallback(receiveBuffer, byteCount, offset);
 					}
 
@@ -302,34 +304,6 @@ namespace RemoteDesktop.Core
 						segmentSizeBufferRead = 0;
 						goto EXTRA_STREAM;
 					}
-					/*else if (receiveStream.Length != 0)
-					{
-						// finish current stream
-						//receiveStream.Flush();
-						//receiveStream.Position = 0;
-						//FireDataRecievedCallback(receiveStream);
-						//receiveStream.SetLength(0);
-
-						// check overflow for additional stream segment
-						if (overflow <= 0)
-						{
-							Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-							segmentSizeBufferRead = 0;
-							socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());
-						}
-						else
-						{
-							state = new ReceiveState();
-							ReceiveBufferShiftDown(bytesRead - overflow);
-							bytesRead = overflow;
-							segmentSizeBufferRead = 0;
-							goto EXTRA_STREAM;
-						}
-					}
-					else
-					{
-						throw new Exception("Invalid buffer state");
-					}*/
 				}
 				else
 				{
@@ -387,7 +361,7 @@ namespace RemoteDesktop.Core
 				SendBinary(metaDataBuffer);
 				
 				// send bitmap data
-				var locked = bitmap.LockBits(Rectangle.Empty, ImageLockMode.ReadOnly, bitmap.PixelFormat);
+				var locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
 				var data = (byte*)locked.Scan0;
 				SendBinary(data, dataLength);
 				bitmap.UnlockBits(locked);
@@ -425,7 +399,7 @@ namespace RemoteDesktop.Core
 			}
 			else
 			{
-				dispatcher.InvokeAsync(delegate()
+				dispatcher.Invoke(delegate()
 				{
 					if (ConnectionFailedCallback != null) ConnectionFailedCallback(error);
 				});
@@ -440,7 +414,7 @@ namespace RemoteDesktop.Core
 			}
 			else
 			{
-				dispatcher.InvokeAsync(delegate()
+				dispatcher.Invoke(delegate()
 				{
 					if (ConnectedCallback != null) ConnectedCallback();
 				});
@@ -460,10 +434,10 @@ namespace RemoteDesktop.Core
 			}
 			else
 			{
-				dispatcher.InvokeAsync(delegate()
+				dispatcher.Invoke(delegate()
 				{
 					if (StartDataRecievedCallback != null) StartDataRecievedCallback(metaData);
-				});
+				}, DispatcherPriority.Render);
 			}
 		}
 
@@ -475,10 +449,10 @@ namespace RemoteDesktop.Core
 			}
 			else
 			{
-				dispatcher.InvokeAsync(delegate()
+				dispatcher.Invoke(delegate()
 				{
 					if (EndDataRecievedCallback != null) EndDataRecievedCallback();
-				});
+				}, DispatcherPriority.Render);
 			}
 		}
 	}

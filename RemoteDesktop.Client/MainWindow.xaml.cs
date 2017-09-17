@@ -17,6 +17,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 
 namespace RemoteDesktop.Client
 {
@@ -88,7 +89,22 @@ namespace RemoteDesktop.Client
 
 		private void connectButton_Click(object sender, RoutedEventArgs e)
 		{
-			if (serverComboBox.SelectedIndex == -1) return;	
+			NetworkHost host = null;
+			if (serverComboBox.SelectedIndex == -1)
+			{
+				#if DEBUG
+				host = new NetworkHost("LoopBack")
+				{
+					endpoints = new List<IPEndPoint>() {new IPEndPoint(IPAddress.Loopback, 8888)}
+				};
+				#else
+				return;
+				#endif
+			}
+			else
+			{
+				host = (NetworkHost)serverComboBox.SelectedValue;
+			}
 
 			socket = new DataSocket(NetworkTypes.Client, Dispatcher);
 			socket.ConnectedCallback += Socket_ConnectedCallback;
@@ -96,8 +112,6 @@ namespace RemoteDesktop.Client
 			socket.DataRecievedCallback += Socket_DataRecievedCallback;
 			socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
 			socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-
-			var host = (NetworkHost)serverComboBox.SelectedValue;
 			socket.Connect(host.endpoints[0]);
 		}
 		
@@ -105,12 +119,6 @@ namespace RemoteDesktop.Client
 		{
 			bitmap.Lock();
 			bitmapBackbuffer = bitmap.BackBuffer;
-
-			unsafe
-			{
-				var buffer = (byte*)bitmapBackbuffer;
-				for (int i = 0; i != bitmap.PixelWidth * bitmap.PixelHeight * 3; ++i) buffer[i] = 255;
-			}
 		}
 
 		private void Socket_EndDataRecievedCallback()
@@ -119,11 +127,9 @@ namespace RemoteDesktop.Client
 			bitmap.Unlock();
 		}
 
-		private unsafe void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
+		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
 		{
-			var buffer = (byte*)bitmapBackbuffer;
-			for (int i = 0; i != dataSize; ++i) buffer[i + offset] = data[i];
-			//for (int i = 0; i != bitmap.PixelWidth * bitmap.PixelHeight * 3; ++i) buffer[i] = 255;
+			Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
 		}
 
 		private void Socket_ConnectionFailedCallback(string error)

@@ -82,7 +82,7 @@ namespace RemoteDesktop.Server
 			{
 				isDisposed = true;
 
-				if (timer == null)
+				if (timer != null)
 				{
 					timer.Stop();
 					timer.Dispose();
@@ -135,10 +135,13 @@ namespace RemoteDesktop.Server
 			{
 				if (isDisposed) return;
 
-				timer = new Timer();
-				timer.Interval = 1000;// / 60;
-				timer.Tick += Timer_Tick;
-				timer.Start();
+				if (timer == null)
+				{
+					timer = new Timer();
+					timer.Interval = 1000 / 30;
+					timer.Tick += Timer_Tick;
+					timer.Start();
+				}
 			}
 		}
 
@@ -149,18 +152,7 @@ namespace RemoteDesktop.Server
 				if (isDisposed) return;
 
 				CaptureScreen();
-				//var locked = bitmap.LockBits(Rectangle.Empty, ImageLockMode.ReadOnly, bitmap.PixelFormat);
-				//socket.SendBinary(locked.
-
-				//var converter = new ImageConverter();
-				//var data = (byte[])converter.ConvertTo(bitmap, typeof(byte[]));
-				//var size = BitConverter.GetBytes(data.LongLength);
-				//var finalData = new byte[data.LongLength + sizeof(long)];
-				//Array.Copy(size, finalData, sizeof(long));
 				socket.SendImage(bitmap, screenRect.Width, screenRect.Height, bitmap.PixelFormat);
-
-				//var bits = BitConverter.GetBytes((long)3);
-				//socket.SendBinary(new byte[4+3] {bits[0], bits[1], bits[2], bits[3], 1, 2, 3});
 			}
 		}
 
