@@ -188,7 +188,7 @@ namespace RemoteDesktop.Client
 				host = (NetworkHost)serverComboBox.SelectedValue;
 			}
 
-			socket = new DataSocket(NetworkTypes.Client);//, Dispatcher);
+			socket = new DataSocket(NetworkTypes.Client);
 			socket.ConnectedCallback += Socket_ConnectedCallback;
 			socket.DisconnectedCallback += Socket_DisconnectedCallback;
 			socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
