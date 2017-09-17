@@ -37,16 +37,6 @@ namespace RemoteDesktop.Client
 			
 			bitmap = new WriteableBitmap(1920, 1080, 96, 96, PixelFormats.Rgb24, null);
 			image.Source = bitmap;
-
-			unsafe
-			{
-				bitmap.Lock();
-				var buffer = (byte*)bitmap.BackBuffer;
-				//for (int i = 0; i != dataSize; ++i) buffer[i + offset] = data[i];
-				for (int i = 0; i != bitmap.PixelWidth * bitmap.PixelHeight * 3; ++i) buffer[i] = 127;
-				bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
-				bitmap.Unlock();
-			}
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
