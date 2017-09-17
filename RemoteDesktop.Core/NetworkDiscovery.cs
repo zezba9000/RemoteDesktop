@@ -53,7 +53,7 @@ namespace RemoteDesktop.Core
 		{
 			if (type != NetworkTypes.Server) throw new Exception("Only allowed for server!");
 
-			peerName = new PeerName(name, PeerNameType.Secured);
+			peerName = new PeerName(name, PeerNameType.Unsecured);
 			peerNameRegistration = new PeerNameRegistration();
 			peerNameRegistration.PeerName = peerName;
 			peerNameRegistration.Comment = Dns.GetHostName();
@@ -67,7 +67,7 @@ namespace RemoteDesktop.Core
 
 			var hosts = new List<NetworkHost>();
 			peerNameResolver = new PeerNameResolver();
-			peerName = new PeerName(name, PeerNameType.Secured);
+			peerName = new PeerName(name, PeerNameType.Unsecured);
 			var results = peerNameResolver.Resolve(peerName);
 			foreach (var record in results)
 			{
