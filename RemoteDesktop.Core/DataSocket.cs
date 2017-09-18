@@ -355,8 +355,6 @@ namespace RemoteDesktop.Core
 							else
 							{
 								state.size = metaData.dataSize;
-								state.bytesRead += bytesRead;
-								state.bytesRead = Math.Min(state.bytesRead, state.size);
 							}
 
 							// process remaining data
