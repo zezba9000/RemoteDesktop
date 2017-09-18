@@ -171,6 +171,10 @@ namespace RemoteDesktop.Server
 						timer.Start();
 					});
 				}
+				else if (metaData.type == MetaDataTypes.UpdateMouse)
+				{
+					Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
+				}
 			}
 		}
 

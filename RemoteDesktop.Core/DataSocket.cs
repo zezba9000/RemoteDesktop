@@ -28,6 +28,8 @@ namespace RemoteDesktop.Core
 		StartCapture,
 		PauseCapture,
 		ResumeCapture,
+		UpdateMouse,
+		UpdateKeyboard,
 		ImageData
 	}
 
@@ -37,8 +39,11 @@ namespace RemoteDesktop.Core
 		public MetaDataTypes type;
 		public bool compressed;
 		public int dataSize, imageDataSize;
-		public int width, height, screenIndex;
+		public short width, height, screenIndex;
 		public PixelFormat format;
+
+		public short mouseX, mouseY;
+		public byte mouseButtonPressed, keyCode;
 	}
 
 	public class DataSocket : IDisposable
@@ -329,6 +334,7 @@ namespace RemoteDesktop.Core
 						{
 							ReceiveBufferShiftDown(count);
 							bytesRead -= count;
+							overflow = bytesRead;
 
 							// create meta data object
 							var handle = GCHandle.Alloc(metaDataSizeBuffer, GCHandleType.Pinned);
@@ -336,26 +342,26 @@ namespace RemoteDesktop.Core
 							handle.Free();
 							if (metaData.dataSize == 0) throw new Exception("Invalid data size");
 
-							// init data state
+							// fire start callback
 							FireStartDataRecievedCallback(metaData);
-							state.size = metaData.dataSize;
-					
-							state.bytesRead += bytesRead;
-							overflow = state.bytesRead - Math.Max(state.size, 0);
-							state.bytesRead = Math.Min(state.bytesRead, state.size);
 
 							// check if message type (if so finish and exit)
 							if (metaData.dataSize == -1)
 							{
 								FireEndDataRecievedCallback();
 								metaDataBufferRead = 0;
+								state = new ReceiveState();
+							}
+							else
+							{
+								state.size = metaData.dataSize;
+								state.bytesRead += bytesRead;
+								state.bytesRead = Math.Min(state.bytesRead, state.size);
 							}
 
 							// process remaining data
 							if (overflow > 0)
 							{
-								ReceiveBufferShiftDown(bytesRead - overflow);
-								bytesRead = overflow;
 								goto EXTRA_STREAM;
 							}
 							else
@@ -495,9 +501,9 @@ namespace RemoteDesktop.Core
 					compressed = compress,
 					dataSize = dataLength,
 					imageDataSize = imageDataSize,
-					width = bitmap.Width,
-					height = bitmap.Height,
-					screenIndex = screenIndex,
+					width = (short)bitmap.Width,
+					height = (short)bitmap.Height,
+					screenIndex = (short)screenIndex,
 					format = bitmap.PixelFormat
 				};
 				

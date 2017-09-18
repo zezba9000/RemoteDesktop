@@ -40,16 +40,19 @@ namespace RemoteDesktop.Client
 		private IntPtr bitmapBackbuffer;
 		private MetaData metaData;
 		private MemoryStream gzipStream;
-		private bool skipImageUpdate, processingFrame;
+		private bool skipImageUpdate, processingFrame, isDisposed;
 		private UIStates uiState = UIStates.Stopped;
 
 		public MainWindow()
 		{
 			InitializeComponent();
+			image.MouseMove += Image_MouseMove;
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
 		{
+			isDisposed = true;
+
 			if (networkDiscovery != null)
 			{
 				networkDiscovery.Dispose();
@@ -86,6 +89,25 @@ namespace RemoteDesktop.Client
 			base.OnLocationChanged(e);
 		}
 
+		private void Image_MouseMove(object sender, MouseEventArgs e)
+		{
+			var point = e.GetPosition(image);
+			byte mouseButton = 0;
+			if (e.LeftButton == MouseButtonState.Pressed) mouseButton = 1;
+			else if (e.RightButton == MouseButtonState.Pressed) mouseButton = 2;
+			else if (e.MiddleButton == MouseButtonState.Pressed) mouseButton = 3;
+			var metaData = new MetaData()
+			{
+				type = MetaDataTypes.UpdateMouse,
+				mouseX = (short)point.X,
+				mouseY = (short)point.Y,
+				mouseButtonPressed = mouseButton,
+				dataSize = -1
+			};
+			
+			socket.SendMetaData(metaData);
+		}
+
 		private void Refresh()
 		{
 			networkDiscovery = new NetworkDiscovery(NetworkTypes.Client);
@@ -111,7 +133,7 @@ namespace RemoteDesktop.Client
 			notConnectedImage.Visibility = state == UIStates.Stopped ? Visibility.Visible : Visibility.Hidden;
 			if (state == UIStates.Stopped)
 			{
-				while (processingFrame) Thread.Sleep(1);
+				while (processingFrame && !isDisposed) Thread.Sleep(1);
 				bitmap.Lock();
 				Utils.RtlZeroMemory(bitmap.BackBuffer, (IntPtr)metaData.imageDataSize);
 				bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
@@ -270,8 +292,8 @@ namespace RemoteDesktop.Client
 
 		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
 		{
-			while ((!processingFrame || bitmapBackbuffer == IntPtr.Zero) && uiState == UIStates.Streaming) Thread.Sleep(1);
-			if (uiState != UIStates.Streaming) return;
+			while ((!processingFrame || bitmapBackbuffer == IntPtr.Zero) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
+			if (uiState != UIStates.Streaming || isDisposed) return;
 
 			if (metaData.compressed)
 			{
