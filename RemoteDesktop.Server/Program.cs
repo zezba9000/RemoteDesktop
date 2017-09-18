@@ -156,7 +156,7 @@ namespace RemoteDesktop.Server
 						if (timer == null)
 						{
 							timer = new Timer();
-							timer.Interval = 1000 / 30;
+							timer.Interval = 1000 / 15;
 							timer.Tick += Timer_Tick;
 						}
 					
