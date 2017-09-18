@@ -98,6 +98,7 @@ namespace RemoteDesktop.Client
 				}
 
 				if (hosts.Count != 0) serverComboBox.SelectedIndex = 0;
+				refreshingGrid.Visibility = Visibility.Hidden;
 			});
 		}
 
@@ -143,6 +144,7 @@ namespace RemoteDesktop.Client
 			}
 
 			// handle refresh
+			refreshingGrid.Visibility = Visibility.Visible;
 			var thread = new Thread(Refresh);
 			thread.Start();
 		}
