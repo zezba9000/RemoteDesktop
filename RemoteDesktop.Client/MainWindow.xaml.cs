@@ -57,7 +57,7 @@ namespace RemoteDesktop.Client
 			image.MouseDown += Image_MousePress;
 			image.MouseUp += Image_MousePress;
 			image.MouseWheel += Image_MouseWheel;
-			KeyDown += Image_KeyDown;
+			KeyDown += Window_KeyDown;
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
@@ -174,7 +174,7 @@ namespace RemoteDesktop.Client
 			}
 		}
 		
-		private void Image_KeyDown(object sender, KeyEventArgs e)
+		private void Window_KeyDown(object sender, KeyEventArgs e)
 		{
 			lock (this)
 			{
@@ -201,7 +201,7 @@ namespace RemoteDesktop.Client
 					specialKeyCode = specialKeyCode,
 					dataSize = -1
 				};
-
+				
 				socket.SendMetaData(metaData);
 				e.Handled = true;
 			}

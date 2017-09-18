@@ -510,7 +510,7 @@ namespace RemoteDesktop.Core
 					format = bitmap.PixelFormat
 				};
 				
-				SendMetaData(metaData);
+				SendMetaDataInternal(metaData);
 
 				// send bitmap data
 				if (compress)
@@ -534,11 +534,20 @@ namespace RemoteDesktop.Core
 			}
 		}
 
-		public unsafe void SendMetaData(MetaData metaData)
+		private unsafe void SendMetaDataInternal(MetaData metaData)
 		{
 			var binaryMetaData = (byte*)&metaData;
 			Marshal.Copy(new IntPtr(binaryMetaData), metaDataBuffer, 0, metaDataSize);
 			SendBinary(metaDataBuffer);
+		}
+
+		public void SendMetaData(MetaData metaData)
+		{
+			try
+			{
+				SendMetaDataInternal(metaData);
+			}
+			catch {}
 		}
 
 		private static bool IsConnected(Socket socket)
