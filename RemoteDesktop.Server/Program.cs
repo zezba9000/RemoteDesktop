@@ -181,8 +181,10 @@ namespace RemoteDesktop.Server
 				}
 				else if (metaData.type == MetaDataTypes.UpdateMouse)
 				{
+					// mouse pos
 					Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
 					
+					// mouse clicks
 					if (inputLastMouseState != metaData.mouseButtonPressed)
 					{
 						// handle state changes
@@ -197,6 +199,9 @@ namespace RemoteDesktop.Server
 						else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
 						else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
 					}
+
+					// mouse scroll wheel
+					if (metaData.mouseScroll != 0) input.Mouse.VerticalScroll(metaData.mouseScroll);
 					
 					// finish
 					inputLastMouseState = metaData.mouseButtonPressed;

@@ -45,6 +45,7 @@ namespace RemoteDesktop.Client
 
 		private Timer inputTimer;
 		private Point mousePoint;
+		private short mouseScroll, mouseScrollCount;
 		private byte inputMouseButtonPressed, inputKeyboardButtonPressed;
 
 		public MainWindow()
@@ -55,6 +56,7 @@ namespace RemoteDesktop.Client
 			image.MouseMove += Image_MouseMove;
 			image.MouseDown += Image_MousePress;
 			image.MouseUp += Image_MousePress;
+			image.MouseWheel += Image_MouseWheel;
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
@@ -116,13 +118,26 @@ namespace RemoteDesktop.Client
 						type = MetaDataTypes.UpdateMouse,
 						mouseX = (short)((mousePoint.X / image.ActualWidth) * bitmap.PixelWidth),
 						mouseY = (short)((mousePoint.Y / image.ActualHeight) * bitmap.PixelHeight),
+						mouseScroll = mouseScroll,
 						mouseButtonPressed = inputMouseButtonPressed,
 						dataSize = -1
 					};
 
 					socket.SendMetaData(metaData);
 				});
+				
+				if (mouseScrollCount == 0) mouseScroll = 0;
+				else --mouseScrollCount;
 			}
+		}
+
+		private void ApplyCommonMouseEvent(MouseEventArgs e)
+		{
+			mousePoint = e.GetPosition(image);
+			inputMouseButtonPressed = 0;
+			if (e.LeftButton == MouseButtonState.Pressed) inputMouseButtonPressed = 1;
+			else if (e.RightButton == MouseButtonState.Pressed) inputMouseButtonPressed = 2;
+			else if (e.MiddleButton == MouseButtonState.Pressed) inputMouseButtonPressed = 3;
 		}
 
 		private void Image_MouseMove(object sender, MouseEventArgs e)
@@ -130,13 +145,9 @@ namespace RemoteDesktop.Client
 			lock (this)
 			{
 				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
-
-				mousePoint = e.GetPosition(image);
-
-				inputMouseButtonPressed = 0;
-				if (e.LeftButton == MouseButtonState.Pressed) inputMouseButtonPressed = 1;
-				else if (e.RightButton == MouseButtonState.Pressed) inputMouseButtonPressed = 2;
-				else if (e.MiddleButton == MouseButtonState.Pressed) inputMouseButtonPressed = 3;;
+				ApplyCommonMouseEvent(e);
+				mouseScroll = 0;
+				mouseScrollCount = 0;
 			}
 		}
 
@@ -145,13 +156,20 @@ namespace RemoteDesktop.Client
 			lock (this)
 			{
 				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
+				ApplyCommonMouseEvent(e);
+				mouseScroll = 0;
+				mouseScrollCount = 0;
+			}
+		}
 
-				mousePoint = e.GetPosition(image);
-
-				inputMouseButtonPressed = 0;
-				if (e.LeftButton == MouseButtonState.Pressed) inputMouseButtonPressed = 1;
-				else if (e.RightButton == MouseButtonState.Pressed) inputMouseButtonPressed = 2;
-				else if (e.MiddleButton == MouseButtonState.Pressed) inputMouseButtonPressed = 3;
+		private void Image_MouseWheel(object sender, MouseWheelEventArgs e)
+		{
+			lock (this)
+			{
+				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
+				ApplyCommonMouseEvent(e);
+				mouseScroll = (short)e.Delta;
+				++mouseScrollCount;
 			}
 		}
 

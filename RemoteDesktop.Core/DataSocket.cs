@@ -42,7 +42,7 @@ namespace RemoteDesktop.Core
 		public short width, height, screenIndex;
 		public PixelFormat format;
 
-		public short mouseX, mouseY;
+		public short mouseX, mouseY, mouseScroll;
 		public byte mouseButtonPressed, keyCode;
 	}
 
