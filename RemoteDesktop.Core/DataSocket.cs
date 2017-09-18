@@ -146,7 +146,12 @@ namespace RemoteDesktop.Core
 
 				if (!IsConnected())
 				{
-					disconnectionTimer.Dispose();
+					if (disconnectionTimer != null)
+					{
+						disconnectionTimer.Dispose();
+						disconnectionTimer = null;
+					}
+
 					FireDisconnectedCallback();
 				}
 			}
