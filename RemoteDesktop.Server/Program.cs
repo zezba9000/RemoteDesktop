@@ -188,13 +188,11 @@ namespace RemoteDesktop.Server
 					if (inputLastMouseState != metaData.mouseButtonPressed)
 					{
 						// handle state changes
-						Console.WriteLine("Last State: " + inputLastMouseState);
 						if (inputLastMouseState == 1) input.Mouse.LeftButtonUp();
 						else if (inputLastMouseState == 2) input.Mouse.RightButtonUp();
 						else if (inputLastMouseState == 3) input.Mouse.XButtonUp(2);
 
 						// handle new state
-						Console.WriteLine("New State: " + metaData.mouseButtonPressed);
 						if (metaData.mouseButtonPressed == 1) input.Mouse.LeftButtonDown();
 						else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
 						else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
