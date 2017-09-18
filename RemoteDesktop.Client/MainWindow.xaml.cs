@@ -40,7 +40,7 @@ namespace RemoteDesktop.Client
 		private IntPtr bitmapBackbuffer;
 		private MetaData metaData;
 		private MemoryStream gzipStream;
-		private bool skipImageUpdate;
+		private bool skipImageUpdate, processingFrame;
 		private UIStates uiState = UIStates.Stopped;
 
 		public MainWindow()
@@ -110,6 +110,7 @@ namespace RemoteDesktop.Client
 			notConnectedImage.Visibility = state == UIStates.Stopped ? Visibility.Visible : Visibility.Hidden;
 			if (state == UIStates.Stopped)
 			{
+				while (processingFrame) Thread.Sleep(1);
 				unsafe
 				{
 					bitmap.Lock();
@@ -124,7 +125,7 @@ namespace RemoteDesktop.Client
 		private void refreshButton_Click(object sender, RoutedEventArgs e)
 		{
 			// handle stop
-			if (uiState == UIStates.Streaming)
+			if (uiState == UIStates.Streaming || uiState == UIStates.Paused)
 			{
 				SetConnectionUIStates(UIStates.Stopped);
 				var metaData = new MetaData()
@@ -202,7 +203,7 @@ namespace RemoteDesktop.Client
 		{
 			switch (format)
 			{
-				case System.Drawing.Imaging.PixelFormat.Format24bppRgb: return PixelFormats.Rgb24;
+				case System.Drawing.Imaging.PixelFormat.Format24bppRgb: return PixelFormats.Bgr24;
 				case System.Drawing.Imaging.PixelFormat.Format16bppRgb565: return PixelFormats.Bgr565;
 				default: throw new Exception("Unsuported format: " + format);
 			}
@@ -210,7 +211,7 @@ namespace RemoteDesktop.Client
 
 		private System.Drawing.Imaging.PixelFormat ConvertPixelFormat(PixelFormat format)
 		{
-			if (format == PixelFormats.Rgb24) return System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+			if (format == PixelFormats.Bgr24) return System.Drawing.Imaging.PixelFormat.Format24bppRgb;
 			else if (format == PixelFormats.Bgr565) return System.Drawing.Imaging.PixelFormat.Format16bppRgb565;
 			else throw new Exception("Unsuported format: " + format);
 		}
@@ -219,6 +220,8 @@ namespace RemoteDesktop.Client
 		{
 			if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 			this.metaData = metaData;
+
+			processingFrame = true;
 
 			// init compression
 			if (metaData.compressed)
@@ -254,19 +257,22 @@ namespace RemoteDesktop.Client
 					gzip.CopyTo(bitmapStream);
 				}
 			}
-
-			bitmapBackbuffer = IntPtr.Zero;
+			
 			Dispatcher.InvokeAsync(delegate()
 			{
 				if (!skipImageUpdate) bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
 				else skipImageUpdate = false;
+				
 				bitmap.Unlock();
+				bitmapBackbuffer = IntPtr.Zero;
 			});
+
+			processingFrame = false;
 		}
 
 		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
 		{
-			while (bitmapBackbuffer == IntPtr.Zero && uiState == UIStates.Streaming) Thread.Sleep(1);
+			while ((!processingFrame || bitmapBackbuffer == IntPtr.Zero) && uiState == UIStates.Streaming) Thread.Sleep(1);
 			if (uiState != UIStates.Streaming) return;
 
 			if (metaData.compressed)
@@ -275,6 +281,7 @@ namespace RemoteDesktop.Client
 			}
 			else
 			{
+				//for (int i = 0; i != data.Length; ++i) data[i] = 127;
 				Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
 			}
 		}
@@ -289,9 +296,9 @@ namespace RemoteDesktop.Client
 			var metaData = new MetaData()
 			{
 				type = MetaDataTypes.StartCapture,
-				compressed = false,
+				compressed = true,
 				screenIndex = 0,
-				format = System.Drawing.Imaging.PixelFormat.Format24bppRgb,
+				format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
 				dataSize = -1
 			};
 			
