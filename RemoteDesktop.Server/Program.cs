@@ -174,6 +174,9 @@ namespace RemoteDesktop.Server
 				else if (metaData.type == MetaDataTypes.UpdateMouse)
 				{
 					Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
+					if (metaData.mouseButtonPressed == 1) InputUtils.DoClickMouse(1);
+					else if (metaData.mouseButtonPressed == 2) InputUtils.DoClickMouse(2);
+					else if (metaData.mouseButtonPressed == 3) InputUtils.DoClickMouse(3);
 				}
 			}
 		}
