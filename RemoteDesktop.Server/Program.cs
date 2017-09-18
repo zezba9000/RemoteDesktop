@@ -55,7 +55,7 @@ namespace RemoteDesktop.Server
 		private Dispatcher dispatcher;
 
 		private InputSimulator input;
-		private byte inputLastMouseState, inputLastKeyboardState;
+		private byte inputLastMouseState;
 
 		public MainApplicationContext(int port)
 		{
@@ -200,17 +200,13 @@ namespace RemoteDesktop.Server
 
 					// mouse scroll wheel
 					if (metaData.mouseScroll != 0) input.Mouse.VerticalScroll(metaData.mouseScroll);
-
-					// keyboard presses
-					//if (inputLastKeyboardState != metaData.keyCode)
-					{
-						// handle state changes
-						if (metaData.keyCode != 0) input.Keyboard.KeyPress(VirtualKeyCode.VK_A);
-					}
 					
 					// finish
 					inputLastMouseState = metaData.mouseButtonPressed;
-					inputLastKeyboardState = metaData.keyCode;
+				}
+				else if (metaData.type == MetaDataTypes.UpdateKeyboard)
+				{
+					if (metaData.keyCode != 0) input.Keyboard.KeyPress(VirtualKeyCode.VK_A);
 				}
 			}
 		}
