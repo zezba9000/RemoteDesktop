@@ -45,8 +45,8 @@ namespace RemoteDesktop.Client
 
 		private Timer inputTimer;
 		private Point mousePoint;
-		private short mouseScroll, mouseScrollCount;
-		private byte inputMouseButtonPressed, inputKeyboardButtonPressed;
+		private sbyte mouseScroll;
+		private byte mouseScrollCount, inputMouseButtonPressed;
 
 		public MainWindow()
 		{
@@ -57,6 +57,7 @@ namespace RemoteDesktop.Client
 			image.MouseDown += Image_MousePress;
 			image.MouseUp += Image_MousePress;
 			image.MouseWheel += Image_MouseWheel;
+			KeyDown += Image_KeyDown;
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
@@ -168,8 +169,24 @@ namespace RemoteDesktop.Client
 			{
 				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
 				ApplyCommonMouseEvent(e);
-				mouseScroll = (short)(e.Delta / 120);
+				mouseScroll = (sbyte)(e.Delta / 120);
 				++mouseScrollCount;
+			}
+		}
+		
+		private void Image_KeyDown(object sender, KeyEventArgs e)
+		{
+			lock (this)
+			{
+				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
+				
+				var metaData = new MetaData()
+				{
+					type = MetaDataTypes.UpdateKeyboard,
+					keyCode = (byte)e.Key
+				};
+
+				socket.SendMetaData(metaData);
 			}
 		}
 
