@@ -111,14 +111,10 @@ namespace RemoteDesktop.Client
 			if (state == UIStates.Stopped)
 			{
 				while (processingFrame) Thread.Sleep(1);
-				unsafe
-				{
-					bitmap.Lock();
-					var buffer = (byte*)bitmap.BackBuffer;
-					for (int i = 0; i != metaData.imageDataSize; ++i) buffer[i] = 255;
-					bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
-					bitmap.Unlock();
-				}
+				bitmap.Lock();
+				Utils.RtlZeroMemory(bitmap.BackBuffer, (IntPtr)metaData.imageDataSize);
+				bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+				bitmap.Unlock();
 			}
 		}
 
@@ -248,7 +244,7 @@ namespace RemoteDesktop.Client
 
 		private unsafe void Socket_EndDataRecievedCallback()
 		{
-			if (metaData.compressed)
+			if (metaData.compressed && uiState == UIStates.Streaming)
 			{
 				gzipStream.Position = 0;
 				using (var bitmapStream = new UnmanagedMemoryStream((byte*)bitmapBackbuffer, metaData.imageDataSize, metaData.imageDataSize, FileAccess.Write))
@@ -281,7 +277,6 @@ namespace RemoteDesktop.Client
 			}
 			else
 			{
-				//for (int i = 0; i != data.Length; ++i) data[i] = 127;
 				Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
 			}
 		}

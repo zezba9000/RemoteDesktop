@@ -66,6 +66,7 @@ namespace RemoteDesktop.Core
 		private int metaDataBufferRead;
 		private readonly int metaDataSize;
 		private MetaData metaData;
+		private MemoryStream compressedStream;
 
 		public DataSocket(NetworkTypes type)
 		{
@@ -124,6 +125,13 @@ namespace RemoteDesktop.Core
 					socket.Close();
 					socket.Dispose();
 					socket = null;
+				}
+
+				// dispose compression stream
+				if (compressedStream != null)
+				{
+					compressedStream.Dispose();
+					compressedStream = null;
 				}
 
 				// null types
@@ -421,7 +429,7 @@ namespace RemoteDesktop.Core
 			do
 			{
 				int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
-				for (int i = 0; i != writeSize; ++i) sendBuffer[i] = data[i + offset];
+				Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
 				int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
 				if (dataRead == 0) break;
 				offset += dataRead;
@@ -429,11 +437,26 @@ namespace RemoteDesktop.Core
 			}
 			while (size != 0);
 		}
-		
+
+		private void SendStream(Stream stream)
+		{
+			if (stream == null || stream.Length == 0) throw new Exception("Invalid stream size");
+			int size = (int)stream.Length, offset = 0;
+			do
+			{
+				int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
+				writeSize = stream.Read(sendBuffer, 0, writeSize);
+				int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
+				if (dataRead == 0) break;
+				offset += dataRead;
+				size -= dataRead;
+			}
+			while (size != 0);
+		}
+
 		public unsafe void SendImage(Bitmap bitmap, int screenIndex, bool compress)
 		{
 			BitmapData locked = null;
-			MemoryStream compressedStream = null;
 			try
 			{
 				// get data length
@@ -453,7 +476,8 @@ namespace RemoteDesktop.Core
 				// compress if needed
 				if (compress)
 				{
-					compressedStream = new MemoryStream();
+					if (compressedStream == null) compressedStream = new MemoryStream();
+					else compressedStream.SetLength(0);
 					using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
 					using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
 					{
@@ -483,7 +507,7 @@ namespace RemoteDesktop.Core
 				if (compress)
 				{
 					compressedStream.Position = 0;
-					SendBinary(compressedStream.ToArray());// TODO: send stream directly
+					SendStream(compressedStream);
 				}
 				else
 				{
@@ -498,14 +522,13 @@ namespace RemoteDesktop.Core
 			finally
 			{
 				if (locked != null) bitmap.UnlockBits(locked);
-				if (compressedStream != null) compressedStream.Dispose();
 			}
 		}
 
 		public unsafe void SendMetaData(MetaData metaData)
 		{
 			var binaryMetaData = (byte*)&metaData;
-			for (int i = 0; i != metaDataSize; ++i) metaDataBuffer[i] = binaryMetaData[i];
+			Marshal.Copy(new IntPtr(binaryMetaData), metaDataBuffer, 0, metaDataSize);
 			SendBinary(metaDataBuffer);
 		}
 
