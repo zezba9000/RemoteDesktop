@@ -68,7 +68,7 @@ namespace RemoteDesktop.Core
 		private bool isDisposed, disconnected;
 		private Timer disconnectionTimer;
 		
-		private byte[] receiveBuffer, sendBuffer, metaDataSizeBuffer, metaDataBuffer;
+		private byte[] receiveBuffer, sendBuffer, metaDataBuffer;
 		private int metaDataBufferRead;
 		private readonly int metaDataSize;
 		private MetaData metaData;
@@ -81,7 +81,6 @@ namespace RemoteDesktop.Core
 			receiveBuffer = new byte[1024];
 			sendBuffer = new byte[1024];
 			metaDataSize = Marshal.SizeOf<MetaData>();
-			metaDataSizeBuffer = new byte[metaDataSize];
 			metaDataBuffer = new byte[metaDataSize];
 		}
 
@@ -142,7 +141,7 @@ namespace RemoteDesktop.Core
 
 				// null types
 				receiveBuffer = null;
-				metaDataSizeBuffer = null;
+				sendBuffer = null;
 				metaDataBuffer = null;
 			}
 		}
@@ -165,6 +164,11 @@ namespace RemoteDesktop.Core
 						disconnectionTimer.Dispose();
 						disconnectionTimer = null;
 					}
+
+					metaDataBufferRead = 0;
+					Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
+					Array.Clear(sendBuffer, 0, sendBuffer.Length);
+					Array.Clear(metaDataBuffer, 0, metaDataBuffer.Length);
 
 					FireDisconnectedCallback();
 				}
@@ -323,7 +327,7 @@ namespace RemoteDesktop.Core
 					if (metaDataBufferRead < metaDataSize)
 					{
 						int count = Math.Min(metaDataSize - metaDataBufferRead, bytesRead);
-						Array.Copy(receiveBuffer, 0, metaDataSizeBuffer, metaDataBufferRead, count);
+						Array.Copy(receiveBuffer, 0, metaDataBuffer, metaDataBufferRead, count);
 						metaDataBufferRead += count;
 					
 						if (bytesRead < metaDataSize)
@@ -338,7 +342,7 @@ namespace RemoteDesktop.Core
 							overflow = bytesRead;
 
 							// create meta data object
-							var handle = GCHandle.Alloc(metaDataSizeBuffer, GCHandleType.Pinned);
+							var handle = GCHandle.Alloc(metaDataBuffer, GCHandleType.Pinned);
 							metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
 							handle.Free();
 							if (metaData.dataSize == 0) throw new Exception("Invalid data size");
@@ -571,12 +575,6 @@ namespace RemoteDesktop.Core
 
 		private void FireDisconnectedCallback()
 		{
-			if (disconnectionTimer != null)
-			{
-				disconnectionTimer.Dispose();
-				disconnectionTimer = null;
-			}
-
 			if (DisconnectedCallback != null) DisconnectedCallback();
 		}
 
