@@ -127,7 +127,7 @@ namespace RemoteDesktop.Client
 				else if (e.RightButton == MouseButtonState.Pressed) mouseButton = 2;
 				else if (e.MiddleButton == MouseButtonState.Pressed) mouseButton = 3;
 
-				if (e.LeftButton == MouseButtonState.Released) mouseButton = 4;
+				else if (e.LeftButton == MouseButtonState.Released) mouseButton = 4;
 				else if (e.RightButton == MouseButtonState.Released) mouseButton = 5;
 				else if (e.MiddleButton == MouseButtonState.Released) mouseButton = 6;
 
