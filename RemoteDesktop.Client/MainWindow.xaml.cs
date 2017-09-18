@@ -183,7 +183,8 @@ namespace RemoteDesktop.Client
 				var metaData = new MetaData()
 				{
 					type = MetaDataTypes.UpdateKeyboard,
-					keyCode = (byte)e.Key
+					keyCode = (byte)e.Key,
+					dataSize = -1
 				};
 
 				socket.SendMetaData(metaData);
