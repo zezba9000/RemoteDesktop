@@ -168,7 +168,7 @@ namespace RemoteDesktop.Client
 			{
 				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
 				ApplyCommonMouseEvent(e);
-				mouseScroll = (short)e.Delta;
+				mouseScroll = (short)(e.Delta / 120);
 				++mouseScrollCount;
 			}
 		}
