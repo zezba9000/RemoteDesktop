@@ -44,7 +44,7 @@ namespace RemoteDesktop.Core
 
 		public short mouseX, mouseY;
 		public sbyte mouseScroll;
-		public byte mouseButtonPressed, keyCode;
+		public byte mouseButtonPressed, keyCode, specialKeyCode;
 	}
 
 	public class DataSocket : IDisposable

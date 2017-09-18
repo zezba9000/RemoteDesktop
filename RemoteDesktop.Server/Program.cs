@@ -319,10 +319,18 @@ namespace RemoteDesktop.Server
 				}
 				else if (metaData.type == MetaDataTypes.UpdateKeyboard)
 				{
+					VirtualKeyCode specialKey = 0;
+					if (metaData.specialKeyCode != 0)
+					{
+						specialKey = ConvertKeyCode((Key)metaData.specialKeyCode);
+						if (specialKey != 0) input.Keyboard.KeyDown(specialKey);
+					}
+
 					if (metaData.keyCode != 0)
 					{
 						var key = ConvertKeyCode((Key)metaData.keyCode);
 						if (key != 0) input.Keyboard.KeyPress(key);
+						if (specialKey != 0) input.Keyboard.KeyUp(specialKey);
 					}
 				}
 			}

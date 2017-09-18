@@ -180,14 +180,30 @@ namespace RemoteDesktop.Client
 			{
 				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
 				
+				byte specialKeyCode = 0, keycode = (byte)e.Key;
+
+				// get special key
+				if (Keyboard.IsKeyDown(Key.LeftShift)) specialKeyCode = (byte)Key.LeftShift;
+				else if (Keyboard.IsKeyDown(Key.RightShift)) specialKeyCode = (byte)Key.RightShift;
+				else if (Keyboard.IsKeyDown(Key.LeftCtrl)) specialKeyCode = (byte)Key.LeftCtrl;
+				else if (Keyboard.IsKeyDown(Key.RightCtrl)) specialKeyCode = (byte)Key.RightCtrl;
+				else if (Keyboard.IsKeyDown(Key.LeftAlt)) specialKeyCode = (byte)Key.LeftAlt;
+				else if (Keyboard.IsKeyDown(Key.RightAlt)) specialKeyCode = (byte)Key.RightAlt;
+
+				// make sure special key isn't the same as normal key
+				if (specialKeyCode == keycode) specialKeyCode = 0;
+
+				// send key event
 				var metaData = new MetaData()
 				{
 					type = MetaDataTypes.UpdateKeyboard,
-					keyCode = (byte)e.Key,
+					keyCode = (byte)keycode,
+					specialKeyCode = specialKeyCode,
 					dataSize = -1
 				};
 
 				socket.SendMetaData(metaData);
+				e.Handled = true;
 			}
 		}
 
