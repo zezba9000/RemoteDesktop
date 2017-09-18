@@ -11,6 +11,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Threading;
+using WindowsInput;
+using WindowsInput.Native;
 
 namespace RemoteDesktop.Server
 {
@@ -51,6 +53,7 @@ namespace RemoteDesktop.Server
 		bool compress;
 		private Timer timer;
 		private Dispatcher dispatcher;
+		private InputSimulator input;
 
 		public MainApplicationContext(int port)
 		{
@@ -66,6 +69,9 @@ namespace RemoteDesktop.Server
 				ContextMenu = new ContextMenu(menuItems),
 				Visible = true
 			};
+
+			// init input simulation
+			input = new InputSimulator();
 
 			// star socket
 			dispatcher = Dispatcher.CurrentDispatcher;
@@ -150,7 +156,7 @@ namespace RemoteDesktop.Server
 						if (timer == null)
 						{
 							timer = new Timer();
-							timer.Interval = 1000 / 30;
+							timer.Interval = 1000;// / 30;
 							timer.Tick += Timer_Tick;
 						}
 					
@@ -174,9 +180,14 @@ namespace RemoteDesktop.Server
 				else if (metaData.type == MetaDataTypes.UpdateMouse)
 				{
 					Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
-					if (metaData.mouseButtonPressed == 1) InputUtils.DoClickMouse(1);
-					else if (metaData.mouseButtonPressed == 2) InputUtils.DoClickMouse(2);
-					else if (metaData.mouseButtonPressed == 3) InputUtils.DoClickMouse(3);
+
+					if (metaData.mouseButtonPressed == 1) input.Mouse.LeftButtonDown();
+					else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
+					else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
+
+					else if (metaData.mouseButtonPressed == 4) input.Mouse.LeftButtonUp();
+					else if (metaData.mouseButtonPressed == 5) input.Mouse.RightButtonUp();
+					else if (metaData.mouseButtonPressed == 6) input.Mouse.XButtonUp(2);
 				}
 			}
 		}

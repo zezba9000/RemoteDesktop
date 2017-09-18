@@ -47,6 +47,7 @@ namespace RemoteDesktop.Client
 		{
 			InitializeComponent();
 			image.MouseMove += Image_MouseMove;
+			image.MouseDown += Image_MouseDown;
 		}
 
 		protected override void OnClosing(CancelEventArgs e)
@@ -91,21 +92,56 @@ namespace RemoteDesktop.Client
 
 		private void Image_MouseMove(object sender, MouseEventArgs e)
 		{
-			var point = e.GetPosition(image);
-			byte mouseButton = 0;
-			if (e.LeftButton == MouseButtonState.Pressed) mouseButton = 1;
-			else if (e.RightButton == MouseButtonState.Pressed) mouseButton = 2;
-			else if (e.MiddleButton == MouseButtonState.Pressed) mouseButton = 3;
-			var metaData = new MetaData()
+			lock (this)
 			{
-				type = MetaDataTypes.UpdateMouse,
-				mouseX = (short)((point.X / image.ActualWidth) * bitmap.PixelWidth),
-				mouseY = (short)((point.Y / image.ActualHeight) * bitmap.PixelHeight),
-				mouseButtonPressed = mouseButton,
-				dataSize = -1
-			};
-			
-			socket.SendMetaData(metaData);
+				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
+
+				//var point = e.GetPosition(image);
+				//byte mouseButton = 0;
+				//if (e.LeftButton == MouseButtonState.Pressed) mouseButton = 1;
+				//else if (e.RightButton == MouseButtonState.Pressed) mouseButton = 2;
+				//else if (e.MiddleButton == MouseButtonState.Pressed) mouseButton = 3;
+				//var metaData = new MetaData()
+				//{
+				//	type = MetaDataTypes.UpdateMouse,
+				//	mouseX = (short)((point.X / image.ActualWidth) * bitmap.PixelWidth),
+				//	mouseY = (short)((point.Y / image.ActualHeight) * bitmap.PixelHeight),
+				//	mouseButtonPressed = mouseButton,
+				//	dataSize = -1
+				//};
+
+				//socket.SendMetaData(metaData);
+			}
+		}
+
+		private void Image_MouseDown(object sender, MouseButtonEventArgs e)
+		{
+			lock (this)
+			{
+				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
+
+				var point = e.GetPosition(image);
+
+				byte mouseButton = 0;
+				if (e.LeftButton == MouseButtonState.Pressed) mouseButton = 1;
+				else if (e.RightButton == MouseButtonState.Pressed) mouseButton = 2;
+				else if (e.MiddleButton == MouseButtonState.Pressed) mouseButton = 3;
+
+				if (e.LeftButton == MouseButtonState.Released) mouseButton = 4;
+				else if (e.RightButton == MouseButtonState.Released) mouseButton = 5;
+				else if (e.MiddleButton == MouseButtonState.Released) mouseButton = 6;
+
+				var metaData = new MetaData()
+				{
+					type = MetaDataTypes.UpdateMouse,
+					mouseX = (short)((point.X / image.ActualWidth) * bitmap.PixelWidth),
+					mouseY = (short)((point.Y / image.ActualHeight) * bitmap.PixelHeight),
+					mouseButtonPressed = mouseButton,
+					dataSize = -1
+				};
+
+				socket.SendMetaData(metaData);
+			}
 		}
 
 		private void Refresh()
