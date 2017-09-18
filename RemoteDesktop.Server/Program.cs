@@ -53,7 +53,9 @@ namespace RemoteDesktop.Server
 		bool compress;
 		private Timer timer;
 		private Dispatcher dispatcher;
+
 		private InputSimulator input;
+		private byte inputLastMouseState;
 
 		public MainApplicationContext(int port)
 		{
@@ -180,14 +182,24 @@ namespace RemoteDesktop.Server
 				else if (metaData.type == MetaDataTypes.UpdateMouse)
 				{
 					Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
+					
+					if (inputLastMouseState != metaData.mouseButtonPressed)
+					{
+						// handle state changes
+						Console.WriteLine("Last State: " + inputLastMouseState);
+						if (inputLastMouseState == 1) input.Mouse.LeftButtonUp();
+						else if (inputLastMouseState == 2) input.Mouse.RightButtonUp();
+						else if (inputLastMouseState == 3) input.Mouse.XButtonUp(2);
 
-					if (metaData.mouseButtonPressed == 1) input.Mouse.LeftButtonDown();
-					else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
-					else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
-
-					else if (metaData.mouseButtonPressed == 4) input.Mouse.LeftButtonUp();
-					else if (metaData.mouseButtonPressed == 5) input.Mouse.RightButtonUp();
-					else if (metaData.mouseButtonPressed == 6) input.Mouse.XButtonUp(2);
+						// handle new state
+						Console.WriteLine("New State: " + metaData.mouseButtonPressed);
+						if (metaData.mouseButtonPressed == 1) input.Mouse.LeftButtonDown();
+						else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
+						else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
+					}
+					
+					// finish
+					inputLastMouseState = metaData.mouseButtonPressed;
 				}
 			}
 		}
