@@ -346,15 +346,15 @@ namespace RemoteDesktop.Core
 						if (state.size == 0) throw new Exception("Invalid chunk size");
 					
 						state.bytesRead += bytesRead;
-						overflow = (int)(state.bytesRead - state.size);
+						overflow = state.bytesRead - state.size;
 						state.bytesRead = Math.Min(state.bytesRead, state.size);
-						FireDataRecievedCallback(receiveBuffer, (int)state.bytesRead, 0);
+						FireDataRecievedCallback(receiveBuffer, state.bytesRead, 0);
 					}
 					else
 					{
 						int offset = state.bytesRead;
 						state.bytesRead += bytesRead;
-						overflow = (int)(state.bytesRead - state.size);
+						overflow = state.bytesRead - state.size;
 						state.bytesRead = Math.Min(state.bytesRead, state.size);
 						int byteCount = (overflow > 0) ? bytesRead - overflow : bytesRead;
 						FireDataRecievedCallback(receiveBuffer, byteCount, offset);
@@ -476,7 +476,7 @@ namespace RemoteDesktop.Core
 				if (compress)
 				{
 					compressedStream.Position = 0;
-					SendBinary(compressedStream.ToArray());
+					SendBinary(compressedStream.ToArray());// TODO: send stream directly
 				}
 				else
 				{
