@@ -63,7 +63,7 @@ namespace RemoteDesktop.Core
 		private Timer disconnectionTimer;
 		
 		private byte[] receiveBuffer, sendBuffer, metaDataSizeBuffer, metaDataBuffer;
-		private int segmentSizeBufferRead;
+		private int metaDataBufferRead;
 		private readonly int metaDataSize;
 		private MetaData metaData;
 
@@ -303,17 +303,17 @@ namespace RemoteDesktop.Core
 				if (bytesRead > 0)
 				{
 					EXTRA_STREAM:;
+					int overflow = 0;
 
 					// read meta data
-					if (segmentSizeBufferRead < metaDataSize)
+					if (metaDataBufferRead < metaDataSize)
 					{
-						int count = Math.Min(metaDataSize - segmentSizeBufferRead, bytesRead);
-						Array.Copy(receiveBuffer, 0, metaDataSizeBuffer, segmentSizeBufferRead, count);
-						segmentSizeBufferRead += count;
+						int count = Math.Min(metaDataSize - metaDataBufferRead, bytesRead);
+						Array.Copy(receiveBuffer, 0, metaDataSizeBuffer, metaDataBufferRead, count);
+						metaDataBufferRead += count;
 					
 						if (bytesRead < metaDataSize)
 						{
-							Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
 							try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 							return;
 						}
@@ -326,69 +326,71 @@ namespace RemoteDesktop.Core
 							var handle = GCHandle.Alloc(metaDataSizeBuffer, GCHandleType.Pinned);
 							metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
 							handle.Free();
+							if (metaData.dataSize == 0) throw new Exception("Invalid data size");
+
+							// init data state
+							FireStartDataRecievedCallback(metaData);
+							state.size = metaData.dataSize;
+					
+							state.bytesRead += bytesRead;
+							overflow = state.bytesRead - Math.Max(state.size, 0);
+							state.bytesRead = Math.Min(state.bytesRead, state.size);
 
 							// check if message type (if so finish and exit)
 							if (metaData.dataSize == -1)
 							{
-								FireStartDataRecievedCallback(metaData);
 								FireEndDataRecievedCallback();
-								Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-								segmentSizeBufferRead = 0;
-								try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
+								metaDataBufferRead = 0;
+							}
+
+							// process remaining data
+							if (overflow > 0)
+							{
+								ReceiveBufferShiftDown(bytesRead - overflow);
+								bytesRead = overflow;
+								goto EXTRA_STREAM;
+							}
+							else
+							{
+								try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 								return;
 							}
 						}
 					}
-
-					// read full segment size or conintue to write normal data chunks
-					int overflow = 0;
-					if (state.size == 0)
-					{
-						FireStartDataRecievedCallback(metaData);
-
-						// get data size
-						state.size = metaData.dataSize;
-						if (state.size == 0) throw new Exception("Invalid chunk size");
 					
-						state.bytesRead += bytesRead;
-						overflow = state.bytesRead - state.size;
-						state.bytesRead = Math.Min(state.bytesRead, state.size);
-						FireDataRecievedCallback(receiveBuffer, state.bytesRead, 0);
-					}
-					else
-					{
-						int offset = state.bytesRead;
-						state.bytesRead += bytesRead;
-						overflow = state.bytesRead - state.size;
-						state.bytesRead = Math.Min(state.bytesRead, state.size);
-						int byteCount = (overflow > 0) ? bytesRead - overflow : bytesRead;
-						FireDataRecievedCallback(receiveBuffer, byteCount, offset);
-					}
+					// write data chunk
+					int offset = state.bytesRead;
+					state.bytesRead += bytesRead;
+					overflow = Math.Max(state.bytesRead - state.size, 0);
+					state.bytesRead = Math.Min(state.bytesRead, state.size);
+					int byteCount = bytesRead - overflow;
+					FireDataRecievedCallback(receiveBuffer, byteCount, offset);
 
 					// check if stream segment finished
 					if (state.bytesRead != state.size)
 					{
-						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
 						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
+						return;
 					}
-
-					// check overflow for additional stream segment
-					else if (overflow <= 0)
+					else
 					{
 						FireEndDataRecievedCallback();
-						Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-						segmentSizeBufferRead = 0;
-						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
 					}
 
 					// process remaining data
-					else
+					if (overflow > 0)
 					{
 						state = new ReceiveState();
 						ReceiveBufferShiftDown(bytesRead - overflow);
 						bytesRead = overflow;
-						segmentSizeBufferRead = 0;
+						metaDataBufferRead = 0;
 						goto EXTRA_STREAM;
+					}
+					else
+					{
+						metaDataBufferRead = 0;
+						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
+						return;
 					}
 				}
 				else
