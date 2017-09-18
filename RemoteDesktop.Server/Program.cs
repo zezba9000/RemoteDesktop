@@ -215,6 +215,7 @@ namespace RemoteDesktop.Server
 				case Key.LeftAlt: return VirtualKeyCode.LMENU;
 				case Key.RightAlt: return VirtualKeyCode.RMENU;
 
+				case Key.Back: return VirtualKeyCode.BACK;
 				case Key.Space: return VirtualKeyCode.SPACE;
 				case Key.Return: return VirtualKeyCode.RETURN;
 				case Key.Tab: return VirtualKeyCode.TAB;
