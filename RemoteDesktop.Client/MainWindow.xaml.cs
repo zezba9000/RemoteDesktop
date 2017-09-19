@@ -37,6 +37,7 @@ namespace RemoteDesktop.Client
 		private Thickness lastImageThickness;
 
 		private Timer inputTimer;
+		private bool mouseUpdate;
 		private Point mousePoint;
 		private sbyte mouseScroll;
 		private byte mouseScrollCount, inputMouseButtonPressed;
@@ -101,8 +102,12 @@ namespace RemoteDesktop.Client
 
 		private void InputUpdate(object state)
 		{
+
 			lock (this)
 			{
+				if (!mouseUpdate) return;
+				mouseUpdate = false;
+
 				if (connectedToLocalPC || isDisposed || uiState != UIStates.Streaming || socket == null || bitmap == null) return;
 
 				Dispatcher.InvokeAsync(delegate()
@@ -143,6 +148,7 @@ namespace RemoteDesktop.Client
 				ApplyCommonMouseEvent(e);
 				mouseScroll = 0;
 				mouseScrollCount = 0;
+				mouseUpdate = true;
 			}
 		}
 
@@ -153,6 +159,7 @@ namespace RemoteDesktop.Client
 				ApplyCommonMouseEvent(e);
 				mouseScroll = 0;
 				mouseScrollCount = 0;
+				mouseUpdate = true;
 			}
 		}
 
@@ -163,6 +170,7 @@ namespace RemoteDesktop.Client
 				ApplyCommonMouseEvent(e);
 				mouseScroll = (sbyte)(e.Delta / 120);
 				++mouseScrollCount;
+				mouseUpdate = true;
 			}
 		}
 		
@@ -226,10 +234,13 @@ namespace RemoteDesktop.Client
 			if (state == UIStates.Stopped)
 			{
 				while (processingFrame && !isDisposed) Thread.Sleep(1);
-				bitmap.Lock();
-				Utils.RtlZeroMemory(bitmap.BackBuffer, (IntPtr)metaData.imageDataSize);
-				bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
-				bitmap.Unlock();
+				if (bitmap != null)
+				{
+					bitmap.Lock();
+					Utils.RtlZeroMemory(bitmap.BackBuffer, (IntPtr)metaData.imageDataSize);
+					bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+					bitmap.Unlock();
+				}
 			}
 		}
 
@@ -408,7 +419,16 @@ namespace RemoteDesktop.Client
 
 		private void Socket_ConnectionFailedCallback(string error)
 		{
-			DebugLog.LogError("Failed to connect: " + error);
+			lock (this)
+			{
+				socket.Dispose();
+				socket = null;
+			}
+
+			Dispatcher.InvokeAsync(delegate()
+			{
+				SetConnectionUIStates(UIStates.Stopped);
+			});
 		}
 
 		private void Socket_ConnectedCallback()
@@ -417,7 +437,7 @@ namespace RemoteDesktop.Client
 			{
 				type = MetaDataTypes.StartCapture,
 				compressed = true,
-				resolutionScale = .25f,
+				resolutionScale = .75f,
 				screenIndex = 0,
 				format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
 				dataSize = -1
