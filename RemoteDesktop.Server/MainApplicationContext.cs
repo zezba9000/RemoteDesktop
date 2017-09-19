@@ -23,7 +23,7 @@ namespace RemoteDesktop.Server
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
 		PixelFormat format = PixelFormat.Format24bppRgb;
-		int screenIndex, currentScreenIndex;
+		int screenIndex, currentScreenIndex, targetFPS = 5;
 		bool compress, currentCompress;
 		float resolutionScale = 1, currentResolutionScale = 1;
 		private Timer timer;
@@ -76,6 +76,7 @@ namespace RemoteDesktop.Server
 				if (timer != null)
 				{
 					timer.Stop();
+					timer.Tick -= Timer_Tick;
 					timer.Dispose();
 					timer = null;
 				}
@@ -228,6 +229,25 @@ namespace RemoteDesktop.Server
 			{
 				if (isDisposed) return;
 
+				void CreateTimer(bool recreate)
+				{
+					if (recreate && timer != null)
+					{
+						timer.Tick -= Timer_Tick;
+						timer.Dispose();
+						timer = null;
+					}
+
+					if (timer == null)
+					{
+						timer = new Timer();
+						timer.Interval = 1000 / targetFPS;
+						timer.Tick += Timer_Tick;
+					}
+					
+					timer.Start();
+				}
+
 				// update settings
 				if (metaData.type == MetaDataTypes.UpdateSettings || metaData.type == MetaDataTypes.StartCapture)
 				{
@@ -236,6 +256,14 @@ namespace RemoteDesktop.Server
 					screenIndex = metaData.screenIndex;
 					compress = metaData.compressed;
 					resolutionScale = metaData.resolutionScale;
+					targetFPS = metaData.targetFPS;
+					if (metaData.type == MetaDataTypes.UpdateSettings)
+					{
+						dispatcher.InvokeAsync(delegate()
+						{
+							CreateTimer(true);
+						});
+					}
 				}
 				
 				// start / stop
@@ -243,14 +271,7 @@ namespace RemoteDesktop.Server
 				{
 					dispatcher.InvokeAsync(delegate()
 					{
-						if (timer == null)
-						{
-							timer = new Timer();
-							timer.Interval = 1000 / 10;
-							timer.Tick += Timer_Tick;
-						}
-					
-						timer.Start();
+						CreateTimer(false);
 					});
 				}
 				else if (metaData.type == MetaDataTypes.PauseCapture)
@@ -348,8 +369,8 @@ namespace RemoteDesktop.Server
 				if (isDisposed) return;
 
 				CaptureScreen();
-				if (resolutionScale == 1) socket.SendImage(bitmap, screenRect.Width, screenRect.Height, screenIndex, compress);
-				else socket.SendImage(scaledBitmap, screenRect.Width, screenRect.Height, screenIndex, compress);
+				if (resolutionScale == 1) socket.SendImage(bitmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
+				else socket.SendImage(scaledBitmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
 			}
 		}
 

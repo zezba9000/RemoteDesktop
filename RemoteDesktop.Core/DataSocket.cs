@@ -37,6 +37,7 @@ namespace RemoteDesktop.Core
 		public short width, height, screenWidth, screenHeight, screenIndex;
 		public PixelFormat format;
 		public float resolutionScale;
+		public byte targetFPS;
 
 		public short mouseX, mouseY;
 		public sbyte mouseScroll;
@@ -459,7 +460,7 @@ namespace RemoteDesktop.Core
 			while (size != 0);
 		}
 
-		public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress)
+		public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)
 		{
 			BitmapData locked = null;
 			try
@@ -505,7 +506,8 @@ namespace RemoteDesktop.Core
 					screenWidth = (short)screenWidth,
 					screenHeight = (short)screenHeight,
 					screenIndex = (short)screenIndex,
-					format = bitmap.PixelFormat
+					format = bitmap.PixelFormat,
+					targetFPS = (byte)targetFPS
 				};
 				
 				SendMetaDataInternal(metaData);

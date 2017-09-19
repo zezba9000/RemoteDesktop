@@ -5,14 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RemoteDesktop.Client"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="500">
+             d:DesignHeight="400" d:DesignWidth="500">
 	<Grid Background="#DD000000">
-		<Border BorderBrush="DarkOrange" BorderThickness="2" Width="256" Height="200" HorizontalAlignment="Center" VerticalAlignment="Center">
+		<Border BorderBrush="DarkOrange" BorderThickness="2" Width="256" Height="250" HorizontalAlignment="Center" VerticalAlignment="Center">
 			<Grid Background="Wheat">
-				<Label Content="Image Quality" Margin="10,10,10,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
-				<ComboBox Name="imageQualityComboBox" Margin="10,41,10,0" VerticalAlignment="Top">
-					<ComboBoxItem>24bit</ComboBoxItem>
-					<ComboBoxItem>16bit</ComboBoxItem>
+				<Label Content="Image Bit" Margin="10,10,10,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+				<ComboBox Name="imageBitComboBox" Margin="10,41,10,0" VerticalAlignment="Top">
+					<ComboBoxItem>16 bit</ComboBoxItem>
+					<ComboBoxItem>24 bit</ComboBoxItem>
 				</ComboBox>
 
 				<Label Content="Image Scale" Margin="10,68,10,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
@@ -23,8 +23,17 @@
 					<ComboBoxItem>25%</ComboBoxItem>
 				</ComboBox>
 
-				<CheckBox Name="compressCheckBox" Content="Compress Image Frames" Margin="10,136,10,0" VerticalAlignment="Top" HorizontalContentAlignment="Left" ToolTip="Less network bandwidth but higher CPU usage"/>
-				<CheckBox Name="customAddressCheckBox" Content="Custom Socket Address" Margin="10,156,10,0" VerticalAlignment="Top" HorizontalContentAlignment="Left" ToolTip="Use custom socket address"/>
+				<Label Content="Target FPS" Margin="10,126,10,0" VerticalAlignment="Top" HorizontalContentAlignment="Center"/>
+				<ComboBox Name="targetFPSComboBox" Margin="10,152,10,0" VerticalAlignment="Top">
+					<ComboBoxItem>5</ComboBoxItem>
+					<ComboBoxItem>10</ComboBoxItem>
+					<ComboBoxItem>15</ComboBoxItem>
+					<ComboBoxItem>30</ComboBoxItem>
+					<ComboBoxItem>60</ComboBoxItem>
+				</ComboBox>
+
+				<CheckBox Name="compressCheckBox" Content="Compress Image Frames" Margin="10,0,10,30" VerticalAlignment="Bottom" HorizontalContentAlignment="Left" ToolTip="Less network bandwidth but higher CPU usage"/>
+				<CheckBox Name="customAddressCheckBox" Content="Custom Socket Address" Margin="10,0,10,10" VerticalAlignment="Bottom" HorizontalContentAlignment="Left" ToolTip="Use custom socket address"/>
 			</Grid>
 		</Border>
 		<Button Name="applyButton" Content="Apply" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="75" Click="applyButton_Click"/>

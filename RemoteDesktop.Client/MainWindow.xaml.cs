@@ -11,6 +11,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace RemoteDesktop.Client
 {
@@ -45,6 +46,8 @@ namespace RemoteDesktop.Client
 		public MainWindow()
 		{
 			InitializeComponent();
+			settingsOverlay.ApplyCallback += SettingsOverlay_ApplyCallback;
+			SetConnectionUIStates(uiState);
 
 			inputTimer = new Timer(InputUpdate, null, 1000, 1000 / 15);
 			image.MouseMove += Image_MouseMove;
@@ -85,6 +88,7 @@ namespace RemoteDesktop.Client
 				gzipStream = null;
 			}
 
+			settingsOverlay.SaveSettings();
 			base.OnClosing(e);
 		}
 
@@ -228,6 +232,8 @@ namespace RemoteDesktop.Client
 			uiState = state;
 			fullscreenButton.IsEnabled = state == UIStates.Streaming;
 			serverComboBox.IsEnabled = state == UIStates.Stopped;
+			serverComboBox.Visibility = settingsOverlay.settings.customSocketAddress.enabled ? Visibility.Hidden : Visibility.Visible;
+			serverTextBox.Visibility = settingsOverlay.settings.customSocketAddress.enabled ? Visibility.Visible : Visibility.Hidden;
 			connectButton.Content = state != UIStates.Stopped ? (state == UIStates.Streaming ? "Pause" : "Play") : "Connect";
 			refreshButton.Content = state != UIStates.Stopped ? "Stop" : "Refresh";
 			notConnectedImage.Visibility = state == UIStates.Stopped ? Visibility.Visible : Visibility.Hidden;
@@ -296,22 +302,49 @@ namespace RemoteDesktop.Client
 			SetConnectionUIStates(UIStates.Streaming);
 
 			NetworkHost host = null;
-			if (serverComboBox.SelectedIndex == -1)
+			if (settingsOverlay.settings.customSocketAddress.enabled)
 			{
-				#if DEBUG
-				connectedToLocalPC = true;
-				host = new NetworkHost("LoopBack")
+				if (string.IsNullOrEmpty(serverTextBox.Text))
 				{
-					endpoints = new List<IPEndPoint>() {new IPEndPoint(IPAddress.Loopback, 8888)}
-				};
-				#else
-				return;
-				#endif
+					#if DEBUG
+					connectedToLocalPC = true;
+					host = new NetworkHost("localhost")
+					{
+						endpoints = new List<IPEndPoint>() {new IPEndPoint(IPAddress.Loopback, 8888)}
+					};
+					#else
+					return;
+					#endif
+				}
+				else
+				{
+					host = new NetworkHost(serverTextBox.Text)
+					{
+						endpoints = new List<IPEndPoint>() {new IPEndPoint(IPAddress.Loopback, 8888)}
+					};
+
+					connectedToLocalPC = host.name == Dns.GetHostName() || host.name.ToLower() == "localhost" || host.name == "127.0.0.1";
+				}
 			}
 			else
 			{
-				host = (NetworkHost)serverComboBox.SelectedValue;
-				connectedToLocalPC = host.name == Dns.GetHostName();
+				if (serverComboBox.SelectedIndex == -1)
+				{
+					#if DEBUG
+					connectedToLocalPC = true;
+					host = new NetworkHost("localhost")
+					{
+						endpoints = new List<IPEndPoint>() {new IPEndPoint(IPAddress.Loopback, 8888)}
+					};
+					#else
+					return;
+					#endif
+				}
+				else
+				{
+					host = (NetworkHost)serverComboBox.SelectedValue;
+					connectedToLocalPC = host.name == Dns.GetHostName();
+				}
 			}
 
 			socket = new DataSocket(NetworkTypes.Client);
@@ -431,19 +464,30 @@ namespace RemoteDesktop.Client
 			});
 		}
 
+		private void ApplySettings(MetaDataTypes type)
+		{
+			lock (this)
+			{
+				if (isDisposed || socket == null) return;
+
+				var metaData = new MetaData()
+				{
+					type = type,
+					compressed = settingsOverlay.settings.compressImageFrames,
+					resolutionScale = settingsOverlay.settings.imageScale,
+					screenIndex = 0,
+					format = settingsOverlay.settings.imageBit == 24 ? System.Drawing.Imaging.PixelFormat.Format24bppRgb : System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
+					targetFPS = (byte)settingsOverlay.settings.targetFPS,
+					dataSize = -1
+				};
+			
+				socket.SendMetaData(metaData);
+			}
+		}
+
 		private void Socket_ConnectedCallback()
 		{
-			var metaData = new MetaData()
-			{
-				type = MetaDataTypes.StartCapture,
-				compressed = true,
-				resolutionScale = .75f,
-				screenIndex = 0,
-				format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
-				dataSize = -1
-			};
-			
-			socket.SendMetaData(metaData);
+			ApplySettings(MetaDataTypes.StartCapture);
 		}
 
 		private void Socket_DisconnectedCallback()
@@ -458,6 +502,12 @@ namespace RemoteDesktop.Client
 			{
 				SetConnectionUIStates(UIStates.Stopped);
 			});
+		}
+
+		private void SettingsOverlay_ApplyCallback()
+		{
+			ApplySettings(MetaDataTypes.UpdateSettings);
+			SetConnectionUIStates(uiState);
 		}
 
 		private void settingsButton_Click(object sender, RoutedEventArgs e)

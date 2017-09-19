@@ -113,7 +113,9 @@
     <Resource Include="Images\NotConnected.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Settings.xml" />
+    <Content Include="Settings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
