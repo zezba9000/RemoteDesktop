@@ -23,9 +23,9 @@ namespace RemoteDesktop.Server
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
 		PixelFormat format = PixelFormat.Format24bppRgb;
-		int screenIndex;
-		bool compress;
-		float resolutionScale = 1;
+		int screenIndex, currentScreenIndex;
+		bool compress, currentCompress;
+		float resolutionScale = 1, currentResolutionScale = 1;
 		private Timer timer;
 		private Dispatcher dispatcher;
 
@@ -355,8 +355,12 @@ namespace RemoteDesktop.Server
 
 		private void CaptureScreen()
 		{
-			if (bitmap == null || bitmap.PixelFormat != format)
+			if (bitmap == null || bitmap.PixelFormat != format || screenIndex != currentScreenIndex || compress != currentCompress || resolutionScale != currentResolutionScale)
 			{
+				currentScreenIndex = screenIndex;
+				currentCompress = compress;
+				currentResolutionScale = resolutionScale;
+
 				// get screen to catpure
 				var screens = Screen.AllScreens;
 				var screen = (screenIndex < screens.Length) ? screens[screenIndex] : screens[0];
@@ -378,7 +382,7 @@ namespace RemoteDesktop.Server
 			}
 
 			// capture screen
-			graphics.CopyFromScreen(0, 0, 0, 0, bitmap.Size, CopyPixelOperation.SourceCopy);
+			graphics.CopyFromScreen(screenRect.Left, screenRect.Top, 0, 0, bitmap.Size, CopyPixelOperation.SourceCopy);
 			if (resolutionScale != 1) scaledGraphics.DrawImage(bitmap, 0, 0, scaledBitmap.Width, scaledBitmap.Height);
 		}
 	}
