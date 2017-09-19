@@ -112,8 +112,8 @@ namespace RemoteDesktop.Client
 					var metaData = new MetaData()
 					{
 						type = MetaDataTypes.UpdateMouse,
-						mouseX = (short)((mousePoint.X / image.ActualWidth) * bitmap.PixelWidth),
-						mouseY = (short)((mousePoint.Y / image.ActualHeight) * bitmap.PixelHeight),
+						mouseX = (short)((mousePoint.X / image.ActualWidth) * this.metaData.screenWidth),
+						mouseY = (short)((mousePoint.Y / image.ActualHeight) * this.metaData.screenHeight),
 						mouseScroll = mouseScroll,
 						mouseButtonPressed = inputMouseButtonPressed,
 						dataSize = -1
