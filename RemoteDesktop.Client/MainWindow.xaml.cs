@@ -237,7 +237,7 @@ namespace RemoteDesktop.Client
 				if (bitmap != null)
 				{
 					bitmap.Lock();
-					Utils.RtlZeroMemory(bitmap.BackBuffer, (IntPtr)metaData.imageDataSize);
+					Utils.memset(bitmap.BackBuffer, 255, (IntPtr)metaData.imageDataSize);
 					bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
 					bitmap.Unlock();
 				}
