@@ -36,6 +36,7 @@ namespace RemoteDesktop.Core
 		public int dataSize, imageDataSize;
 		public short width, height, screenIndex;
 		public PixelFormat format;
+		public float resolutionScale;
 
 		public short mouseX, mouseY;
 		public sbyte mouseScroll;

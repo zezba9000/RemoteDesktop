@@ -20,11 +20,12 @@ namespace RemoteDesktop.Server
 		private DataSocket socket;
 
 		private Rectangle screenRect;
-		private Bitmap bitmap;
-		private Graphics graphics;
+		private Bitmap bitmap, scaledBitmap;
+		private Graphics graphics, scaledGraphics;
 		PixelFormat format = PixelFormat.Format24bppRgb;
 		int screenIndex;
 		bool compress;
+		float resolutionScale = 1;
 		private Timer timer;
 		private Dispatcher dispatcher;
 
@@ -234,6 +235,7 @@ namespace RemoteDesktop.Server
 					format = metaData.format;
 					screenIndex = metaData.screenIndex;
 					compress = metaData.compressed;
+					resolutionScale = metaData.resolutionScale;
 				}
 				
 				// start / stop
@@ -346,7 +348,8 @@ namespace RemoteDesktop.Server
 				if (isDisposed) return;
 
 				CaptureScreen();
-				socket.SendImage(bitmap, screenIndex, compress);
+				if (resolutionScale == 1) socket.SendImage(bitmap, screenIndex, compress);
+				else socket.SendImage(scaledBitmap, screenIndex, compress);
 			}
 		}
 
@@ -364,10 +367,19 @@ namespace RemoteDesktop.Server
 				if (graphics != null) graphics.Dispose();
 				bitmap = new Bitmap(screenRect.Width, screenRect.Height, format);
 				graphics = Graphics.FromImage(bitmap);
+
+				if (resolutionScale != 1)
+				{
+					if (scaledBitmap != null) scaledBitmap.Dispose();
+					if (scaledGraphics != null) scaledGraphics.Dispose();
+					scaledBitmap = new Bitmap((int)(screenRect.Width * resolutionScale), (int)(screenRect.Height * resolutionScale), format);
+					scaledGraphics = Graphics.FromImage(scaledBitmap);
+				}
 			}
 
 			// capture screen
-			graphics.CopyFromScreen(0, 0, 0, 0, bitmap.Size);
+			graphics.CopyFromScreen(0, 0, 0, 0, bitmap.Size, CopyPixelOperation.SourceCopy);
+			if (resolutionScale != 1) scaledGraphics.DrawImage(bitmap, 0, 0, scaledBitmap.Width, scaledBitmap.Height);
 		}
 	}
 }

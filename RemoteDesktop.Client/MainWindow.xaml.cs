@@ -32,8 +32,9 @@ namespace RemoteDesktop.Client
 		private IntPtr bitmapBackbuffer;
 		private MetaData metaData;
 		private MemoryStream gzipStream;
-		private bool skipImageUpdate, processingFrame, isDisposed;
+		private bool skipImageUpdate, processingFrame, isDisposed, connectedToLocalPC;
 		private UIStates uiState = UIStates.Stopped;
+		private Thickness lastImageThickness;
 
 		private Timer inputTimer;
 		private Point mousePoint;
@@ -102,7 +103,7 @@ namespace RemoteDesktop.Client
 		{
 			lock (this)
 			{
-				if (isDisposed || uiState != UIStates.Streaming || socket == null || bitmap == null) return;
+				if (connectedToLocalPC || isDisposed || uiState != UIStates.Streaming || socket == null || bitmap == null) return;
 
 				Dispatcher.InvokeAsync(delegate()
 				{
@@ -137,7 +138,6 @@ namespace RemoteDesktop.Client
 		{
 			lock (this)
 			{
-				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
 				ApplyCommonMouseEvent(e);
 				mouseScroll = 0;
 				mouseScrollCount = 0;
@@ -148,7 +148,6 @@ namespace RemoteDesktop.Client
 		{
 			lock (this)
 			{
-				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
 				ApplyCommonMouseEvent(e);
 				mouseScroll = 0;
 				mouseScrollCount = 0;
@@ -159,7 +158,6 @@ namespace RemoteDesktop.Client
 		{
 			lock (this)
 			{
-				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
 				ApplyCommonMouseEvent(e);
 				mouseScroll = (sbyte)(e.Delta / 120);
 				++mouseScrollCount;
@@ -170,7 +168,7 @@ namespace RemoteDesktop.Client
 		{
 			lock (this)
 			{
-				if (isDisposed || uiState != UIStates.Streaming || socket == null) return;
+				if (connectedToLocalPC || isDisposed || uiState != UIStates.Streaming || socket == null) return;
 				
 				byte specialKeyCode = 0, keycode = (byte)e.Key;
 
@@ -218,6 +216,7 @@ namespace RemoteDesktop.Client
 		private void SetConnectionUIStates(UIStates state)
 		{
 			uiState = state;
+			fullscreenButton.IsEnabled = state == UIStates.Streaming;
 			serverComboBox.IsEnabled = state == UIStates.Stopped;
 			connectButton.Content = state != UIStates.Stopped ? (state == UIStates.Streaming ? "Pause" : "Play") : "Connect";
 			refreshButton.Content = state != UIStates.Stopped ? "Stop" : "Refresh";
@@ -287,6 +286,7 @@ namespace RemoteDesktop.Client
 			if (serverComboBox.SelectedIndex == -1)
 			{
 				#if DEBUG
+				connectedToLocalPC = true;
 				host = new NetworkHost("LoopBack")
 				{
 					endpoints = new List<IPEndPoint>() {new IPEndPoint(IPAddress.Loopback, 8888)}
@@ -298,6 +298,7 @@ namespace RemoteDesktop.Client
 			else
 			{
 				host = (NetworkHost)serverComboBox.SelectedValue;
+				connectedToLocalPC = host.name == Dns.GetHostName();
 			}
 
 			socket = new DataSocket(NetworkTypes.Client);
@@ -361,11 +362,18 @@ namespace RemoteDesktop.Client
 		{
 			if (metaData.compressed && uiState == UIStates.Streaming)
 			{
-				gzipStream.Position = 0;
-				using (var bitmapStream = new UnmanagedMemoryStream((byte*)bitmapBackbuffer, metaData.imageDataSize, metaData.imageDataSize, FileAccess.Write))
-				using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
+				try
 				{
-					gzip.CopyTo(bitmapStream);
+					gzipStream.Position = 0;
+					using (var bitmapStream = new UnmanagedMemoryStream((byte*)bitmapBackbuffer, metaData.imageDataSize, metaData.imageDataSize, FileAccess.Write))
+					using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
+					{
+						gzip.CopyTo(bitmapStream);
+					}
+				}
+				catch (Exception e)
+				{
+					DebugLog.LogError("Bad compressed image: " + e.Message);
 				}
 			}
 			
@@ -407,6 +415,7 @@ namespace RemoteDesktop.Client
 			{
 				type = MetaDataTypes.StartCapture,
 				compressed = true,
+				resolutionScale = 1,
 				screenIndex = 0,
 				format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
 				dataSize = -1
@@ -432,6 +441,29 @@ namespace RemoteDesktop.Client
 		private void settingsButton_Click(object sender, RoutedEventArgs e)
 		{
 			settingsOverlay.Show();
+		}
+
+		private void fullscreenButton_Click(object sender, RoutedEventArgs e)
+		{
+			WindowStyle = WindowStyle.None;
+			WindowState = WindowState.Maximized;
+			ResizeMode = ResizeMode.NoResize;
+			fullscreenCloseButton.Visibility = Visibility.Visible;
+			lastImageThickness = imageBorder.Margin;
+			imageBorder.Margin = new Thickness();
+			imageBorder.BorderThickness = new Thickness();
+			toolGrid.Visibility = Visibility.Hidden;
+		}
+
+		private void fullscreenCloseButton_Click(object sender, RoutedEventArgs e)
+		{
+			WindowStyle = WindowStyle.SingleBorderWindow;
+			WindowState = WindowState.Normal;
+			ResizeMode = ResizeMode.CanResize;
+			fullscreenCloseButton.Visibility = Visibility.Hidden;
+			imageBorder.Margin = lastImageThickness;
+			imageBorder.BorderThickness = new Thickness(1);
+			toolGrid.Visibility = Visibility.Visible;
 		}
 	}
 }
