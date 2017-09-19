@@ -14,11 +14,13 @@
     <ROW Property="ARPPRODUCTICON" Value="AppIcon.exe" Type="8"/>
     <ROW Property="ARPURLINFOABOUT" Value="https://github.com/reignstudios/RemoteDesktop"/>
     <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/reignstudios/RemoteDesktop/releases"/>
+    <ROW Property="CTRLS" Value="2"/>
     <ROW Property="Manufacturer" Value="Reign-Studios"/>
     <ROW Property="ProductCode" Value="1033:{B723BD0D-806E-430E-B1E2-BC232F963A45} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="Remote Desktop Server"/>
     <ROW Property="ProductVersion" Value="0.1.0" Type="32"/>
+    <ROW Property="RUNAPPLICATION" Value="1" Type="4"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{A74BA589-D5B6-4FCD-A8D5-1893047D77D9}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -107,6 +109,7 @@
     <ROW Action="AI_DpiContentScale" Type="1" Source="aicustact.dll" Target="DpiContentScale"/>
     <ROW Action="AI_EnableDebugLog" Type="321" Source="aicustact.dll" Target="EnableDebugLog"/>
     <ROW Action="AI_InstallModeCheck" Type="1" Source="aicustact.dll" Target="UpdateInstallMode" WithoutSeq="true"/>
+    <ROW Action="AI_LaunchApp" Type="1" Source="aicustact.dll" Target="[#RemoteDesktop.Server.exe]"/>
     <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
     <ROW Action="AI_RESTORE_LOCATION" Type="65" Source="aicustact.dll" Target="RestoreLocation"/>
     <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>

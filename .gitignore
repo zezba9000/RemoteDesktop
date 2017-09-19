@@ -23,6 +23,10 @@ bld/
 [Oo]bj/
 [Bb]uilds/
 [Bb]uild/
+Installer/RemoteDesktop.Client-cache
+Installer/RemoteDesktop.Client-SetupFiles
+Installer/RemoteDesktop.Server-cache
+Installer/RemoteDesktop.Server-SetupFiles
 
 # Visual Studio 2015 cache/options directory
 .vs/
