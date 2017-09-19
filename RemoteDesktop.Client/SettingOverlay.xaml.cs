@@ -41,7 +41,9 @@ namespace RemoteDesktop.Client
 		{
 			InitializeComponent();
 			
-			filePath = System.IO.Path.Combine(Environment.CurrentDirectory, "Settings.xml");
+			string dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RemoteDesktop");
+			if (!Directory.Exists(dataPath)) Directory.CreateDirectory(dataPath);
+			filePath = Path.Combine(dataPath, "Settings.xml");
 			if (File.Exists(filePath))
 			{
 				try

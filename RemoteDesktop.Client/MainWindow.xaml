@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RemoteDesktop.Client"
         mc:Ignorable="d"
-        Title="Remote Desktop" Height="720" Width="1280" WindowStartupLocation="CenterScreen">
+        Title="Remote Desktop v0.1.0" Height="720" Width="1280" WindowStartupLocation="CenterScreen">
 	<Grid>
 		<Grid Name="toolGrid">
 			<Button Name="connectButton" Content="Connect" Focusable="False" HorizontalAlignment="Left" Margin="206,10,0,0" VerticalAlignment="Top" Width="75" Click="connectButton_Click"/>

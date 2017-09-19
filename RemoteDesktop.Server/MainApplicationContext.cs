@@ -44,7 +44,8 @@ namespace RemoteDesktop.Server
 			{
 				Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location),
 				ContextMenu = new ContextMenu(menuItems),
-				Visible = true
+				Visible = true,
+				Text = "Remote Desktop Server v0.1.0"
 			};
 
 			// init input simulation
