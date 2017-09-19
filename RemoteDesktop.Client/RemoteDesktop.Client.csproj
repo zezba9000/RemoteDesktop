@@ -35,6 +35,9 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Images\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -113,6 +116,7 @@
     <Resource Include="Images\NotConnected.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\AppIcon.ico" />
     <Content Include="Settings.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
