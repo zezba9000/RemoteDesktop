@@ -107,6 +107,8 @@ namespace RemoteDesktop.Client
 
 				Dispatcher.InvokeAsync(delegate()
 				{
+					if (isDisposed || uiState != UIStates.Streaming || socket == null || bitmap == null) return;
+
 					var metaData = new MetaData()
 					{
 						type = MetaDataTypes.UpdateMouse,
@@ -415,7 +417,7 @@ namespace RemoteDesktop.Client
 			{
 				type = MetaDataTypes.StartCapture,
 				compressed = true,
-				resolutionScale = 1,
+				resolutionScale = .25f,
 				screenIndex = 0,
 				format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
 				dataSize = -1

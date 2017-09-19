@@ -34,7 +34,7 @@ namespace RemoteDesktop.Core
 		public MetaDataTypes type;
 		public bool compressed;
 		public int dataSize, imageDataSize;
-		public short width, height, screenIndex;
+		public short width, height, screenWidth, screenHeight, screenIndex;
 		public PixelFormat format;
 		public float resolutionScale;
 
@@ -459,7 +459,7 @@ namespace RemoteDesktop.Core
 			while (size != 0);
 		}
 
-		public unsafe void SendImage(Bitmap bitmap, int screenIndex, bool compress)
+		public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress)
 		{
 			BitmapData locked = null;
 			try
@@ -502,6 +502,8 @@ namespace RemoteDesktop.Core
 					imageDataSize = imageDataSize,
 					width = (short)bitmap.Width,
 					height = (short)bitmap.Height,
+					screenWidth = (short)screenWidth,
+					screenHeight = (short)screenHeight,
 					screenIndex = (short)screenIndex,
 					format = bitmap.PixelFormat
 				};

@@ -348,8 +348,8 @@ namespace RemoteDesktop.Server
 				if (isDisposed) return;
 
 				CaptureScreen();
-				if (resolutionScale == 1) socket.SendImage(bitmap, screenIndex, compress);
-				else socket.SendImage(scaledBitmap, screenIndex, compress);
+				if (resolutionScale == 1) socket.SendImage(bitmap, screenRect.Width, screenRect.Height, screenIndex, compress);
+				else socket.SendImage(scaledBitmap, screenRect.Width, screenRect.Height, screenIndex, compress);
 			}
 		}
 
