@@ -66,6 +66,7 @@ namespace NAudioDemo.Models
         {
             this.IsRecording = true;
             this._WaveIn.StartRecording();
+
         }
 
         public void Stop()
