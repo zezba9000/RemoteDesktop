@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Server", "Rem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsInput", "inputsimulator\WindowsInput\WindowsInput.csproj", "{3549CD6F-80F8-450F-B99E-CF0A736B1F2A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAudioDemo", "NAudio1\NAudioDemo\NAudioDemo.csproj", "{B05BAB66-7CAD-4AB3-849F-FFFEF9618E79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{3549CD6F-80F8-450F-B99E-CF0A736B1F2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3549CD6F-80F8-450F-B99E-CF0A736B1F2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3549CD6F-80F8-450F-B99E-CF0A736B1F2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B05BAB66-7CAD-4AB3-849F-FFFEF9618E79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B05BAB66-7CAD-4AB3-849F-FFFEF9618E79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B05BAB66-7CAD-4AB3-849F-FFFEF9618E79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B05BAB66-7CAD-4AB3-849F-FFFEF9618E79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
