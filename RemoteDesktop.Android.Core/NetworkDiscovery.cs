@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 
 using System.Net;
-using System.Net.PeerToPeer;
+
+// DEBUG: comment out to avoid error
+//using System.Net.PeerToPeer;
+
 using System.Net.Sockets;
 
 namespace RemoteDesktop.Core
@@ -34,12 +37,12 @@ namespace RemoteDesktop.Core
 	{
 		private NetworkTypes type;
 
-		// server
-		private PeerName peerName;
-		private PeerNameRegistration peerNameRegistration;
-
-		// client
-		private PeerNameResolver peerNameResolver;
+        // DEBUG: comment out to avoid error
+  //      // server
+  //      private PeerName peerName;
+		//private PeerNameRegistration peerNameRegistration;
+		//// client
+		//private PeerNameResolver peerNameResolver;
 
 		public NetworkDiscovery(NetworkTypes type)
 		{
@@ -50,47 +53,52 @@ namespace RemoteDesktop.Core
 		{
 			if (type != NetworkTypes.Server) throw new Exception("Only allowed for server!");
 
-			peerName = new PeerName(name, PeerNameType.Unsecured);
-			peerNameRegistration = new PeerNameRegistration();
-			peerNameRegistration.PeerName = peerName;
-			peerNameRegistration.Comment = Dns.GetHostName();
-			peerNameRegistration.Port = port;
-			peerNameRegistration.Start();
+            // DEBUG: comment out to avoid error
+            //peerName = new PeerName(name, PeerNameType.Unsecured);
+			//peerNameRegistration = new PeerNameRegistration();
+			//peerNameRegistration.PeerName = peerName;
+			//peerNameRegistration.Comment = Dns.GetHostName();
+			//peerNameRegistration.Port = port;
+			//peerNameRegistration.Start();
 		}
 
 		public List<NetworkHost> Find(string name)
 		{
 			if (type != NetworkTypes.Client) throw new Exception("Only allowed for client!");
 
-			var hosts = new List<NetworkHost>();
-			peerNameResolver = new PeerNameResolver();
-			peerName = new PeerName(name, PeerNameType.Unsecured);
-			var results = peerNameResolver.Resolve(peerName);
-			foreach (var record in results)
-			{
-				var host = new NetworkHost(record.Comment);
-				foreach (var endpoint in record.EndPointCollection)
-				{
-					if (endpoint.AddressFamily == AddressFamily.InterNetwork)
-					{
-						Console.WriteLine(string.Format("Found EndPoint {0}:{1}", endpoint.Address, endpoint.Port));
-						host.endpoints.Add(endpoint);
-					}
-				}
 
-				if (host.endpoints.Count != 0) hosts.Add(host);
-			}
+            var hosts = new List<NetworkHost>();
 
-			return hosts;
-		}
+            // DEBUG: comment out to avoid error
+            //peerNameResolver = new PeerNameResolver();
+            //peerName = new PeerName(name, PeerNameType.Unsecured);
+            //var results = peerNameResolver.Resolve(peerName);
+            //foreach (var record in results)
+            //{
+            //	var host = new NetworkHost(record.Comment);
+            //	foreach (var endpoint in record.EndPointCollection)
+            //	{
+            //		if (endpoint.AddressFamily == AddressFamily.InterNetwork)
+            //		{
+            //			Console.WriteLine(string.Format("Found EndPoint {0}:{1}", endpoint.Address, endpoint.Port));
+            //			host.endpoints.Add(endpoint);
+            //		}
+            //	}
 
-		public void Dispose()
+            //	if (host.endpoints.Count != 0) hosts.Add(host);
+            //}
+
+            return hosts;
+        }
+
+        public void Dispose()
 		{
-			if (peerNameRegistration != null)
-			{
-				peerNameRegistration.Stop();
-				peerNameRegistration = null;
-			}
+            // DEBUG: comment out to avoid error
+            //if (peerNameRegistration != null)
+			//{
+			//	peerNameRegistration.Stop();
+			//	peerNameRegistration = null;
+			//}
 		}
 	}
 }

@@ -4,7 +4,10 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Drawing.Imaging;
+
+// DEBUG: comment out to avoid error
+//using System.Drawing.Imaging;
+
 using System.Drawing;
 using System.IO.Compression;
 using System.Threading;
@@ -16,7 +19,36 @@ namespace RemoteDesktop.Core
 		public int size, bytesRead;
 	}
 
-	public enum MetaDataTypes
+    // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
+    public class Image
+    {
+        public Image() { }
+    }
+
+    // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
+    public class PixelFormat
+    {
+        //public const PixelFormat Format24bppRgb;
+        //public const PixelFormat Format16bppRgb565;
+        //public PixelFormat() { }
+    }
+
+    // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
+    public class Bitmap
+    {
+        public PixelFormat PixelFormat = new PixelFormat();
+        public void UnlockBits(BitmapData locked) { }
+        public int Height = 0;
+        public int Width = 0;
+    }
+
+    // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
+    public class BitmapData
+    {
+        public int Scan0 = 0;
+    }
+
+    public enum MetaDataTypes
 	{
 		None,
 		UpdateSettings,
@@ -469,18 +501,21 @@ namespace RemoteDesktop.Core
 				int dataLength, imageDataSize;
 				switch (bitmap.PixelFormat)
 				{
-					case PixelFormat.Format24bppRgb: imageDataSize = bitmap.Width * bitmap.Height * 3; break;
-					case PixelFormat.Format16bppRgb565: imageDataSize = ((bitmap.Width * bitmap.Height * 16) / 8); break;
+                    // DEBUG: comment out to avoid error
+     //               case PixelFormat.Format24bppRgb: imageDataSize = bitmap.Width * bitmap.Height * 3; break;
+					//case PixelFormat.Format16bppRgb565: imageDataSize = ((bitmap.Width * bitmap.Height * 16) / 8); break;
+
 					default: throw new Exception("Unsuported format: " + bitmap.PixelFormat);
 				}
 
 				dataLength = imageDataSize;
 
-				// lock bitmap
-				locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+                // DEBUG: comment out to avoid error
+                //// lock bitmap
+                //locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
-				// compress if needed
-				if (compress)
+                // compress if needed
+                if (compress)
 				{
 					if (compressedStream == null) compressedStream = new MemoryStream();
 					else compressedStream.SetLength(0);
@@ -536,8 +571,11 @@ namespace RemoteDesktop.Core
 
 		private unsafe void SendMetaDataInternal(MetaData metaData)
 		{
-			var binaryMetaData = (byte*)&metaData;
-			Marshal.Copy(new IntPtr(binaryMetaData), metaDataBuffer, 0, metaDataSize);
+            // DEBUG: rewrite to avoid error (not work correctly)
+            //var binaryMetaData = (byte*)&metaData;
+            var binaryMetaData = (byte*)null;
+
+            Marshal.Copy(new IntPtr(binaryMetaData), metaDataBuffer, 0, metaDataSize);
 			SendBinary(metaDataBuffer);
 		}
 
