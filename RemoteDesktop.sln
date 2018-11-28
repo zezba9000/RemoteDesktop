@@ -15,6 +15,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NAudioDemo", "NAudio1\NAudi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AreaSelecting", "AreaSelecting\AreaSelecting.csproj", "{D293F8BD-475A-48C0-A473-76B4D8F24AF3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Client.Android.Android", "RemoteDesktop.Client.Android\RemoteDesktop.Client.Android.Android\RemoteDesktop.Client.Android.Android.csproj", "{9C59F9EE-7185-4808-A17E-15D031A18F41}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteDesktop.Client.Android", "RemoteDesktop.Client.Android\RemoteDesktop.Client.Android\RemoteDesktop.Client.Android.csproj", "{B360C410-0E31-464F-885D-902EC2A63EDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Android.Core", "RemoteDesktop.Android.Core\RemoteDesktop.Android.Core.csproj", "{4ECBDB10-8923-46EB-B3A9-33016DDFB774}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +51,20 @@ Global
 		{D293F8BD-475A-48C0-A473-76B4D8F24AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D293F8BD-475A-48C0-A473-76B4D8F24AF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D293F8BD-475A-48C0-A473-76B4D8F24AF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C59F9EE-7185-4808-A17E-15D031A18F41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C59F9EE-7185-4808-A17E-15D031A18F41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C59F9EE-7185-4808-A17E-15D031A18F41}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{9C59F9EE-7185-4808-A17E-15D031A18F41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C59F9EE-7185-4808-A17E-15D031A18F41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C59F9EE-7185-4808-A17E-15D031A18F41}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{B360C410-0E31-464F-885D-902EC2A63EDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B360C410-0E31-464F-885D-902EC2A63EDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B360C410-0E31-464F-885D-902EC2A63EDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B360C410-0E31-464F-885D-902EC2A63EDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4ECBDB10-8923-46EB-B3A9-33016DDFB774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4ECBDB10-8923-46EB-B3A9-33016DDFB774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4ECBDB10-8923-46EB-B3A9-33016DDFB774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4ECBDB10-8923-46EB-B3A9-33016DDFB774}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
