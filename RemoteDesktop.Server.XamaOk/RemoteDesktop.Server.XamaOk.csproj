@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CCD86430-E6F8-4B8C-81CC-C2376EEF0C6D}</ProjectGuid>
+    <ProjectGuid>{BC83DC80-4F71-4222-89E8-F8E7CF1F95B0}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>RemoteDesktop.Server</RootNamespace>
-    <AssemblyName>RemoteDesktop.Server</AssemblyName>
+    <RootNamespace>RemoteDesktop.Server.XamaOK</RootNamespace>
+    <AssemblyName>RemoteDesktop.Server.XamaOK</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -98,9 +98,9 @@
       <Project>{3549cd6f-80f8-450f-b99e-cf0a736b1f2a}</Project>
       <Name>WindowsInput</Name>
     </ProjectReference>
-    <ProjectReference Include="..\RemoteDesktop.Core\RemoteDesktop.Core.csproj">
-      <Project>{b53e8545-94ca-466b-98d4-d6b46422f2f2}</Project>
-      <Name>RemoteDesktop.Core</Name>
+    <ProjectReference Include="..\RemoteDesktop.Android.Core\RemoteDesktop.Android.Core.csproj">
+      <Project>{4ecbdb10-8923-46eb-b3a9-33016ddfb774}</Project>
+      <Name>RemoteDesktop.Android.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
