@@ -69,8 +69,13 @@ namespace RemoteDesktop.Client.Android
 
             //var width = 128;
             //var height = 128;
-            var width = 411;
-            var height = 659;
+            //var width = 411;
+            //var height = 659;
+
+            // for ...x86_Oreo(1) emulator
+            var width = 1440;
+            var height = 2400; //display size is 2560
+
             var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
             for(int h = 0;h < height; h++)
             {
