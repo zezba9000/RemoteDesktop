@@ -62,20 +62,38 @@ namespace RemoteDesktop.Client.Android
 
         public MainPage()
         {
-            var image = new Xamarin.Forms.Image
-            { // ←1
-                HeightRequest = 200,
-                Source = ImageSource.FromResource("RemoteDesktop.Client.Android.Images.NotConnected.png") //2
-            };
 
-            var gr = new TapGestureRecognizer(); // ←1
+            var width = 128;
+            var height = 128;
+            var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
+            for(int h = 0;h < height; h++)
+            {
+                for(int w = 0; w < width; w++)
+                {
+                    colorInfo[(h, w)] = (255, (byte)w,(byte)h, (byte)(w * h));
+                }
+            }
+
+            var picture = new Picture(colorInfo, width, height);
+
+            var image = new Xamarin.Forms.Image();
+            image.Source = picture.GetImageSource();
+
+            //var image = new Xamarin.Forms.Image
+            //{
+            //    HeightRequest = 200,
+            //    Source = ImageSource.FromResource("RemoteDesktop.Client.Android.Images.NotConnected.png") //2
+            //};
+
+
+            var gr = new TapGestureRecognizer();
             gr.Tapped += (s, e) => {
-                DisplayAlert("", "Tap", "OK"); //←2
+                DisplayAlert("", "Tap", "OK");
             };
-            image.GestureRecognizers.Add(gr); //←3
+            image.GestureRecognizers.Add(gr);
 
             Content = new StackLayout
-            { // ←3
+            {
               //iOSで上余白を確保
                 Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0),
                 Children = { image }
