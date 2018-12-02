@@ -67,8 +67,10 @@ namespace RemoteDesktop.Client.Android
             //long ww = 411;
             //long hh = 659;
 
-            var width = 128;
-            var height = 128;
+            //var width = 128;
+            //var height = 128;
+            var width = 411;
+            var height = 659;
             var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
             for(int h = 0;h < height; h++)
             {
