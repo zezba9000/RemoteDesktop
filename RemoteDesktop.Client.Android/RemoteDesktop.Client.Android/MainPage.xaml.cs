@@ -58,26 +58,11 @@ namespace RemoteDesktop.Client.Android
         private Point mousePoint;
         private sbyte mouseScroll;
         private byte mouseScrollCount, inputMouseButtonPressed;
-
+        private Xamarin.Forms.Image image;
 
         public MainPage()
         {
-
-            var width = 128;
-            var height = 128;
-            var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
-            for(int h = 0;h < height; h++)
-            {
-                for(int w = 0; w < width; w++)
-                {
-                    colorInfo[(h, w)] = (255, (byte)w,(byte)h, (byte)(w * h));
-                }
-            }
-
-            var picture = new Picture(colorInfo, width, height);
-
-            var image = new Xamarin.Forms.Image();
-            image.Source = picture.GetImageSource();
+            image = new Xamarin.Forms.Image();
 
             //var image = new Xamarin.Forms.Image
             //{
@@ -109,6 +94,25 @@ namespace RemoteDesktop.Client.Android
             //image.MouseUp += Image_MousePress;
             ////image.MouseWheel += Image_MouseWheel;
             ////KeyDown += Window_KeyDown;
+        }
+
+        protected override void OnSizeAllocated(double width, double height) {
+            base.OnSizeAllocated(width, height);
+
+            long ww = (long)width;
+            long hh = (long)height;
+            var colorInfo = new Dictionary<(long,long),(byte,byte,byte,byte)>();
+            for(int h = 0;h < hh; h++)
+            {
+                for(int w = 0; w < ww; w++)
+                {
+                    colorInfo[(h, w)] = (255, (byte)(w % 255),(byte)(h % 255), (byte)((w * h) % 255));
+                }
+            }
+
+            var picture = new Picture(colorInfo, ww, hh);
+
+            image.Source = picture.GetImageSource();
         }
 
         //protected override void OnClosing(CancelEventArgs e)

@@ -11,7 +11,7 @@ namespace RemoteDesktop.Client.Android
         private int headerSize = 54;
         private byte[] buffer;
 
-        public Picture(Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo, int width, int height)
+        public Picture(Dictionary<(long, long), (byte, byte, byte, byte)> colorInfo, long width, long height)
         {
             buffer = MakeBuffer(width, height);
             foreach (var info in colorInfo)
@@ -22,12 +22,12 @@ namespace RemoteDesktop.Client.Android
             }
         }
 
-        private byte[] MakeBuffer(int width, int height)
+        private byte[] MakeBuffer(long width, long height)
         {
             //buffer作成
-            var numPixels = width * height;
-            var numPixelBytes = 4 * numPixels;
-            var filesize = headerSize + numPixelBytes;
+            long numPixels = width * height;
+            long numPixelBytes = 4 * numPixels;
+            long filesize = headerSize + numPixelBytes;
             var buffer = new byte[filesize];
 
             //bufferにheader情報を書き込む
@@ -59,9 +59,9 @@ namespace RemoteDesktop.Client.Android
             }
         }
 
-        private void SetPixel(int row, int col, int width, int r, int g, int b, int a = 255)
+        private void SetPixel(long row, long col, long width, int r, int g, int b, int a = 255)
         {
-            var index = (row * width + col) * 4 + headerSize;
+            long index = (row * width + col) * 4 + headerSize;
             buffer[index + 0] = (byte)b;
             buffer[index + 1] = (byte)g;
             buffer[index + 2] = (byte)r;
