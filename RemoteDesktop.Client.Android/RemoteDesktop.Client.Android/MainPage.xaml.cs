@@ -19,6 +19,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
+using Xamarin.Forms;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -44,7 +45,7 @@ namespace RemoteDesktop.Client.Android
     {
         private NetworkDiscovery networkDiscovery;
         private DataSocket socket;
-        private WriteableBitmap bitmap;
+        //private WriteableBitmap bitmap;
         private IntPtr bitmapBackbuffer;
         private MetaData metaData;
         private MemoryStream gzipStream;
@@ -58,18 +59,40 @@ namespace RemoteDesktop.Client.Android
         private sbyte mouseScroll;
         private byte mouseScrollCount, inputMouseButtonPressed;
 
+
         public MainPage()
         {
-            InitializeComponent();
-            settingsOverlay.ApplyCallback += SettingsOverlay_ApplyCallback;
-            SetConnectionUIStates(uiState);
+            
 
-            inputTimer = new Timer(InputUpdate, null, 1000, 1000 / 15);
-            image.MouseMove += Image_MouseMove;
-            image.MouseDown += Image_MousePress;
-            image.MouseUp += Image_MousePress;
-            image.MouseWheel += Image_MouseWheel;
-            KeyDown += Window_KeyDown;
+            var image = new Xamarin.Forms.Image
+            { // ←1
+                HeightRequest = 200,
+                Source = ImageSource.FromResource("RemoteDesktop.Client.Android.Images.NotConnected.png") //2
+            };
+
+            var gr = new TapGestureRecognizer(); // ←1
+            gr.Tapped += (s, e) => {
+                DisplayAlert("", "Tap", "OK"); //←2
+            };
+            image.GestureRecognizers.Add(gr); //←3
+
+            Content = new StackLayout
+            { // ←3
+              //iOSで上余白を確保
+                Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0),
+                Children = { image }
+            };
+
+            //InitializeComponent();
+
+            ////settingsOverlay.ApplyCallback += SettingsOverlay_ApplyCallback;
+            //SetConnectionUIStates(uiState);
+            //inputTimer = new Timer(InputUpdate, null, 1000, 1000 / 15);
+            //image.MouseMove += Image_MouseMove;
+            //image.MouseDown += Image_MousePress;
+            //image.MouseUp += Image_MousePress;
+            ////image.MouseWheel += Image_MouseWheel;
+            ////KeyDown += Window_KeyDown;
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -103,7 +126,7 @@ namespace RemoteDesktop.Client.Android
                 gzipStream = null;
             }
 
-            settingsOverlay.SaveSettings();
+            //settingsOverlay.SaveSettings();
             base.OnClosing(e);
         }
 
@@ -182,49 +205,49 @@ namespace RemoteDesktop.Client.Android
             }
         }
 
-        private void Image_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            lock (this)
-            {
-                ApplyCommonMouseEvent(e);
-                mouseScroll = (sbyte)(e.Delta / 120);
-                ++mouseScrollCount;
-                mouseUpdate = true;
-            }
-        }
+        //private void Image_MouseWheel(object sender, MouseWheelEventArgs e)
+        //{
+        //    lock (this)
+        //    {
+        //        ApplyCommonMouseEvent(e);
+        //        mouseScroll = (sbyte)(e.Delta / 120);
+        //        ++mouseScrollCount;
+        //        mouseUpdate = true;
+        //    }
+        //}
 
-        private void Window_KeyDown(object sender, KeyEventArgs e)
-        {
-            lock (this)
-            {
-                if (connectedToLocalPC || isDisposed || uiState != UIStates.Streaming || socket == null) return;
+        //private void Window_KeyDown(object sender, KeyEventArgs e)
+        //{
+        //    lock (this)
+        //    {
+        //        if (connectedToLocalPC || isDisposed || uiState != UIStates.Streaming || socket == null) return;
 
-                byte specialKeyCode = 0, keycode = (byte)e.Key;
+        //        byte specialKeyCode = 0, keycode = (byte)e.Key;
 
-                // get special key
-                if (Keyboard.IsKeyDown(Key.LeftShift)) specialKeyCode = (byte)Key.LeftShift;
-                else if (Keyboard.IsKeyDown(Key.RightShift)) specialKeyCode = (byte)Key.RightShift;
-                else if (Keyboard.IsKeyDown(Key.LeftCtrl)) specialKeyCode = (byte)Key.LeftCtrl;
-                else if (Keyboard.IsKeyDown(Key.RightCtrl)) specialKeyCode = (byte)Key.RightCtrl;
-                else if (Keyboard.IsKeyDown(Key.LeftAlt)) specialKeyCode = (byte)Key.LeftAlt;
-                else if (Keyboard.IsKeyDown(Key.RightAlt)) specialKeyCode = (byte)Key.RightAlt;
+        //        // get special key
+        //        if (Keyboard.IsKeyDown(Key.LeftShift)) specialKeyCode = (byte)Key.LeftShift;
+        //        else if (Keyboard.IsKeyDown(Key.RightShift)) specialKeyCode = (byte)Key.RightShift;
+        //        else if (Keyboard.IsKeyDown(Key.LeftCtrl)) specialKeyCode = (byte)Key.LeftCtrl;
+        //        else if (Keyboard.IsKeyDown(Key.RightCtrl)) specialKeyCode = (byte)Key.RightCtrl;
+        //        else if (Keyboard.IsKeyDown(Key.LeftAlt)) specialKeyCode = (byte)Key.LeftAlt;
+        //        else if (Keyboard.IsKeyDown(Key.RightAlt)) specialKeyCode = (byte)Key.RightAlt;
 
-                // make sure special key isn't the same as normal key
-                if (specialKeyCode == keycode) specialKeyCode = 0;
+        //        // make sure special key isn't the same as normal key
+        //        if (specialKeyCode == keycode) specialKeyCode = 0;
 
-                // send key event
-                var metaData = new MetaData()
-                {
-                    type = MetaDataTypes.UpdateKeyboard,
-                    keyCode = (byte)keycode,
-                    specialKeyCode = specialKeyCode,
-                    dataSize = -1
-                };
+        //        // send key event
+        //        var metaData = new MetaData()
+        //        {
+        //            type = MetaDataTypes.UpdateKeyboard,
+        //            keyCode = (byte)keycode,
+        //            specialKeyCode = specialKeyCode,
+        //            dataSize = -1
+        //        };
 
-                socket.SendMetaData(metaData);
-                e.Handled = true;
-            }
-        }
+        //        socket.SendMetaData(metaData);
+        //        e.Handled = true;
+        //    }
+        //}
 
         private void Refresh()
         {
@@ -519,38 +542,38 @@ namespace RemoteDesktop.Client.Android
             });
         }
 
-        private void SettingsOverlay_ApplyCallback()
-        {
-            ApplySettings(MetaDataTypes.UpdateSettings);
-            SetConnectionUIStates(uiState);
-        }
+        //private void SettingsOverlay_ApplyCallback()
+        //{
+        //    ApplySettings(MetaDataTypes.UpdateSettings);
+        //    SetConnectionUIStates(uiState);
+        //}
 
-        private void settingsButton_Click(object sender, RoutedEventArgs e)
-        {
-            settingsOverlay.Show();
-        }
+        //private void settingsButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    settingsOverlay.Show();
+        //}
 
-        private void fullscreenButton_Click(object sender, RoutedEventArgs e)
-        {
-            WindowStyle = WindowStyle.None;
-            WindowState = WindowState.Maximized;
-            ResizeMode = ResizeMode.NoResize;
-            fullscreenCloseButton.Visibility = Visibility.Visible;
-            lastImageThickness = imageBorder.Margin;
-            imageBorder.Margin = new Thickness();
-            imageBorder.BorderThickness = new Thickness();
-            toolGrid.Visibility = Visibility.Hidden;
-        }
+        //private void fullscreenButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    WindowStyle = WindowStyle.None;
+        //    WindowState = WindowState.Maximized;
+        //    ResizeMode = ResizeMode.NoResize;
+        //    fullscreenCloseButton.Visibility = Visibility.Visible;
+        //    lastImageThickness = imageBorder.Margin;
+        //    imageBorder.Margin = new Thickness();
+        //    imageBorder.BorderThickness = new Thickness();
+        //    toolGrid.Visibility = Visibility.Hidden;
+        //}
 
-        private void fullscreenCloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            WindowStyle = WindowStyle.SingleBorderWindow;
-            WindowState = WindowState.Normal;
-            ResizeMode = ResizeMode.CanResize;
-            fullscreenCloseButton.Visibility = Visibility.Hidden;
-            imageBorder.Margin = lastImageThickness;
-            imageBorder.BorderThickness = new Thickness(1);
-            toolGrid.Visibility = Visibility.Visible;
-        }
+        //private void fullscreenCloseButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    WindowStyle = WindowStyle.SingleBorderWindow;
+        //    WindowState = WindowState.Normal;
+        //    ResizeMode = ResizeMode.CanResize;
+        //    fullscreenCloseButton.Visibility = Visibility.Hidden;
+        //    imageBorder.Margin = lastImageThickness;
+        //    imageBorder.BorderThickness = new Thickness(1);
+        //    toolGrid.Visibility = Visibility.Visible;
+        //}
     }
 }
