@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using Xamarin.Forms;
 
 namespace RemoteDesktop.Client.Android
 {
-    class Picture
+    class Picture : INotifyPropertyChanged
     {
         private int headerSize = 54;
         private byte[] buffer;
@@ -78,6 +79,44 @@ namespace RemoteDesktop.Client.Android
             });
 
             return imageSource;
+        }
+
+        public ImageSource ImageSource
+        {
+            get
+            {
+                MemoryStream memoryStream = new MemoryStream(buffer);
+
+                ImageSource imageSource = ImageSource.FromStream(() =>
+                {
+                    return memoryStream;
+                });
+
+                return imageSource;
+            }
+        }
+
+        public void updateContent(Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo, int width, int height)
+        {
+            buffer = MakeBuffer(width, height);
+            foreach (var info in colorInfo)
+            {
+                var (row, col) = info.Key;
+                var (a, r, g, b) = info.Value;
+                SetPixel(row, col, width, r, g, b, a);
+            }
+            OnPropertyChanged ("ImageSource");
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            var changed = PropertyChanged;
+            if (changed != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
     }
 }

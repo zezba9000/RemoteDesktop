@@ -59,6 +59,8 @@ namespace RemoteDesktop.Client.Android
         private sbyte mouseScroll;
         private byte mouseScrollCount, inputMouseButtonPressed;
         //private Xamarin.Forms.Image image;
+        private Picture picture;
+        private Random rnd = new Random();
 
         public MainPage()
         {
@@ -76,14 +78,14 @@ namespace RemoteDesktop.Client.Android
             var width = 1440;
             var height = 2400; //display size is 2560
 
-            var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
-            for(int h = 0;h < height; h++)
-            {
-                for(int w = 0; w < width; w++)
-                {
-                    colorInfo[(h, w)] = (255, (byte)w,(byte)h, (byte)(w * h));
-                }
-            }
+            //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
+            //for(int h = 0;h < height; h++)
+            //{
+            //    for(int w = 0; w < width; w++)
+            //    {
+            //        colorInfo[(h, w)] = (255, (byte)w,(byte)h, (byte)(w * h));
+            //    }
+            //}
 
             //long ww = 128;
             //long hh = 128;
@@ -96,9 +98,27 @@ namespace RemoteDesktop.Client.Android
             //    }
             //}
 
-            var picture = new Picture(colorInfo, width, height);
+            var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
+            var r = rnd.Next(256);
+            var g = rnd.Next(256);
+            var b = rnd.Next(256);
+            for (int h = 0;h < height; h++)
+            {
+                for(int w = 0; w < width; w++)
+                {
+                    colorInfo[(h, w)] = (255, (byte)r,(byte)g, (byte)b);
+                }
+            }
+            picture = new Picture(colorInfo, width, height);
 
             image.Source = picture.GetImageSource();
+            image.Source.BindingContext = picture;
+
+            //picture.updateContent(colorInfo, width, height);
+            //updateImageContentRandom();
+
+            //image.Source = picture.GetImageSource();
+
             //var image = new Xamarin.Forms.Image
             //{
             //    HeightRequest = 200,
@@ -108,6 +128,7 @@ namespace RemoteDesktop.Client.Android
 
             var gr = new TapGestureRecognizer();
             gr.Tapped += (s, e) => {
+                updateImageContentRandom();
                 DisplayAlert("", "Tap", "OK");
             };
             image.GestureRecognizers.Add(gr);
@@ -118,6 +139,16 @@ namespace RemoteDesktop.Client.Android
                 Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0),
                 Children = { image }
             };
+
+
+            //Device.StartTimer(
+            //        TimeSpan.FromSeconds(3),
+            //        () =>
+            //        {
+            //            updateImageContentRandom();
+            //            return true;
+            //        }
+            //);
 
             //InitializeComponent();
 
@@ -131,8 +162,40 @@ namespace RemoteDesktop.Client.Android
             ////KeyDown += Window_KeyDown;
         }
 
+        public void updateImageContentRandom()
+        {
+            // for ...x86_Oreo(1) emulator
+            var width = 1440;
+            var height = 2400; //display size is 2560
+
+            var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
+            var r = rnd.Next(256);
+            var g = rnd.Next(256);
+            var b = rnd.Next(256);
+            for (int h = 0;h < height; h++)
+            {
+                for(int w = 0; w < width; w++)
+                {
+                    colorInfo[(h, w)] = (255, (byte)r,(byte)g, (byte)b);
+                }
+            }
+            picture.updateContent(colorInfo, width, height);
+        }
+
         protected override void OnSizeAllocated(double width, double height) {
             base.OnSizeAllocated(width, height);
+
+            //var ww = 128;
+            //var hh = 128;
+            //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
+            //for(int h = 0;h < hh; h++)
+            //{
+            //    for(int w = 0; w < ww; w++)
+            //    {
+            //        colorInfo[(h, w)] = (255, (byte)w,(byte)h, (byte)(w * h));
+            //    }
+            //}
+            //picture.updateContent(colorInfo, ww, hh);
 
             //long ww = (long)width;
             //long hh = (long)height;
