@@ -58,12 +58,40 @@ namespace RemoteDesktop.Client.Android
         private Point mousePoint;
         private sbyte mouseScroll;
         private byte mouseScrollCount, inputMouseButtonPressed;
-        private Xamarin.Forms.Image image;
+        //private Xamarin.Forms.Image image;
 
         public MainPage()
         {
-            image = new Xamarin.Forms.Image();
+            var image = new Xamarin.Forms.Image();
 
+            //long ww = 411;
+            //long hh = 659;
+
+            var width = 128;
+            var height = 128;
+            var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
+            for(int h = 0;h < height; h++)
+            {
+                for(int w = 0; w < width; w++)
+                {
+                    colorInfo[(h, w)] = (255, (byte)w,(byte)h, (byte)(w * h));
+                }
+            }
+
+            //long ww = 128;
+            //long hh = 128;
+            //var colorInfo = new Dictionary<(long,long),(byte,byte,byte,byte)>();
+            //for(int h = 0;h < hh; h++)
+            //{
+            //    for(int w = 0; w < ww; w++)
+            //    {
+            //        colorInfo[(h, w)] = (255, (byte)(w % 128),(byte)(h % 128), (byte)((w * h) % 128));
+            //    }
+            //}
+
+            var picture = new Picture(colorInfo, width, height);
+
+            image.Source = picture.GetImageSource();
             //var image = new Xamarin.Forms.Image
             //{
             //    HeightRequest = 200,
@@ -99,20 +127,20 @@ namespace RemoteDesktop.Client.Android
         protected override void OnSizeAllocated(double width, double height) {
             base.OnSizeAllocated(width, height);
 
-            long ww = (long)width;
-            long hh = (long)height;
-            var colorInfo = new Dictionary<(long,long),(byte,byte,byte,byte)>();
-            for(int h = 0;h < hh; h++)
-            {
-                for(int w = 0; w < ww; w++)
-                {
-                    colorInfo[(h, w)] = (255, (byte)(w % 255),(byte)(h % 255), (byte)((w * h) % 255));
-                }
-            }
+            //long ww = (long)width;
+            //long hh = (long)height;
+            //var colorInfo = new Dictionary<(long,long),(byte,byte,byte,byte)>();
+            //for(int h = 0;h < hh; h++)
+            //{
+            //    for(int w = 0; w < ww; w++)
+            //    {
+            //        colorInfo[(h, w)] = (255, (byte)(w % 255),(byte)(h % 255), (byte)((w * h) % 255));
+            //    }
+            //}
 
-            var picture = new Picture(colorInfo, ww, hh);
+            //var picture = new Picture(colorInfo, ww, hh);
 
-            image.Source = picture.GetImageSource();
+            //image.Source = picture.GetImageSource();
         }
 
         //protected override void OnClosing(CancelEventArgs e)
