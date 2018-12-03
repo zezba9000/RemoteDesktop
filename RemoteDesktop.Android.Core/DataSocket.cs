@@ -96,7 +96,7 @@ namespace RemoteDesktop.Core
 		private Socket listenSocket, socket;
 		private bool isDisposed, disconnected;
 		private Timer disconnectionTimer;
-		
+
 		private byte[] receiveBuffer, sendBuffer, metaDataBuffer;
 		private int metaDataBufferRead;
 		private readonly int metaDataSize;
@@ -106,7 +106,7 @@ namespace RemoteDesktop.Core
 		public DataSocket(NetworkTypes type)
 		{
 			this.type = type;
-			
+
 			receiveBuffer = new byte[1024];
 			sendBuffer = new byte[1024];
 			metaDataSize = Marshal.SizeOf<MetaData>();
@@ -127,7 +127,7 @@ namespace RemoteDesktop.Core
 			lock (this)
 			{
 				isDisposed = true;
-				
+
 				// dispose listener socket
 				if (listenSocket != null)
 				{
@@ -358,7 +358,7 @@ namespace RemoteDesktop.Core
 						int count = Math.Min(metaDataSize - metaDataBufferRead, bytesRead);
 						Array.Copy(receiveBuffer, 0, metaDataBuffer, metaDataBufferRead, count);
 						metaDataBufferRead += count;
-					
+
 						if (bytesRead < metaDataSize)
 						{
 							try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
@@ -403,7 +403,7 @@ namespace RemoteDesktop.Core
 							}
 						}
 					}
-					
+
 					// write data chunk
 					int offset = state.bytesRead;
 					state.bytesRead += bytesRead;
@@ -460,20 +460,21 @@ namespace RemoteDesktop.Core
 			while (size != 0);
 		}
 
-		private unsafe void SendBinary(byte* data, int dataLength)
+		//private unsafe void SendBinary(byte* data, int dataLength)
+		private void SendBinary(byte[] data, int dataLength)
 		{
-			if (data == null || dataLength == 0) throw new Exception("Invalid data size");
-			int size = dataLength, offset = 0;
-			do
-			{
-				int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
-				Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
-				int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
-				if (dataRead == 0) break;
-				offset += dataRead;
-				size -= dataRead;
-			}
-			while (size != 0);
+			// if (data == null || dataLength == 0) throw new Exception("Invalid data size");
+			// int size = dataLength, offset = 0;
+			// do
+			// {
+			// 	int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
+			// 	Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
+			// 	int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
+			// 	if (dataRead == 0) break;
+			// 	offset += dataRead;
+			// 	size -= dataRead;
+			// }
+			// while (size != 0);
 		}
 
 		private void SendStream(Stream stream)
@@ -492,7 +493,8 @@ namespace RemoteDesktop.Core
 			while (size != 0);
 		}
 
-		public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)
+		//public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)
+		public void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)		
 		{
 			BitmapData locked = null;
 			try
@@ -519,7 +521,11 @@ namespace RemoteDesktop.Core
 				{
 					if (compressedStream == null) compressedStream = new MemoryStream();
 					else compressedStream.SetLength(0);
-					using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
+
+					// DEBUG: comment out to make not unsafe code
+					//using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
+					var bitmapStream = new MemoryStream(); // DEBUG: Dummy
+
 					using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
 					{
 						bitmapStream.CopyTo(gzip);
@@ -544,7 +550,7 @@ namespace RemoteDesktop.Core
 					format = bitmap.PixelFormat,
 					targetFPS = (byte)targetFPS
 				};
-				
+
 				SendMetaDataInternal(metaData);
 
 				// send bitmap data
@@ -555,8 +561,9 @@ namespace RemoteDesktop.Core
 				}
 				else
 				{
-					var data = (byte*)locked.Scan0;
-					SendBinary(data, dataLength);
+                    // DEBUG: comment out to make not unsafe code
+                    //var data = (byte*)locked.Scan0;
+					//SendBinary(data, dataLength);
 				}
 			}
 			catch
@@ -569,14 +576,15 @@ namespace RemoteDesktop.Core
 			}
 		}
 
-		private unsafe void SendMetaDataInternal(MetaData metaData)
+
+		//private unsafe void SendMetaDataInternal(MetaData metaData)
+		private void SendMetaDataInternal(MetaData metaData)
 		{
             // DEBUG: rewrite to avoid error (not work correctly)
             //var binaryMetaData = (byte*)&metaData;
-            var binaryMetaData = (byte*)null;
 
-            Marshal.Copy(new IntPtr(binaryMetaData), metaDataBuffer, 0, metaDataSize);
-			SendBinary(metaDataBuffer);
+            // Marshal.Copy(new IntPtr(binaryMetaData), metaDataBuffer, 0, metaDataSize);
+						// SendBinary(metaDataBuffer);
 		}
 
 		public void SendMetaData(MetaData metaData)
