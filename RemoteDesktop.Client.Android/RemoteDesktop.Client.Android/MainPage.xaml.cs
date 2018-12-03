@@ -128,7 +128,11 @@ namespace RemoteDesktop.Client.Android
 
             var gr = new TapGestureRecognizer();
             gr.Tapped += (s, e) => {
-                updateImageContentRandom();
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    updateImageContentRandom();
+                });
+
                 DisplayAlert("", "Tap", "OK");
             };
             image.GestureRecognizers.Add(gr);
