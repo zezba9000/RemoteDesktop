@@ -105,12 +105,12 @@ namespace RemoteDesktop.Client.Android
                 var (a, r, g, b) = info.Value;
                 SetPixel(row, col, width, r, g, b, a);
             }
-            OnPropertyChanged ("Source");
+            notifyPropertyChanged("Source");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName)
+        public void notifyPropertyChanged(string propertyName)
         {
             var changed = PropertyChanged;
             if (changed != null)

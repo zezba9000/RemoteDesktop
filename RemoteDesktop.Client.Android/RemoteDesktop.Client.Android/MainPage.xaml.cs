@@ -58,9 +58,9 @@ namespace RemoteDesktop.Client.Android
         private Point mousePoint;
         private sbyte mouseScroll;
         private byte mouseScrollCount, inputMouseButtonPressed;
-        //private Xamarin.Forms.Image image;
+        private Xamarin.Forms.Image image = new Xamarin.Forms.Image();
         private Picture picture;
-        private ImageSource imgSrc;
+        //private ImageSource imgSrc;
         private Random rnd = new Random();
 
         public MainPage()
@@ -111,11 +111,11 @@ namespace RemoteDesktop.Client.Android
                 }
             }
             picture = new Picture(colorInfo, width, height);
-            imgSrc = picture.GetImageSource();
+            //imgSrc = picture.GetImageSource();
+            //InitializeComponent();
 
-            InitializeComponent();
-            //image.Source = picture.GetImageSource();
-            //image.BindingContext = picture;
+            image.Source = picture.GetImageSource();
+            image.BindingContext = picture;
 
             //image.Source.BindingContext = picture;
 
@@ -131,23 +131,24 @@ namespace RemoteDesktop.Client.Android
             //};
 
 
-            //var gr = new TapGestureRecognizer();
-            //gr.Tapped += (s, e) => {
-            //    //Device.BeginInvokeOnMainThread(() =>
-            //    //{
-            //    //    updateImageContentRandom();
-            //    //});
+            var gr = new TapGestureRecognizer();
+            gr.Tapped += (s, e) =>
+            {
+                //Device.BeginInvokeOnMainThread(() =>
+                //{
+                //    updateImageContentRandom();
+                //});
 
-            //    DisplayAlert("", "Tap", "OK");
-            //};
-            //image.GestureRecognizers.Add(gr);
+                DisplayAlert("", "Tap", "OK");
+            };
+            image.GestureRecognizers.Add(gr);
 
-            //Content = new StackLayout
-            //{
-            //  //iOSで上余白を確保
-            //    Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0),
-            //    Children = { image }
-            //};
+            Content = new StackLayout
+            {
+                //iOSで上余白を確保
+                Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0),
+                Children = { image }
+            };
 
 
             //Device.StartTimer(
@@ -159,7 +160,6 @@ namespace RemoteDesktop.Client.Android
             //        }
             //);
 
-            //InitializeComponent();
 
             ////settingsOverlay.ApplyCallback += SettingsOverlay_ApplyCallback;
             //SetConnectionUIStates(uiState);
@@ -189,7 +189,7 @@ namespace RemoteDesktop.Client.Android
                 }
             }
             picture.updateContent(colorInfo, width, height);
-            imgSrc = picture.GetImageSource();
+            //imgSrc = picture.GetImageSource();
         }
 
         protected override bool OnBackButtonPressed()

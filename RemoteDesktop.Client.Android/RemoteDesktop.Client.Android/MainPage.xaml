@@ -4,11 +4,12 @@
              xmlns:local="clr-namespace:RemoteDesktop.Client.Android"
              x:Class="RemoteDesktop.Client.Android.MainPage">
 
-    <ContentPage.Content>
+    <!--<ContentPage.Content>
         <StackLayout Padding="0,20,0,0">
             <Image Source="{Binding imgSrc}" />
         </StackLayout>        
-    </ContentPage.Content>
+    </ContentPage.Content>-->
+    
     <!--<StackLayout>
         -->
     <!-- Place new controls here -->
