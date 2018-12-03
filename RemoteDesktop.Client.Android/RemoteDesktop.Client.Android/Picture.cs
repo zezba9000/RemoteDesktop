@@ -14,12 +14,44 @@ namespace RemoteDesktop.Client.Android
 
         public Picture(Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo, int width, int height)
         {
-            buffer = MakeBuffer(width, height);
-            foreach (var info in colorInfo)
+            if(colorInfo == null)
             {
-                var (row, col) = info.Key;
-                var (a, r, g, b) = info.Value;
-                SetPixel(row, col, width, r, g, b, a);
+                // set data directly to buffer field
+                MakeBufferRandomImageFilled(width, height);
+            }
+            else
+            {
+                buffer = MakeBuffer(width, height);
+                foreach (var info in colorInfo)
+                {
+                    var (row, col) = info.Key;
+                    var (a, r, g, b) = info.Value;
+                    SetPixel(row, col, width, r, g, b, a);
+                }
+            }
+        }
+
+        private void MakeBufferRandomImageFilled(int width, int height)
+        {
+            if(buffer == null)
+            {
+                buffer = MakeBuffer(width, height);
+            }
+            byte r = (byte)MainPage.rnd.Next(256);
+            byte g = (byte)MainPage.rnd.Next(256);
+            byte b = (byte)MainPage.rnd.Next(256);
+            byte a = (byte)255;
+            long index = 0;
+            for (int h = 0;h < height; h++)
+            {
+                for(int w = 0; w < width; w++)
+                {
+                    index = (h * width + w) * 4 + headerSize;
+                    buffer[index + 0] = b;
+                    buffer[index + 1] = g;
+                    buffer[index + 2] = r;
+                    buffer[index + 3] = a;
+                }
             }
         }
 
@@ -98,12 +130,20 @@ namespace RemoteDesktop.Client.Android
 
         public void updateContent(Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo, int width, int height)
         {
-            buffer = MakeBuffer(width, height);
-            foreach (var info in colorInfo)
+            if(colorInfo == null)
             {
-                var (row, col) = info.Key;
-                var (a, r, g, b) = info.Value;
-                SetPixel(row, col, width, r, g, b, a);
+                // set data directly to buffer field
+                MakeBufferRandomImageFilled(width, height);
+            }
+            else
+            {
+                buffer = MakeBuffer(width, height);
+                foreach (var info in colorInfo)
+                {
+                    var (row, col) = info.Key;
+                    var (a, r, g, b) = info.Value;
+                    SetPixel(row, col, width, r, g, b, a);
+                }
             }
             notifyPropertyChanged("Source");
         }

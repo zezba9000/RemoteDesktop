@@ -61,7 +61,10 @@ namespace RemoteDesktop.Client.Android
         private Xamarin.Forms.Image image = new Xamarin.Forms.Image();
         private Picture picture;
         //private ImageSource imgSrc;
-        private Random rnd = new Random();
+        public static Random rnd = new Random();
+            // for ...x86_Oreo(1) emulator
+        private int width = 1440;
+        private int height = 2400; //display size is 2560
 
         public MainPage()
         {
@@ -75,9 +78,7 @@ namespace RemoteDesktop.Client.Android
             //var width = 411;
             //var height = 659;
 
-            // for ...x86_Oreo(1) emulator
-            var width = 1440;
-            var height = 2400; //display size is 2560
+
 
             //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
             //for(int h = 0;h < height; h++)
@@ -99,18 +100,21 @@ namespace RemoteDesktop.Client.Android
             //    }
             //}
 
-            var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
-            var r = rnd.Next(256);
-            var g = rnd.Next(256);
-            var b = rnd.Next(256);
-            for (int h = 0;h < height; h++)
-            {
-                for(int w = 0; w < width; w++)
-                {
-                    colorInfo[(h, w)] = (255, (byte)r,(byte)g, (byte)b);
-                }
-            }
+            //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
+            //var r = rnd.Next(256);
+            //var g = rnd.Next(256);
+            //var b = rnd.Next(256);
+            //for (int h = 0;h < height; h++)
+            //{
+            //    for(int w = 0; w < width; w++)
+            //    {
+            //        colorInfo[(h, w)] = (255, (byte)r,(byte)g, (byte)b);
+            //    }
+            //}
+
+            Dictionary<(int,int),(byte,byte,byte,byte)> colorInfo = null;
             picture = new Picture(colorInfo, width, height);
+
             //imgSrc = picture.GetImageSource();
             //InitializeComponent();
 
@@ -140,7 +144,7 @@ namespace RemoteDesktop.Client.Android
                     updateImageContentRandom();
                 });
 
-                DisplayAlert("", "Tap", "OK");
+                //DisplayAlert("", "Tap", "OK");
             };
             image.GestureRecognizers.Add(gr);
 
@@ -174,21 +178,18 @@ namespace RemoteDesktop.Client.Android
 
         public void updateImageContentRandom()
         {
-            // for ...x86_Oreo(1) emulator
-            var width = 1440;
-            var height = 2400; //display size is 2560
-
-            var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
-            var r = rnd.Next(256);
-            var g = rnd.Next(256);
-            var b = rnd.Next(256);
-            for (int h = 0;h < height; h++)
-            {
-                for(int w = 0; w < width; w++)
-                {
-                    colorInfo[(h, w)] = (255, (byte)r,(byte)g, (byte)b);
-                }
-            }
+            //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
+            //var r = rnd.Next(256);
+            //var g = rnd.Next(256);
+            //var b = rnd.Next(256);
+            //for (int h = 0;h < height; h++)
+            //{
+            //    for(int w = 0; w < width; w++)
+            //    {
+            //        colorInfo[(h, w)] = (255, (byte)r,(byte)g, (byte)b);
+            //    }
+            //}
+            Dictionary<(int,int),(byte,byte,byte,byte)> colorInfo = null;
             picture.updateContent(colorInfo, width, height);
             //imgSrc = picture.GetImageSource();
         }
@@ -197,7 +198,7 @@ namespace RemoteDesktop.Client.Android
         {
             base.OnBackButtonPressed();
 
-            DisplayAlert("", "Back Pressed", "OK");
+            //DisplayAlert("", "Back Pressed", "OK");
             updateImageContentRandom();
             return true;
         }
