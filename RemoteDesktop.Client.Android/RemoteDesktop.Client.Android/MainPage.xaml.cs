@@ -116,6 +116,7 @@ namespace RemoteDesktop.Client.Android
 
             image.Source = picture.GetImageSource();
             image.BindingContext = picture;
+            image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
 
             //image.Source.BindingContext = picture;
 
@@ -134,10 +135,10 @@ namespace RemoteDesktop.Client.Android
             var gr = new TapGestureRecognizer();
             gr.Tapped += (s, e) =>
             {
-                //Device.BeginInvokeOnMainThread(() =>
-                //{
-                //    updateImageContentRandom();
-                //});
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    updateImageContentRandom();
+                });
 
                 DisplayAlert("", "Tap", "OK");
             };
@@ -151,14 +152,14 @@ namespace RemoteDesktop.Client.Android
             };
 
 
-            //Device.StartTimer(
-            //        TimeSpan.FromSeconds(3),
-            //        () =>
-            //        {
-            //            updateImageContentRandom();
-            //            return true;
-            //        }
-            //);
+            Device.StartTimer(
+                    TimeSpan.FromSeconds(3),
+                    () =>
+                    {
+                        updateImageContentRandom();
+                        return true;
+                    }
+            );
 
 
             ////settingsOverlay.ApplyCallback += SettingsOverlay_ApplyCallback;
