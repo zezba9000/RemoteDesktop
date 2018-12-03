@@ -151,15 +151,15 @@ namespace RemoteDesktop.Client.Android
                 Children = { image }
             };
 
-
-            Device.StartTimer(
-                    TimeSpan.FromSeconds(3),
-                    () =>
-                    {
-                        updateImageContentRandom();
-                        return true;
-                    }
-            );
+            // this Image content update code worked collectly
+            //Device.StartTimer(
+            //        TimeSpan.FromSeconds(3),
+            //        () =>
+            //        {
+            //            updateImageContentRandom();
+            //            return true;
+            //        }
+            //);
 
 
             ////settingsOverlay.ApplyCallback += SettingsOverlay_ApplyCallback;
