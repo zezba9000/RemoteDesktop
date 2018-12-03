@@ -81,7 +81,7 @@ namespace RemoteDesktop.Client.Android
             return imageSource;
         }
 
-        public ImageSource ImageSource
+        public ImageSource Source
         {
             get
             {
@@ -105,7 +105,7 @@ namespace RemoteDesktop.Client.Android
                 var (a, r, g, b) = info.Value;
                 SetPixel(row, col, width, r, g, b, a);
             }
-            OnPropertyChanged ("ImageSource");
+            OnPropertyChanged ("Source");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

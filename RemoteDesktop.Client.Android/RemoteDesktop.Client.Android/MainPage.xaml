@@ -4,8 +4,15 @@
              xmlns:local="clr-namespace:RemoteDesktop.Client.Android"
              x:Class="RemoteDesktop.Client.Android.MainPage">
 
+    <ContentPage.Content>
+        <StackLayout Padding="0,20,0,0">
+            <Image Source="{Binding imgSrc}" />
+        </StackLayout>        
+    </ContentPage.Content>
     <!--<StackLayout>
-        --><!-- Place new controls here --><!--
+        -->
+    <!-- Place new controls here -->
+    <!--
         <Label Text="Welcome to Xamarin.Forms!" 
            HorizontalOptions="Center"
            VerticalOptions="CenterAndExpand" />
@@ -25,7 +32,9 @@
                     <Button Name="fullscreenCloseButton" Visibility="Hidden" Focusable="False" Width="64" Height="8" Margin="7" HorizontalAlignment="Center" VerticalAlignment="Top" Padding="-4" VerticalContentAlignment="Top" Click="fullscreenCloseButton_Click">^</Button>
                 </Grid>
             </Border>
-            --><!-- <local:SettingOverlay x:Name="settingsOverlay" Visibility="Hidden"/> --><!--
+            -->
+    <!-- <local:SettingOverlay x:Name="settingsOverlay" Visibility="Hidden"/> -->
+    <!--
             <Grid Name="refreshingGrid" Background="#EE000000" Visibility="Hidden">
                 <Label Foreground="White" Width="256" Height="64" FontSize="32" HorizontalContentAlignment="Center">Refreshing...</Label>
             </Grid>
