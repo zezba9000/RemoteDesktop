@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Drawing;
 using System.IO.Compression;
 using System.Threading;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace RemoteDesktop.Core
 {
@@ -19,20 +20,20 @@ namespace RemoteDesktop.Core
 		public int size, bytesRead;
 	}
 
-    // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
-    public class Image
-    {
-        public Image() { }
-    }
+    ////DEBUG: dummy for avoid erros due to Xamarin does not have some classes
+    //public class Image
+    //{
+    //    public Image() { }
+    //}
 
     // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
-    public class PixelFormat
+    public class PixelFormatXama
     {
-        public static PixelFormat Format24bppRgb = new PixelFormat(0);
-        public static PixelFormat Format16bppRgb565 = new PixelFormat(1);
+        public static PixelFormatXama Format24bppRgb = new PixelFormatXama(0);
+        public static PixelFormatXama Format16bppRgb565 = new PixelFormatXama(1);
 
         private int format = -1;
-        public PixelFormat(int pixcel_format) {
+        public PixelFormatXama(int pixcel_format) {
             format = pixcel_format;
         }
         public int getFormat()
@@ -42,19 +43,32 @@ namespace RemoteDesktop.Core
     }
 
     // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
-    public class Bitmap
+    public class BitmapXama
     {
-        public PixelFormat PixelFormat = new PixelFormat(-1);
-        public void UnlockBits(BitmapData locked) { }
+        public PixelFormatXama PixelFormat = new PixelFormatXama(-1);
+        private byte[] buffer = null;
+
+        //public BitmapXama() { }
+        public BitmapXama(byte[] buf)
+        {
+
+        }
+
+        //public void UnlockBits(BitmapData locked) { }
+        public byte[] getInternalBuffer()
+        {
+            return buffer;
+        }
+
         public int Height = 0;
         public int Width = 0;
     }
 
-    // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
-    public class BitmapData
-    {
-        public int Scan0 = 0;
-    }
+    //// DEBUG: dummy for avoid erros due to Xamarin does not have some classes
+    //public class BitmapData
+    //{
+    //    public int Scan0 = 0;
+    //}
 
     public enum MetaDataTypes
 	{
@@ -68,14 +82,16 @@ namespace RemoteDesktop.Core
 		ImageData
 	}
 
-	[StructLayout(LayoutKind.Sequential)]
+
+    //[StructLayout(LayoutKind.Sequential)]
+    [Serializable()]
 	public struct MetaData
 	{
 		public MetaDataTypes type;
 		public bool compressed;
 		public int dataSize, imageDataSize;
 		public short width, height, screenWidth, screenHeight, screenIndex;
-		public PixelFormat format;
+		public PixelFormatXama format;
 		public float resolutionScale;
 		public byte targetFPS;
 
@@ -117,7 +133,11 @@ namespace RemoteDesktop.Core
 
 			receiveBuffer = new byte[1024];
 			sendBuffer = new byte[1024];
-			metaDataSize = Marshal.SizeOf<MetaData>();
+            //metaDataSize = Marshal.SizeOf<MetaData>();
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, new MetaData()); // for get Binary Seriazed data size
+            metaDataSize = ms.GetBuffer().Length;
 			metaDataBuffer = new byte[metaDataSize];
 		}
 
@@ -378,11 +398,15 @@ namespace RemoteDesktop.Core
 							bytesRead -= count;
 							overflow = bytesRead;
 
-							// create meta data object
-							var handle = GCHandle.Alloc(metaDataBuffer, GCHandleType.Pinned);
-							metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
-							handle.Free();
+                            // create meta data object
+                            //var handle = GCHandle.Alloc(metaDataBuffer, GCHandleType.Pinned);
+                            //metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
+                            //handle.Free();
+                            BinaryFormatter bf = new BinaryFormatter();
+                            metaData = (MetaData) bf.Deserialize(new MemoryStream(metaDataBuffer));
+
 							if (metaData.dataSize == 0) throw new Exception("Invalid data size");
+                            Console.WriteLine("read MetaData at DataSocket success!");
 
 							// fire start callback
 							FireStartDataRecievedCallback(metaData);
@@ -471,19 +495,20 @@ namespace RemoteDesktop.Core
 		//private unsafe void SendBinary(byte* data, int dataLength)
 		private void SendBinary(byte[] data, int dataLength)
 		{
-			// if (data == null || dataLength == 0) throw new Exception("Invalid data size");
-			// int size = dataLength, offset = 0;
-			// do
-			// {
-			// 	int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
-			// 	Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
-			// 	int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
-			// 	if (dataRead == 0) break;
-			// 	offset += dataRead;
-			// 	size -= dataRead;
-			// }
-			// while (size != 0);
-		}
+            if (data == null || dataLength == 0) throw new Exception("Invalid data size");
+            int size = dataLength, offset = 0;
+            do
+            {
+                int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
+                //Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
+                Array.Copy(data, offset, sendBuffer, 0, writeSize);
+                int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
+                if (dataRead == 0) break;
+                offset += dataRead;
+                size -= dataRead;
+            }
+            while (size != 0);
+        }
 
 		private void SendStream(Stream stream)
 		{
@@ -502,46 +527,46 @@ namespace RemoteDesktop.Core
 		}
 
 		//public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)
-		public void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)		
+		public void SendImage(BitmapXama bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)		
 		{
-			BitmapData locked = null;
+			//BitmapData locked = null;
 			try
 			{
 				// get data length
 				int dataLength, imageDataSize;
-				switch (bitmap.PixelFormat)
-				{
-                    // DEBUG: comment out to avoid error
-     //               case PixelFormat.Format24bppRgb: imageDataSize = bitmap.Width * bitmap.Height * 3; break;
-					//case PixelFormat.Format16bppRgb565: imageDataSize = ((bitmap.Width * bitmap.Height * 16) / 8); break;
+				//switch (bitmap.PixelFormat)
+				//{
+    //                // DEBUG: comment out to avoid error
+    // //               case PixelFormat.Format24bppRgb: imageDataSize = bitmap.Width * bitmap.Height * 3; break;
+				//	//case PixelFormat.Format16bppRgb565: imageDataSize = ((bitmap.Width * bitmap.Height * 16) / 8); break;
 
-					default: throw new Exception("Unsuported format: " + bitmap.PixelFormat);
-				}
-
+				//	default: throw new Exception("Unsuported format: " + bitmap.PixelFormat);
+				//}
+                imageDataSize = bitmap.Width * bitmap.Height * 3; //PixelFormat.Format24bprRgb
 				dataLength = imageDataSize;
 
                 // DEBUG: comment out to avoid error
                 //// lock bitmap
                 //locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
-                // compress if needed
-                if (compress)
-				{
-					if (compressedStream == null) compressedStream = new MemoryStream();
-					else compressedStream.SetLength(0);
+    //            // compress if needed
+    //            if (compress)
+				//{
+				//	if (compressedStream == null) compressedStream = new MemoryStream();
+				//	else compressedStream.SetLength(0);
 
-					// DEBUG: comment out to make not unsafe code
-					//using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
-					var bitmapStream = new MemoryStream(); // DEBUG: Dummy
+				//	// DEBUG: comment out to make not unsafe code
+				//	//using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
+				//	var bitmapStream = new MemoryStream(); // DEBUG: Dummy
 
-					using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
-					{
-						bitmapStream.CopyTo(gzip);
-					}
+				//	using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
+				//	{
+				//		bitmapStream.CopyTo(gzip);
+				//	}
 
-					compressedStream.Flush();
-					dataLength = (int)compressedStream.Length;
-				}
+				//	compressedStream.Flush();
+				//	dataLength = (int)compressedStream.Length;
+				//}
 
 				// send meta data
 				var metaData = new MetaData()
@@ -571,7 +596,8 @@ namespace RemoteDesktop.Core
 				{
                     // DEBUG: comment out to make not unsafe code
                     //var data = (byte*)locked.Scan0;
-					//SendBinary(data, dataLength);
+                    //SendBinary(data, dataLength);
+                    SendBinary(bitmap.getInternalBuffer(), dataLength);
 				}
 			}
 			catch
@@ -580,7 +606,7 @@ namespace RemoteDesktop.Core
 			}
 			finally
 			{
-				if (locked != null) bitmap.UnlockBits(locked);
+				//if (locked != null) bitmap.UnlockBits(locked);
 			}
 		}
 
@@ -592,7 +618,12 @@ namespace RemoteDesktop.Core
             //var binaryMetaData = (byte*)&metaData;
 
             // Marshal.Copy(new IntPtr(binaryMetaData), metaDataBuffer, 0, metaDataSize);
-						// SendBinary(metaDataBuffer);
+            // SendBinary(metaDataBuffer);
+            MemoryStream ms = new MemoryStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(ms, metaData);
+            byte[] buf = ms.GetBuffer();
+            SendBinary(buf);
 		}
 
 		public void SendMetaData(MetaData metaData)

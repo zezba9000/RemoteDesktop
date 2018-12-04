@@ -118,6 +118,8 @@ namespace RemoteDesktop.Client.Android
             //image.MouseUp += Image_MousePress;
             ////image.MouseWheel += Image_MouseWheel;
             ////KeyDown += Window_KeyDown;
+
+            connectToServer();
         }
 
         public void updateImageContentRandom()
@@ -199,7 +201,7 @@ namespace RemoteDesktop.Client.Android
                     updateImageContentRandom();
                 }
             });
-            
+
             //// init compression
             //if (metaData.compressed)
             //{
@@ -262,69 +264,72 @@ namespace RemoteDesktop.Client.Android
                 bitmap.setStateUpdated();
 
                 curBitmapBufOffset = 0;
-            });
 
-            processingFrame = false;
+                processingFrame = false;
+            });
         }
 
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
         {
-            //while ((!processingFrame || bitmapBackbuffer == IntPtr.Zero) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-            while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-            if (uiState != UIStates.Streaming || isDisposed) return;
-
-            //if (metaData.compressed)
-            //{
-            //    gzipStream.Write(data, 0, dataSize);
-            //}
-            //else
-            //{
-            //    Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
-            //}
-
-            if(curBitmapBufOffset == 0)
+            Device.BeginInvokeOnMainThread(() =>
             {
-                curBitmapBufOffset = Picture.headerSize;
-            }
+                //while ((!processingFrame || bitmapBackbuffer == IntPtr.Zero) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
+                while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
+                if (uiState != UIStates.Streaming || isDisposed) return;
 
-            //Marshal.Copy(data, 0, curBitmapBufOffset + offset, dataSize);
-            Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
+                //if (metaData.compressed)
+                //{
+                //    gzipStream.Write(data, 0, dataSize);
+                //}
+                //else
+                //{
+                //    Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
+                //}
+
+                if (curBitmapBufOffset == 0)
+                {
+                    curBitmapBufOffset = Picture.headerSize;
+                }
+
+                //Marshal.Copy(data, 0, curBitmapBufOffset + offset, dataSize);
+                Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
+            });
         }
 
         private void Socket_ConnectionFailedCallback(string error)
         {
-            lock (this)
-            {
-                socket.Dispose();
-                socket = null;
-            }
-
             Device.BeginInvokeOnMainThread(() =>
             {
+                //lock (this)
+                //{
+                socket.Dispose();
+                socket = null;
+                //}
+
                 SetConnectionUIStates(UIStates.Stopped);
             });
         }
 
         private void ApplySettings(MetaDataTypes type)
         {
-            lock (this)
+            //lock (this)
+            //{
+            if (isDisposed || socket == null) return;
+
+            var metaData = new MetaData()
             {
-                if (isDisposed || socket == null) return;
+                type = type,
+                compressed = false,
+                resolutionScale = .75f,
+                screenIndex = 0,
+                //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
+                format = PixelFormatXama.Format24bppRgb,
+                targetFPS = (byte)10,
+                dataSize = -1
+            };
 
-                var metaData = new MetaData()
-                {
-                    type = type,
-                    compressed = false,
-                    resolutionScale = .75f,
-                    screenIndex = 0,
-                    //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
-                    format = PixelFormat.Format24bppRgb,
-                    targetFPS = (byte)10,
-                    dataSize = -1
-                };
-
-                socket.SendMetaData(metaData);
-            }
+            socket.SendMetaData(metaData);
+            //}
         }
 
         private void Socket_ConnectedCallback()
@@ -334,14 +339,13 @@ namespace RemoteDesktop.Client.Android
 
         private void Socket_DisconnectedCallback()
         {
-            lock (this)
-            {
-                socket.Dispose();
-                socket = null;
-            }
-
             Device.BeginInvokeOnMainThread(() =>
             {
+                //lock (this)
+                //{
+                socket.Dispose();
+                socket = null;
+                //}
                 SetConnectionUIStates(UIStates.Stopped);
             });
         }

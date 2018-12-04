@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Windows.Forms;
@@ -365,6 +366,25 @@ namespace RemoteDesktop.Server
 			});
 		}
 
+        private unsafe BitmapXama convertToBitmapXama(Bitmap bmap)
+        {
+            Rectangle rect = new Rectangle(0, 0, bmap.Width, bmap.Height);
+            BitmapData bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
+
+            long dataLength = bmap.Width * bmap.Height * 3;
+            IntPtr ptr = bmpData.Scan0;
+            MemoryStream ms = new MemoryStream();
+            var bitmapStream = new UnmanagedMemoryStream((byte*)bmpData.Scan0, dataLength);
+            bitmapStream.CopyTo(ms);
+
+            bmap.UnlockBits(bmpData);
+
+            byte[] buf = ms.GetBuffer();
+            var retBmap = new BitmapXama(buf);
+
+            return retBmap;
+        }
+
 		private void Timer_Tick(object sender, EventArgs e)
 		{
 			lock (this)
@@ -372,8 +392,17 @@ namespace RemoteDesktop.Server
 				if (isDisposed) return;
 
 				CaptureScreen();
-				if (resolutionScale == 1) socket.SendImage(bitmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
-				else socket.SendImage(scaledBitmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
+                BitmapXama convedXBmap = null;
+                if (resolutionScale == 1)
+                {
+                    convedXBmap = convertToBitmapXama(bitmap);
+                    socket.SendImage(convedXBmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
+                }
+                else
+                {
+                    convedXBmap = convertToBitmapXama(bitmap);
+                    socket.SendImage(convedXBmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
+                }
 			}
 		}
 
