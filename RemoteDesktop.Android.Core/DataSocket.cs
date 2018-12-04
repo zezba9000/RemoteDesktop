@@ -28,15 +28,23 @@ namespace RemoteDesktop.Core
     // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
     public class PixelFormat
     {
-        //public const PixelFormat Format24bppRgb;
-        //public const PixelFormat Format16bppRgb565;
-        //public PixelFormat() { }
+        public static PixelFormat Format24bppRgb = new PixelFormat(0);
+        public static PixelFormat Format16bppRgb565 = new PixelFormat(1);
+
+        private int format = -1;
+        public PixelFormat(int pixcel_format) {
+            format = pixcel_format;
+        }
+        public int getFormat()
+        {
+            return format;
+        }
     }
 
     // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
     public class Bitmap
     {
-        public PixelFormat PixelFormat = new PixelFormat();
+        public PixelFormat PixelFormat = new PixelFormat(-1);
         public void UnlockBits(BitmapData locked) { }
         public int Height = 0;
         public int Width = 0;

@@ -22,7 +22,7 @@ namespace RemoteDesktop.Server
 		private Rectangle screenRect;
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
-		PixelFormat format = PixelFormat.Format24bppRgb;
+        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
 		int screenIndex, currentScreenIndex, targetFPS = 5;
 		bool compress, currentCompress;
 		float resolutionScale = 1, currentResolutionScale = 1;
@@ -253,8 +253,10 @@ namespace RemoteDesktop.Server
 				if (metaData.type == MetaDataTypes.UpdateSettings || metaData.type == MetaDataTypes.StartCapture)
 				{
 					DebugLog.Log("Updating settings");
-					format = metaData.format;
-					screenIndex = metaData.screenIndex;
+                    //format = metaData.format;
+                    //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565;
+                    format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+                    screenIndex = metaData.screenIndex;
 					compress = metaData.compressed;
 					resolutionScale = metaData.resolutionScale;
 					targetFPS = metaData.targetFPS;

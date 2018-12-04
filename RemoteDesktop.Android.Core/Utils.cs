@@ -13,5 +13,15 @@ namespace RemoteDesktop.Core
 		// [SuppressUnmanagedCodeSecurity]
 		// [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
 		// public static extern IntPtr memset(IntPtr dest, int c, IntPtr count);
+
+        public static void fillValueByteArray(byte[] buf, byte value, int offset)
+        {
+            int len = buf.Length;
+            for(int ii = 0; ii < len; ii++)
+            {
+                buf[offset + ii] = value;
+            }
+        }
+
 	}
 }

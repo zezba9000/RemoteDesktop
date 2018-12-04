@@ -9,7 +9,7 @@ namespace RemoteDesktop.Client.Android
 {
     class Picture : INotifyPropertyChanged
     {
-        private int headerSize = 54;
+        public static int headerSize = 54;
         private byte[] buffer;
 
         public Picture(Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo, int width, int height)
@@ -29,6 +29,11 @@ namespace RemoteDesktop.Client.Android
                     SetPixel(row, col, width, r, g, b, a);
                 }
             }
+        }
+
+        public byte[] getInternalBuffer()
+        {
+            return buffer;
         }
 
         private void MakeBufferRandomImageFilled(int width, int height)
@@ -126,6 +131,11 @@ namespace RemoteDesktop.Client.Android
 
                 return imageSource;
             }
+        }
+
+        public void setStateUpdated()
+        {
+            notifyPropertyChanged("Source");
         }
 
         public void updateContent(Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo, int width, int height)
