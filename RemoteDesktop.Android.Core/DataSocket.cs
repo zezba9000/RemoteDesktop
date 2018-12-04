@@ -27,6 +27,7 @@ namespace RemoteDesktop.Core
     //}
 
     // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
+    [Serializable()]
     public class PixelFormatXama
     {
         public static PixelFormatXama Format24bppRgb = new PixelFormatXama(0);
@@ -70,6 +71,7 @@ namespace RemoteDesktop.Core
     //    public int Scan0 = 0;
     //}
 
+    [Serializable()]
     public enum MetaDataTypes
 	{
 		None,
