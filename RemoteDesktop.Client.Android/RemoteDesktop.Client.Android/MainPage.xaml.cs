@@ -174,6 +174,8 @@ namespace RemoteDesktop.Client.Android
             //image.MouseUp += Image_MousePress;
             ////image.MouseWheel += Image_MouseWheel;
             ////KeyDown += Window_KeyDown;
+
+            //System.Runtime.Serialization.Formatters.Binary.BinaryFormatter fmter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
         }
 
         public void updateImageContentRandom()
