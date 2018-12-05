@@ -26,7 +26,7 @@ namespace RemoteDesktop.Server
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
 		int screenIndex, currentScreenIndex, targetFPS = 5;
 		bool compress, currentCompress;
-		float resolutionScale = 1, currentResolutionScale = 1;
+		float resolutionScale = 0.1f, currentResolutionScale = 0.1f;
 		private Timer timer;
 		private Dispatcher dispatcher;
 
@@ -40,7 +40,7 @@ namespace RemoteDesktop.Server
 			{
 				new MenuItem("Exit", Exit),
 			};
-			
+
 			trayIcon = new NotifyIcon()
 			{
 				Icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location),
@@ -246,7 +246,7 @@ namespace RemoteDesktop.Server
 						timer.Interval = 1000 / targetFPS;
 						timer.Tick += Timer_Tick;
 					}
-					
+
 					timer.Start();
 				}
 
@@ -269,7 +269,7 @@ namespace RemoteDesktop.Server
 						});
 					}
 				}
-				
+
 				// start / stop
 				if (metaData.type == MetaDataTypes.StartCapture)
 				{
@@ -296,7 +296,7 @@ namespace RemoteDesktop.Server
 				{
 					// mouse pos
 					Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
-					
+
 					// mouse clicks
 					if (inputLastMouseState != metaData.mouseButtonPressed)
 					{
@@ -313,7 +313,7 @@ namespace RemoteDesktop.Server
 
 					// mouse scroll wheel
 					if (metaData.mouseScroll != 0) input.Mouse.VerticalScroll(metaData.mouseScroll);
-					
+
 					// finish
 					inputLastMouseState = metaData.mouseButtonPressed;
 				}
@@ -402,7 +402,7 @@ namespace RemoteDesktop.Server
                 }
                 else
                 {
-                    convedXBmap = convertToBitmapXama(bitmap);
+                    convedXBmap = convertToBitmapXama(scaledBitmap);
                     socket.SendImage(convedXBmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
                 }
 			}

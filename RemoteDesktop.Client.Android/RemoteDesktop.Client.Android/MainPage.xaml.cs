@@ -53,7 +53,7 @@ namespace RemoteDesktop.Client.Android
         // for ...x86_Oreo(1) emulator
         private int width = 1440;
         private int height = 2400; //display size is 2560
-        private const string SERVER_ADDR = "192.168.100.63";
+        private const string SERVER_ADDR = "192.168.0.11";
         private const int SERVER_PORT = 8888;
 
         public MainPage()
@@ -200,8 +200,8 @@ namespace RemoteDesktop.Client.Android
                     image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
                     width = metaData.width;
                     height = metaData.height;
-                    bitmap.setStateUpdated();
                 }
+                //bitmap.setStateUpdated();
             });
 
             //// init compression
@@ -267,6 +267,7 @@ namespace RemoteDesktop.Client.Android
 
                 curBitmapBufOffset = 0;
 
+                Console.WriteLine("new capture image received and update bitmap object!");
                 processingFrame = false;
             });
         }
@@ -322,7 +323,7 @@ namespace RemoteDesktop.Client.Android
             {
                 type = type,
                 compressed = false,
-                resolutionScale = .75f,
+                resolutionScale = .1f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 format = PixelFormatXama.Format24bppRgb,
