@@ -381,6 +381,8 @@ namespace RemoteDesktop.Server
 
             byte[] buf = ms.GetBuffer();
             var retBmap = new BitmapXama(buf);
+            retBmap.Height = bmap.Height;
+            retBmap.Width = bmap.Width;
 
             return retBmap;
         }
