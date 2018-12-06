@@ -26,7 +26,7 @@ namespace RemoteDesktop.Server
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
 		int screenIndex, currentScreenIndex, targetFPS = 5;
 		bool compress, currentCompress;
-		float resolutionScale = 0.1f, currentResolutionScale = 0.1f;
+		float resolutionScale = 0.3f, currentResolutionScale = 0.3f;
 		private Timer timer;
 		private Dispatcher dispatcher;
 

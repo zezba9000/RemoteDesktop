@@ -139,7 +139,8 @@ namespace RemoteDesktop.Core
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, new MetaData()); // for get Binary Seriazed data size
-            metaDataSize = ms.GetBuffer().Length;
+            //metaDataSize = ms.GetBuffer().Length;
+            metaDataSize = (int) ms.Length;
 			metaDataBuffer = new byte[metaDataSize];
 		}
 
@@ -480,19 +481,19 @@ namespace RemoteDesktop.Core
 			}
 		}
 
-		private void SendBinary(byte[] data)
-		{
-			if (data == null || data.Length == 0) throw new Exception("Invalid data size");
-			int size = data.Length, offset = 0;
-			do
-			{
-				int dataRead = socket.Send(data, offset, size, SocketFlags.None);
-				if (dataRead == 0) break;
-				offset += dataRead;
-				size -= dataRead;
-			}
-			while (size != 0);
-		}
+		//private void SendBinary(byte[] data)
+		//{
+		//	if (data == null || data.Length == 0) throw new Exception("Invalid data size");
+		//	int size = data.Length, offset = 0;
+		//	do
+		//	{
+		//		int dataRead = socket.Send(data, offset, size, SocketFlags.None);
+		//		if (dataRead == 0) break;
+		//		offset += dataRead;
+		//		size -= dataRead;
+		//	}
+		//	while (size != 0);
+		//}
 
 		//private unsafe void SendBinary(byte* data, int dataLength)
 		private void SendBinary(byte[] data, int dataLength)
@@ -591,8 +592,9 @@ namespace RemoteDesktop.Core
 				// send bitmap data
 				if (compress)
 				{
-					compressedStream.Position = 0;
-					SendStream(compressedStream);
+                    throw new Exception("compress and SendStream is Invalid now");
+     //               compressedStream.Position = 0;
+					//SendStream(compressedStream);
 				}
 				else
 				{
@@ -625,7 +627,7 @@ namespace RemoteDesktop.Core
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(ms, metaData);
             byte[] buf = ms.GetBuffer();
-            SendBinary(buf);
+            SendBinary(buf, metaDataSize);
 		}
 
 		public void SendMetaData(MetaData metaData)

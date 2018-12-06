@@ -26,7 +26,8 @@ namespace RemoteDesktop.Client.Android
                 {
                     var (row, col) = info.Key;
                     var (a, r, g, b) = info.Value;
-                    SetPixel(row, col, width, r, g, b, a);
+                    //SetPixel(row, col, width, r, g, b, a);
+                    SetPixel(row, col, width, r, g, b);
                 }
             }
         }
@@ -45,17 +46,17 @@ namespace RemoteDesktop.Client.Android
             byte r = (byte)MainPage.rnd.Next(256);
             byte g = (byte)MainPage.rnd.Next(256);
             byte b = (byte)MainPage.rnd.Next(256);
-            byte a = (byte)255;
+            //byte a = (byte)255;
             long index = 0;
             for (int h = 0;h < height; h++)
             {
                 for(int w = 0; w < width; w++)
                 {
-                    index = (h * width + w) * 4 + headerSize;
+                    index = (h * width + w) * 3 + headerSize;
                     buffer[index + 0] = b;
                     buffer[index + 1] = g;
                     buffer[index + 2] = r;
-                    buffer[index + 3] = a;
+                    //buffer[index + 3] = a;
                 }
             }
         }
@@ -64,7 +65,7 @@ namespace RemoteDesktop.Client.Android
         {
             //buffer作成
             var numPixels = width * height;
-            var numPixelBytes = 4 * numPixels;
+            var numPixelBytes = 3 * numPixels;
             var filesize = headerSize + numPixelBytes;
             var buffer = new byte[filesize];
 
@@ -84,7 +85,7 @@ namespace RemoteDesktop.Client.Android
                     writer.Write(width);
                     writer.Write(height);
                     writer.Write((short)1);
-                    writer.Write((short)32);
+                    writer.Write((short)24); //RGB 8*3=24, alpha is not conatined
                     writer.Write(0);
                     writer.Write(numPixelBytes);
                     writer.Write(0);
@@ -97,13 +98,14 @@ namespace RemoteDesktop.Client.Android
             }
         }
 
-        private void SetPixel(int row, int col, int width, int r, int g, int b, int a = 255)
+        //private void SetPixel(int row, int col, int width, int r, int g, int b, int a = 255)
+        private void SetPixel(int row, int col, int width, int r, int g, int b)
         {
-            long index = (row * width + col) * 4 + headerSize;
+            long index = (row * width + col) * 3 + headerSize;
             buffer[index + 0] = (byte)b;
             buffer[index + 1] = (byte)g;
             buffer[index + 2] = (byte)r;
-            buffer[index + 3] = (byte)a;
+            //buffer[index + 3] = (byte)a;
         }
 
         public ImageSource GetImageSource()
@@ -152,7 +154,8 @@ namespace RemoteDesktop.Client.Android
                 {
                     var (row, col) = info.Key;
                     var (a, r, g, b) = info.Value;
-                    SetPixel(row, col, width, r, g, b, a);
+                    //SetPixel(row, col, width, r, g, b, a);
+                    SetPixel(row, col, width, r, g, b);
                 }
             }
             notifyPropertyChanged("Source");
