@@ -81,7 +81,7 @@ namespace RemoteDesktop.Core
 		public bool compressed;
 		public int dataSize, imageDataSize;
 		public short width, height, screenWidth, screenHeight, screenIndex;
-		public PixelFormatXama format;
+		//public PixelFormatXama format;
 		public float resolutionScale;
 		public byte targetFPS;
 
@@ -574,7 +574,7 @@ namespace RemoteDesktop.Core
 					screenWidth = (short)screenWidth,
 					screenHeight = (short)screenHeight,
 					screenIndex = (short)screenIndex,
-					format = bitmap.PixelFormat,
+					//format = bitmap.PixelFormat,
 					targetFPS = (byte)targetFPS
 				};
 

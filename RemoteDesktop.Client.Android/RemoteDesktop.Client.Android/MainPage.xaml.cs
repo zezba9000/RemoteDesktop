@@ -326,7 +326,7 @@ namespace RemoteDesktop.Client.Android
                 resolutionScale = .3f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
-                format = PixelFormatXama.Format24bppRgb,
+                //format = PixelFormatXama.Format24bppRgb,
                 targetFPS = (byte)10,
                 dataSize = -1
             };
