@@ -132,7 +132,7 @@ namespace RemoteDesktop.Core
             Console.WriteLine("Serialized MetaData Class object binary size is berow");
             Console.WriteLine(metaDataSize);
             Console.WriteLine(type);
-			metaDataBuffer = new byte[metaDataSize];
+			metaDataBuffer = new byte[1024];
 		}
 
 		public void Dispose()
