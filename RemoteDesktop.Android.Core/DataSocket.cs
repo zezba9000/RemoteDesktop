@@ -493,10 +493,10 @@ namespace RemoteDesktop.Core
             int size = dataLength, offset = 0;
             do
             {
-                int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
+                //int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
                 //Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
-                Array.Copy(data, offset, sendBuffer, 0, writeSize);
-                int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
+                //Array.Copy(data, offset, sendBuffer, 0, writeSize);
+                int dataRead = socket.Send(sendBuffer, offset,size, SocketFlags.None);
                 if (dataRead == 0) break;
                 offset += dataRead;
                 size -= dataRead;
