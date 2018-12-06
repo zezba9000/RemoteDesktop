@@ -20,12 +20,6 @@ namespace RemoteDesktop.Core
 		public int size, bytesRead;
 	}
 
-    ////DEBUG: dummy for avoid erros due to Xamarin does not have some classes
-    //public class Image
-    //{
-    //    public Image() { }
-    //}
-
     // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
     [Serializable()]
     public class PixelFormatXama
@@ -64,12 +58,6 @@ namespace RemoteDesktop.Core
         public int Height = 0;
         public int Width = 0;
     }
-
-    //// DEBUG: dummy for avoid erros due to Xamarin does not have some classes
-    //public class BitmapData
-    //{
-    //    public int Scan0 = 0;
-    //}
 
     [Serializable()]
     public enum MetaDataTypes
@@ -141,10 +129,10 @@ namespace RemoteDesktop.Core
             bf.Serialize(ms, new MetaData()); // for get Binary Seriazed data size
             //metaDataSize = ms.GetBuffer().Length;
             metaDataSize = (int) ms.Length;
-            Console.WriteLine("Serialized MetaData Class object binary size at server is berow");
+            Console.WriteLine("Serialized MetaData Class object binary size is berow");
             Console.WriteLine(metaDataSize);
             Console.WriteLine(type);
-			metaDataBuffer = new byte[metaDataSize];
+			metaDataBuffer = new byte[1024];
 		}
 
 		public void Dispose()

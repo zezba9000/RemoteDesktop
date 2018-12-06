@@ -64,8 +64,8 @@ namespace RemoteDesktop.Server
 			socket.Listen(IPAddress.Any, port);
 
 			// start network discovery
-			networkDiscovery = new NetworkDiscovery(NetworkTypes.Server);
-			networkDiscovery.Register("SimpleRemoteDesktop", port);
+			//networkDiscovery = new NetworkDiscovery(NetworkTypes.Server);
+			//networkDiscovery.Register("SimpleRemoteDesktop", port);
 		}
 
 		void Exit(object sender, EventArgs e)
