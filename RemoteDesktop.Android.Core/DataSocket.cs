@@ -141,6 +141,9 @@ namespace RemoteDesktop.Core
             bf.Serialize(ms, new MetaData()); // for get Binary Seriazed data size
             //metaDataSize = ms.GetBuffer().Length;
             metaDataSize = (int) ms.Length;
+            Console.WriteLine("Serialized MetaData Class object binary size at server is berow");
+            Console.WriteLine(metaDataSize);
+            Console.WriteLine(type);
 			metaDataBuffer = new byte[metaDataSize];
 		}
 
