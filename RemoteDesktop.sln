@@ -16,6 +16,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AreaSelecting", "AreaSelecting\AreaSelecting.csproj", "{D293F8BD-475A-48C0-A473-76B4D8F24AF3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Client.Android.Android", "RemoteDesktop.Client.Android\RemoteDesktop.Client.Android.Android\RemoteDesktop.Client.Android.Android.csproj", "{9C59F9EE-7185-4808-A17E-15D031A18F41}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BC83DC80-4F71-4222-89E8-F8E7CF1F95B0} = {BC83DC80-4F71-4222-89E8-F8E7CF1F95B0}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteDesktop.Client.Android", "RemoteDesktop.Client.Android\RemoteDesktop.Client.Android\RemoteDesktop.Client.Android.csproj", "{B360C410-0E31-464F-885D-902EC2A63EDF}"
 EndProject

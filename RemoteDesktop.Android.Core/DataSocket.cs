@@ -132,7 +132,7 @@ namespace RemoteDesktop.Core
             Console.WriteLine("Serialized MetaData Class object binary size is berow");
             Console.WriteLine(metaDataSize);
             Console.WriteLine(type);
-			metaDataBuffer = new byte[1024];
+			metaDataBuffer = new byte[metaDataSize];
 		}
 
 		public void Dispose()
@@ -496,10 +496,10 @@ namespace RemoteDesktop.Core
                 //int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
                 //Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
                 //Array.Copy(data, offset, sendBuffer, 0, writeSize);
-                int dataRead = socket.Send(sendBuffer, offset,size, SocketFlags.None);
-                if (dataRead == 0) break;
-                offset += dataRead;
-                size -= dataRead;
+                int dataWrite = socket.Send(data, offset, size, SocketFlags.None);
+                if (dataWrite == 0) break;
+                offset += dataWrite;
+                size -= dataWrite;
             }
             while (size != 0);
         }
