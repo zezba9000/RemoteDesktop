@@ -26,7 +26,7 @@ namespace RemoteDesktop.Server
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
 		int screenIndex, currentScreenIndex, targetFPS = 5;
 		bool compress, currentCompress;
-		float resolutionScale = 0.3f, currentResolutionScale = 0.3f;
+		float resolutionScale = 0.8f, currentResolutionScale = 0.8f;
 		private Timer timer;
 		private Dispatcher dispatcher;
 
@@ -366,16 +366,22 @@ namespace RemoteDesktop.Server
 			});
 		}
 
-        private unsafe BitmapXama convertToBitmapXama(Bitmap bmap)
+        private unsafe BitmapXama convertToBitmapXamaAndRotate(Bitmap bmap)
         {
+
+            //Rectangle rect = new Rectangle(0, 0, bmap.Width, bmap.Height);
+            //BitmapData bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
+            bmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            //bmap.UnlockBits(bmpData);
+
             Rectangle rect = new Rectangle(0, 0, bmap.Width, bmap.Height);
             BitmapData bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
 
             long dataLength = bmap.Width * bmap.Height * 3;
-            if(dataLength != 559872)
-            {
-                throw new Exception("Screen capture result is invalid! " + bmap.Width.ToString() + ", " + bmap.Height.ToString());
-            }
+            //if(dataLength != 559872)
+            //{
+            //    throw new Exception("Screen capture result is invalid! " + bmap.Width.ToString() + ", " + bmap.Height.ToString());
+            //}
             IntPtr ptr = bmpData.Scan0;
             MemoryStream ms = new MemoryStream();
             var bitmapStream = new UnmanagedMemoryStream((byte*)bmpData.Scan0, dataLength);
@@ -401,12 +407,12 @@ namespace RemoteDesktop.Server
                 BitmapXama convedXBmap = null;
                 if (resolutionScale == 1)
                 {
-                    convedXBmap = convertToBitmapXama(bitmap);
+                    convedXBmap = convertToBitmapXamaAndRotate(bitmap);
                     socket.SendImage(convedXBmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
                 }
                 else
                 {
-                    convedXBmap = convertToBitmapXama(scaledBitmap);
+                    convedXBmap = convertToBitmapXamaAndRotate(scaledBitmap);
                     socket.SendImage(convedXBmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
                 }
 			}

@@ -372,11 +372,11 @@ namespace RemoteDesktop.Client.Android
             {
                 type = type,
                 compressed = false,
-                resolutionScale = .3f,
+                resolutionScale = .8f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
-                targetFPS = (byte)10,
+                targetFPS = (byte)1,
                 dataSize = -1
             };
 
