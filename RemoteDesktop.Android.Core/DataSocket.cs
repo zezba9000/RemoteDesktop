@@ -414,10 +414,10 @@ namespace RemoteDesktop.Core
 								FireEndDataRecievedCallback();
 								metaDataBufferRead = 0;
 								state = new ReceiveState();
-                                if(overflow > 0)
-                                {
-                                    throw new Exception("state variable will invalid when goto EXTRA_STREAM");
-                                }
+                                //if(overflow > 0) // this check is wrong
+                                //{
+                                //    throw new Exception("state variable will invalid when goto EXTRA_STREAM");
+                                //}
 							}
 							else // server write data after MetaData object and read the data
 							{
@@ -577,7 +577,8 @@ namespace RemoteDesktop.Core
 				{
 					type = MetaDataTypes.ImageData,
 					compressed = compress,
-					dataSize = dataLength,
+					//dataSize = dataLength,
+                    dataSize = -1, // for Debug
 					imageDataSize = imageDataSize,
 					width = (short)bitmap.Width,
 					height = (short)bitmap.Height,
@@ -590,20 +591,21 @@ namespace RemoteDesktop.Core
 
 				SendMetaDataInternal(metaData);
 
-				// send bitmap data
-				if (compress)
-				{
-                    throw new Exception("compress and SendStream is Invalid now");
-     //               compressedStream.Position = 0;
-					//SendStream(compressedStream);
-				}
-				else
-				{
-                    // DEBUG: comment out to make not unsafe code
-                    //var data = (byte*)locked.Scan0;
-                    //SendBinary(data, dataLength);
-                    SendBinary(bitmap.getInternalBuffer(), dataLength);
-				}
+                // DEBUG: comment out for debug
+				//// send bitmap data
+				//if (compress)
+				//{
+    //                throw new Exception("compress and SendStream is Invalid now");
+    // //               compressedStream.Position = 0;
+				//	//SendStream(compressedStream);
+				//}
+				//else
+				//{
+    //                // DEBUG: comment out to make not unsafe code
+    //                //var data = (byte*)locked.Scan0;
+    //                //SendBinary(data, dataLength);
+    //                SendBinary(bitmap.getInternalBuffer(), dataLength);
+				//}
 			}
 			catch
 			{
@@ -628,6 +630,13 @@ namespace RemoteDesktop.Core
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(ms, metaData);
             byte[] buf = ms.GetBuffer();
+            Console.WriteLine("check MetaData object serialized binary size");
+            Console.WriteLine(metaDataSize);
+            Console.WriteLine(ms.Length);
+            if(metaDataSize != ms.Length)
+            {
+                throw new Exception("serialized MetaData binary size is not constant...");
+            }
             SendBinary(buf, metaDataSize);
 		}
 

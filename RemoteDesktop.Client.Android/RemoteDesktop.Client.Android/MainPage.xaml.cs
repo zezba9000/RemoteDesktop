@@ -271,6 +271,7 @@ namespace RemoteDesktop.Client.Android
                 Console.WriteLine("new capture image received and update bitmap object!");
                 processingFrame = false;
             });
+            Console.WriteLine("image update Invoked at EndDataRecievedCallback!");
         }
 
         //public static Task BeginInvokeOnMainThreadAsync(Action a)
@@ -317,7 +318,7 @@ namespace RemoteDesktop.Client.Android
                 task.Wait();
             }
             catch { }
-            Console.WriteLine("wait task on DataReceieveCallback finished!");
+            //Console.WriteLine("wait task on DataReceieveCallback finished!");
         }
 
         //private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
