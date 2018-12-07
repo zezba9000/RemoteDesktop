@@ -317,6 +317,7 @@ namespace RemoteDesktop.Client.Android
                 task.Wait();
             }
             catch { }
+            Console.WriteLine("wait task on DataReceieveCallback finished!");
         }
 
         //private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
