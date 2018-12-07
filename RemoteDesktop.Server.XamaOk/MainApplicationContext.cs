@@ -372,6 +372,10 @@ namespace RemoteDesktop.Server
             BitmapData bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
 
             long dataLength = bmap.Width * bmap.Height * 3;
+            if(dataLength != 559872)
+            {
+                throw new Exception("Screen capture result is invalid! " + bmap.Width.ToString() + ", " + bmap.Height.ToString());
+            }
             IntPtr ptr = bmpData.Scan0;
             MemoryStream ms = new MemoryStream();
             var bitmapStream = new UnmanagedMemoryStream((byte*)bmpData.Scan0, dataLength);

@@ -47,7 +47,7 @@ namespace RemoteDesktop.Core
         //public BitmapXama() { }
         public BitmapXama(byte[] buf)
         {
-
+            buffer = buf;
         }
 
         //public void UnlockBits(BitmapData locked) { }
@@ -341,8 +341,20 @@ namespace RemoteDesktop.Core
 			}
 		}
 
+        private void debugPrintByteArray4ElemSpan(byte[] buf)
+        {
+            string debugStr = "contents of buffer 4 elem span :";
+            for (int i = 0; i < buf.Length; i += 4)
+            {
+                debugStr += buf[i].ToString() + ", ";
+            }
+            Console.WriteLine(debugStr);
+        }
+
 		private void ReceiveBufferShiftDown(int atIndex)
 		{
+            Console.WriteLine("call ReceiveBufferShiftDown func. atIndex: " + atIndex.ToString());
+            debugPrintByteArray4ElemSpan(receiveBuffer);
 			for (int i = 0, i2 = atIndex; i2 < receiveBuffer.Length; ++i, ++i2)
 			{
 				receiveBuffer[i] = receiveBuffer[i2];
@@ -352,7 +364,10 @@ namespace RemoteDesktop.Core
 
 		private void RecieveDataCallback(IAsyncResult ar)
 		{
-			lock (this)
+            Console.WriteLine("ReceiveDataCallback on DataSockt");
+            Console.WriteLine((ReceiveState)ar.AsyncState);
+
+            lock (this)
 			{
 				// validate socket
 				if (isDisposed || socket == null || !socket.Connected) return;
@@ -362,6 +377,7 @@ namespace RemoteDesktop.Core
 				try
 				{
 					bytesRead = socket.EndReceive(ar); // this retuened larger than buffer size? (it means total read byte size?) => maybe No
+                    Console.WriteLine("read data size got from socketEndReceive(ar): " + bytesRead.ToString());
 				}
 				catch
 				{
@@ -399,6 +415,9 @@ namespace RemoteDesktop.Core
                             //var handle = GCHandle.Alloc(metaDataBuffer, GCHandleType.Pinned);
                             //metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
                             //handle.Free();
+
+                            Console.Write("metaDataBuffer: ");
+                            debugPrintByteArray4ElemSpan(metaDataBuffer);
                             BinaryFormatter bf = new BinaryFormatter();
                             metaData = (MetaData) bf.Deserialize(new MemoryStream(metaDataBuffer));
 
@@ -414,21 +433,17 @@ namespace RemoteDesktop.Core
 								FireEndDataRecievedCallback();
 								metaDataBufferRead = 0;
 								state = new ReceiveState();
-                                //if(overflow > 0) // this check is wrong
-                                //{
-                                //    throw new Exception("state variable will invalid when goto EXTRA_STREAM");
-                                //}
 							}
 							else // server write data after MetaData object and read the data
 							{
-                                //metaDataBufferRead = 0; <- this variable need keep value sonomama to not re-enter "if (metaDataBufferRead < metaDataSize)" block. so set to zero is wrong.
-
+                                Console.WriteLine("set state size after deserialize MetaData:" + metaData.dataSize.ToString());
 								state.size = metaData.dataSize; // bitmap data size
 							}
 
-							
+                            Console.WriteLine("value of state at end of MetaData process block: " + state.size.ToString() + ", " + state.bytesRead.ToString());
 							if (overflow > 0) // this means already read but not used data left on receive buffer
 							{
+                                Console.WriteLine("goto EXTRA_STREAM on MetaData process block: this means already read but not used data left on receive buffer");
 								goto EXTRA_STREAM;
 							}
 							else // go to read yet not received data (bitmap data)
@@ -441,6 +456,8 @@ namespace RemoteDesktop.Core
 
                     // --- after MetaData object is read ---
 
+                    Console.WriteLine("value of state *AFTER* end of MetaData process block: " + state.size.ToString() + ", " + state.bytesRead.ToString());
+
 					// read data chunk
 					int offset = state.bytesRead;
 					state.bytesRead += bytesRead;
@@ -448,9 +465,13 @@ namespace RemoteDesktop.Core
 					state.bytesRead = Math.Min(state.bytesRead, state.size);
 					int byteCount = bytesRead - overflow; // calc data size of current frame on receiveBuffer
 					FireDataRecievedCallback(receiveBuffer, byteCount, offset);
+                    Console.WriteLine("byteCount which means data size of current frame on receiveBuffer: " + byteCount.ToString());
+                    Console.WriteLine("overflow which already data size of next frame on receiveBuffer: " + overflow.ToString());
 
-					if (state.bytesRead != state.size) // did not read all data of current frame yet
-					{
+                    //if (state.bytesRead != state.size) // did not read all data of current frame yet
+                    if (state.bytesRead < state.size) // did not read all data of current frame yet
+                        {
+                        Console.WriteLine("call socket.BeginReceive func to read left bitmap data of current frame");
 						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 						return;
 					}
@@ -466,11 +487,13 @@ namespace RemoteDesktop.Core
 						ReceiveBufferShiftDown(bytesRead - overflow); // remove current frame data
 						bytesRead = overflow;
 						metaDataBufferRead = 0;
+                        Console.WriteLine("goto EXTRA_STREAM *AFTER* MetaData process block: this means already read but not used data left on receive buffer (size is BytesRead, overflow)");
 						goto EXTRA_STREAM;
 					}
-					else // finish read all data of current framen. then start wait data arrive of next frame
+					else // finish read all data of current frame. then start wait data arrive of next frame
 					{
-						metaDataBufferRead = 0;
+                        Console.WriteLine("call socket.BeginReceive func to read next frame because finished read all data of current frame. metaDataBufferRead: " + metaDataBufferRead.ToString());
+                        metaDataBufferRead = 0;
 						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
 						return;
 					}
@@ -499,6 +522,7 @@ namespace RemoteDesktop.Core
 		//private unsafe void SendBinary(byte* data, int dataLength)
 		private void SendBinary(byte[] data, int dataLength)
 		{
+            Console.WriteLine("call SendBinary func: data.Length, dataLength = " + data.Length.ToString() + ", " + dataLength.ToString());
             if (data == null || dataLength == 0) throw new Exception("Invalid data size");
             int size = dataLength, offset = 0;
             do
@@ -577,8 +601,8 @@ namespace RemoteDesktop.Core
 				{
 					type = MetaDataTypes.ImageData,
 					compressed = compress,
-					//dataSize = dataLength,
-                    dataSize = -1, // for Debug
+					dataSize = dataLength,
+                    //dataSize = -1, // for Debug
 					imageDataSize = imageDataSize,
 					width = (short)bitmap.Width,
 					height = (short)bitmap.Height,
@@ -592,24 +616,26 @@ namespace RemoteDesktop.Core
 				SendMetaDataInternal(metaData);
 
                 // DEBUG: comment out for debug
-				//// send bitmap data
-				//if (compress)
-				//{
-    //                throw new Exception("compress and SendStream is Invalid now");
-    // //               compressedStream.Position = 0;
-				//	//SendStream(compressedStream);
-				//}
-				//else
-				//{
-    //                // DEBUG: comment out to make not unsafe code
-    //                //var data = (byte*)locked.Scan0;
-    //                //SendBinary(data, dataLength);
-    //                SendBinary(bitmap.getInternalBuffer(), dataLength);
-				//}
-			}
-			catch
+                //if (compress)
+                //{
+                //    throw new Exception("compress and SendStream is Invalid now");
+                //    //               compressedStream.Position = 0;
+                //    //SendStream(compressedStream);
+                //}
+                //else
+                //{
+                //    // DEBUG: comment out to make not unsafe code
+                //    //var data = (byte*)locked.Scan0;
+                //    //SendBinary(data, dataLength);
+                //    SendBinary(bitmap.getInternalBuffer(), dataLength);
+                //}
+
+                // send bitmap data
+                SendBinary(bitmap.getInternalBuffer(), dataLength);
+            }
+			catch (Exception e)
 			{
-				// do nothing...
+                Console.WriteLine(e);
 			}
 			finally
 			{
