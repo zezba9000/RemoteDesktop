@@ -12,6 +12,7 @@ using RemoteDesktop.Core;
 using System.Threading;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 //using System.Runtime.InteropServices;
 //using System.IO.Compression;
 //using System.Text.RegularExpressions;
@@ -272,32 +273,78 @@ namespace RemoteDesktop.Client.Android
             });
         }
 
+        //public static Task BeginInvokeOnMainThreadAsync(Action a)
+        //{
+        //    var tcs = new TaskCompletionSource<bool>();
+        //    Device.BeginInvokeOnMainThread(() => 
+        //    {
+        //        try {
+        //            a();
+        //            tcs.SetResult(true);
+        //        } catch (Exception ex) {
+        //            tcs.SetException(ex);
+        //        }
+        //    });
+        //    return tcs.Task;
+        //}
+
+
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
         {
-            Device.BeginInvokeOnMainThread(() =>
+            var tcs = new TaskCompletionSource<bool>();
+            Device.BeginInvokeOnMainThread(() => 
             {
-                //while ((!processingFrame || bitmapBackbuffer == IntPtr.Zero) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-                while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-                if (uiState != UIStates.Streaming || isDisposed) return;
+                try {
+                    while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
+                    if (uiState != UIStates.Streaming || isDisposed) return;
 
-                //if (metaData.compressed)
-                //{
-                //    gzipStream.Write(data, 0, dataSize);
-                //}
-                //else
-                //{
-                //    Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
-                //}
+                    if (curBitmapBufOffset == 0)
+                    {
+                        curBitmapBufOffset = Picture.headerSize;
+                    }
 
-                if (curBitmapBufOffset == 0)
-                {
-                    curBitmapBufOffset = Picture.headerSize;
+                    Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
+                    tcs.SetResult(true);
+                } catch (Exception ex) {
+                    tcs.SetException(ex);
                 }
-
-                //Marshal.Copy(data, 0, curBitmapBufOffset + offset, dataSize);
-                Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
             });
+
+            // wait until codes passed to Device.BeginInvokeOnMainThread func
+            var task = tcs.Task;
+            try
+            {
+                task.Wait();
+            }
+            catch { }
         }
+
+        //private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
+        //{
+        //    Device.BeginInvokeOnMainThread(() =>
+        //    {
+        //        //while ((!processingFrame || bitmapBackbuffer == IntPtr.Zero) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
+        //        while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
+        //        if (uiState != UIStates.Streaming || isDisposed) return;
+
+        //        //if (metaData.compressed)
+        //        //{
+        //        //    gzipStream.Write(data, 0, dataSize);
+        //        //}
+        //        //else
+        //        //{
+        //        //    Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
+        //        //}
+
+        //        if (curBitmapBufOffset == 0)
+        //        {
+        //            curBitmapBufOffset = Picture.headerSize;
+        //        }
+
+        //        //Marshal.Copy(data, 0, curBitmapBufOffset + offset, dataSize);
+        //        Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
+        //    });
+        //}
 
         private void Socket_ConnectionFailedCallback(string error)
         {

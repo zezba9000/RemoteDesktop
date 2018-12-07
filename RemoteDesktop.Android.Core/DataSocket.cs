@@ -17,8 +17,9 @@ namespace RemoteDesktop.Core
 {
 	struct ReceiveState
 	{
-		public int size, bytesRead;
-	}
+        public int size;
+        public int bytesRead;
+    }
 
     // DEBUG: dummy for avoid erros due to Xamarin does not have some classes
     [Serializable()]
@@ -108,7 +109,7 @@ namespace RemoteDesktop.Core
 
 		private NetworkTypes type;
 		private Socket listenSocket, socket;
-		private bool isDisposed = false, disconnected;
+		private bool isDisposed = false, disconnected = false;
 		private Timer disconnectionTimer;
 
 		private byte[] receiveBuffer, sendBuffer, metaDataBuffer;
@@ -360,7 +361,7 @@ namespace RemoteDesktop.Core
 				int bytesRead;
 				try
 				{
-					bytesRead = socket.EndReceive(ar);
+					bytesRead = socket.EndReceive(ar); // this retuened larger than buffer size? (it means total read byte size?) => maybe No
 				}
 				catch
 				{
@@ -381,8 +382,10 @@ namespace RemoteDesktop.Core
 						Array.Copy(receiveBuffer, 0, metaDataBuffer, metaDataBufferRead, count);
 						metaDataBufferRead += count;
 
-						if (bytesRead < metaDataSize)
-						{
+                        // DEBUG: if EndReceive func do not return total read bytes, calc sum code may be needed!!!
+						//if (bytesRead < metaDataSize)
+                        if (metaDataBufferRead < metaDataSize)
+                            {
 							try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 							return;
 						}
@@ -390,7 +393,7 @@ namespace RemoteDesktop.Core
 						{
 							ReceiveBufferShiftDown(count);
 							bytesRead -= count;
-							overflow = bytesRead;
+							overflow = bytesRead; // overflow and current bytesRead means bitmap data already read (if value > 0)
 
                             // create meta data object
                             //var handle = GCHandle.Alloc(metaDataBuffer, GCHandleType.Pinned);
@@ -411,61 +414,68 @@ namespace RemoteDesktop.Core
 								FireEndDataRecievedCallback();
 								metaDataBufferRead = 0;
 								state = new ReceiveState();
+                                if(overflow > 0)
+                                {
+                                    throw new Exception("state variable will invalid when goto EXTRA_STREAM");
+                                }
 							}
-							else
+							else // server write data after MetaData object and read the data
 							{
-								state.size = metaData.dataSize;
+                                //metaDataBufferRead = 0; <- this variable need keep value sonomama to not re-enter "if (metaDataBufferRead < metaDataSize)" block. so set to zero is wrong.
+
+								state.size = metaData.dataSize; // bitmap data size
 							}
 
-							// process remaining data
-							if (overflow > 0)
+							
+							if (overflow > 0) // this means already read but not used data left on receive buffer
 							{
 								goto EXTRA_STREAM;
 							}
-							else
+							else // go to read yet not received data (bitmap data)
 							{
 								try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 								return;
 							}
 						}
-					}
+					} // not through code from inner of this block to below!!!
 
-					// write data chunk
+                    // --- after MetaData object is read ---
+
+					// read data chunk
 					int offset = state.bytesRead;
 					state.bytesRead += bytesRead;
-					overflow = Math.Max(state.bytesRead - state.size, 0);
+					overflow = Math.Max(state.bytesRead - state.size, 0); // overflow > 0 means already read next frame data
 					state.bytesRead = Math.Min(state.bytesRead, state.size);
-					int byteCount = bytesRead - overflow;
+					int byteCount = bytesRead - overflow; // calc data size of current frame on receiveBuffer
 					FireDataRecievedCallback(receiveBuffer, byteCount, offset);
 
-					// check if stream segment finished
-					if (state.bytesRead != state.size)
+					if (state.bytesRead != state.size) // did not read all data of current frame yet
 					{
 						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 						return;
 					}
-					else
+					else // already read all data of current frame
 					{
 						FireEndDataRecievedCallback();
 					}
 
-					// process remaining data
-					if (overflow > 0)
+					
+					if (overflow > 0) // process remaining data (already read next frame data)
 					{
 						state = new ReceiveState();
-						ReceiveBufferShiftDown(bytesRead - overflow);
+						ReceiveBufferShiftDown(bytesRead - overflow); // remove current frame data
 						bytesRead = overflow;
 						metaDataBufferRead = 0;
 						goto EXTRA_STREAM;
 					}
-					else
+					else // finish read all data of current framen. then start wait data arrive of next frame
 					{
 						metaDataBufferRead = 0;
 						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
 						return;
 					}
 				}
-				else
+				else // read request to socket failed (some failue should occured) 
 				{
 					disconnected = true;
 				}
