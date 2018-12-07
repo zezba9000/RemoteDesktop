@@ -17,7 +17,7 @@ namespace RemoteDesktop.Server
 	{
 		private bool isDisposed;
 		private NotifyIcon trayIcon;
-		private NetworkDiscovery networkDiscovery;
+		//private NetworkDiscovery networkDiscovery;
 		private DataSocket socket;
 
 		private Rectangle screenRect;
@@ -31,7 +31,7 @@ namespace RemoteDesktop.Server
 		private Dispatcher dispatcher;
 
 		private InputSimulator input;
-		private byte inputLastMouseState;
+		//private byte inputLastMouseState;
 
 		public MainApplicationContext(int port)
 		{
@@ -83,11 +83,11 @@ namespace RemoteDesktop.Server
 					timer = null;
 				}
 
-				if (networkDiscovery != null)
-				{
-					networkDiscovery.Dispose();
-					networkDiscovery = null;
-				}
+				//if (networkDiscovery != null)
+				//{
+				//	networkDiscovery.Dispose();
+				//	networkDiscovery = null;
+				//}
 
 				if (socket != null)
 				{
@@ -292,47 +292,47 @@ namespace RemoteDesktop.Server
 						timer.Start();
 					});
 				}
-				else if (metaData.type == MetaDataTypes.UpdateMouse)
-				{
-					// mouse pos
-					Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
+				//else if (metaData.type == MetaDataTypes.UpdateMouse)
+				//{
+				//	// mouse pos
+				//	Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
 
-					// mouse clicks
-					if (inputLastMouseState != metaData.mouseButtonPressed)
-					{
-						// handle state changes
-						if (inputLastMouseState == 1) input.Mouse.LeftButtonUp();
-						else if (inputLastMouseState == 2) input.Mouse.RightButtonUp();
-						else if (inputLastMouseState == 3) input.Mouse.XButtonUp(2);
+				//	// mouse clicks
+				//	if (inputLastMouseState != metaData.mouseButtonPressed)
+				//	{
+				//		// handle state changes
+				//		if (inputLastMouseState == 1) input.Mouse.LeftButtonUp();
+				//		else if (inputLastMouseState == 2) input.Mouse.RightButtonUp();
+				//		else if (inputLastMouseState == 3) input.Mouse.XButtonUp(2);
 
-						// handle new state
-						if (metaData.mouseButtonPressed == 1) input.Mouse.LeftButtonDown();
-						else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
-						else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
-					}
+				//		// handle new state
+				//		if (metaData.mouseButtonPressed == 1) input.Mouse.LeftButtonDown();
+				//		else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
+				//		else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
+				//	}
 
-					// mouse scroll wheel
-					if (metaData.mouseScroll != 0) input.Mouse.VerticalScroll(metaData.mouseScroll);
+				//	// mouse scroll wheel
+				//	if (metaData.mouseScroll != 0) input.Mouse.VerticalScroll(metaData.mouseScroll);
 
-					// finish
-					inputLastMouseState = metaData.mouseButtonPressed;
-				}
-				else if (metaData.type == MetaDataTypes.UpdateKeyboard)
-				{
-					VirtualKeyCode specialKey = 0;
-					if (metaData.specialKeyCode != 0)
-					{
-						specialKey = ConvertKeyCode((Key)metaData.specialKeyCode);
-						if (specialKey != 0) input.Keyboard.KeyDown(specialKey);
-					}
+				//	// finish
+				//	inputLastMouseState = metaData.mouseButtonPressed;
+				//}
+				//else if (metaData.type == MetaDataTypes.UpdateKeyboard)
+				//{
+				//	VirtualKeyCode specialKey = 0;
+				//	if (metaData.specialKeyCode != 0)
+				//	{
+				//		specialKey = ConvertKeyCode((Key)metaData.specialKeyCode);
+				//		if (specialKey != 0) input.Keyboard.KeyDown(specialKey);
+				//	}
 
-					if (metaData.keyCode != 0)
-					{
-						var key = ConvertKeyCode((Key)metaData.keyCode);
-						if (key != 0) input.Keyboard.KeyPress(key);
-						if (specialKey != 0) input.Keyboard.KeyUp(specialKey);
-					}
-				}
+				//	if (metaData.keyCode != 0)
+				//	{
+				//		var key = ConvertKeyCode((Key)metaData.keyCode);
+				//		if (key != 0) input.Keyboard.KeyPress(key);
+				//		if (specialKey != 0) input.Keyboard.KeyUp(specialKey);
+				//	}
+				//}
 			}
 		}
 

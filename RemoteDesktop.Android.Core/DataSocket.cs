@@ -87,7 +87,7 @@ namespace RemoteDesktop.Core
 
 		public short mouseX, mouseY;
 		public sbyte mouseScroll;
-		public byte mouseButtonPressed, keyCode, specialKeyCode;
+		//public byte mouseButtonPressed, keyCode, specialKeyCode;
 	}
 
 	public class DataSocket : IDisposable
@@ -108,7 +108,7 @@ namespace RemoteDesktop.Core
 
 		private NetworkTypes type;
 		private Socket listenSocket, socket;
-		private bool isDisposed, disconnected;
+		private bool isDisposed = false, disconnected;
 		private Timer disconnectionTimer;
 
 		private byte[] receiveBuffer, sendBuffer, metaDataBuffer;
