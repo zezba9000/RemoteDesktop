@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+//using System.Linq;
+//using System.Text;
+//using System.Threading.Tasks;
 using Xamarin.Forms;
 
 using RemoteDesktop.Core;
-using System.Windows;
-using System.Windows.Input;
-using System.ComponentModel;
+//using System.Windows;
+//using System.Windows.Input;
+//using System.ComponentModel;
 using System.Threading;
 using System.IO;
 using System.Net;
-using System.Runtime.InteropServices;
-using System.IO.Compression;
-using System.Text.RegularExpressions;
+//using System.Runtime.InteropServices;
+//using System.IO.Compression;
+//using System.Text.RegularExpressions;
 
 namespace RemoteDesktop.Client.Android
 {
