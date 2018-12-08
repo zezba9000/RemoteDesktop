@@ -86,7 +86,7 @@ namespace RemoteDesktop.Client.Android
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    updateImageContentRandom();
+                    //updateImageContentRandom();
                 });
 
                 //DisplayAlert("", "Tap", "OK");
@@ -133,7 +133,7 @@ namespace RemoteDesktop.Client.Android
         {
             base.OnBackButtonPressed();
 
-            updateImageContentRandom();
+            //updateImageContentRandom();
             return true;
         }
 
@@ -372,11 +372,11 @@ namespace RemoteDesktop.Client.Android
             {
                 type = type,
                 compressed = false,
-                resolutionScale = .8f,
+                resolutionScale = .3f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
-                targetFPS = (byte)1,
+                targetFPS = 10f,
                 dataSize = -1
             };
 

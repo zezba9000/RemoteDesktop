@@ -24,9 +24,10 @@ namespace RemoteDesktop.Server
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
-		int screenIndex, currentScreenIndex, targetFPS = 1;
+        int screenIndex, currentScreenIndex;
+        float targetFPS = 10f;
 		bool compress, currentCompress;
-		float resolutionScale = 0.8f, currentResolutionScale = 0.8f;
+		float resolutionScale = 0.9f, currentResolutionScale = 0.9f;
 		private Timer timer;
 		private Dispatcher dispatcher;
 
@@ -243,7 +244,7 @@ namespace RemoteDesktop.Server
 					if (timer == null)
 					{
 						timer = new Timer();
-						timer.Interval = 1000 / targetFPS;
+						timer.Interval = (int) (1000f / metaData.targetFPS);
 						timer.Tick += Timer_Tick;
 					}
 
