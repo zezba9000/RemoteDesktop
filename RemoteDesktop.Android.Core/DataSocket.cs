@@ -522,37 +522,42 @@ namespace RemoteDesktop.Core
 		//private unsafe void SendBinary(byte* data, int dataLength)
 		private void SendBinary(byte[] data, int dataLength)
 		{
-            Console.WriteLine("call SendBinary func: data.Length, dataLength = " + data.Length.ToString() + ", " + dataLength.ToString());
-            if (data == null || dataLength == 0) throw new Exception("Invalid data size");
-            int size = dataLength, offset = 0;
-            do
+            try
             {
-                //int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
-                //Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
-                //Array.Copy(data, offset, sendBuffer, 0, writeSize);
-                int dataWrite = socket.Send(data, offset, size, SocketFlags.None);
-                if (dataWrite == 0) break;
-                offset += dataWrite;
-                size -= dataWrite;
+                Console.WriteLine("call SendBinary func: data.Length, dataLength = " + data.Length.ToString() + ", " + dataLength.ToString());
+                if (data == null || dataLength == 0) throw new Exception("Invalid data size");
+                int size = dataLength, offset = 0;
+                do
+                {
+                    //int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
+                    //Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
+                    //Array.Copy(data, offset, sendBuffer, 0, writeSize);
+                    int dataWrite = socket.Send(data, offset, size, SocketFlags.None);
+                    if (dataWrite == 0) break;
+                    offset += dataWrite;
+                    size -= dataWrite;
+                }
+                while (size != 0);
+            }catch(Exception ex){
+                Console.WriteLine(ex);
             }
-            while (size != 0);
         }
 
-		private void SendStream(Stream stream)
-		{
-			if (stream == null || stream.Length == 0) throw new Exception("Invalid stream size");
-			int size = (int)stream.Length, offset = 0;
-			do
-			{
-				int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
-				writeSize = stream.Read(sendBuffer, 0, writeSize);
-				int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
-				if (dataRead == 0) break;
-				offset += dataRead;
-				size -= dataRead;
-			}
-			while (size != 0);
-		}
+		//private void SendStream(Stream stream)
+		//{
+		//	if (stream == null || stream.Length == 0) throw new Exception("Invalid stream size");
+		//	int size = (int)stream.Length, offset = 0;
+		//	do
+		//	{
+		//		int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
+		//		writeSize = stream.Read(sendBuffer, 0, writeSize);
+		//		int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
+		//		if (dataRead == 0) break;
+		//		offset += dataRead;
+		//		size -= dataRead;
+		//	}
+		//	while (size != 0);
+		//}
 
 		//public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)
 		public void SendImage(BitmapXama bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, float targetFPS)		

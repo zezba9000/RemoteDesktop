@@ -347,6 +347,7 @@ namespace RemoteDesktop.Server
 			// do nothing
 		}
 
+        // only used on Client
 		private void Socket_ConnectionFailedCallback(string error)
 		{
 			DebugLog.LogError("Failed to connect: " + error);
