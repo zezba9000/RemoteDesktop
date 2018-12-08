@@ -24,7 +24,7 @@ namespace RemoteDesktop.Server
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
-		int screenIndex, currentScreenIndex, targetFPS = 5;
+		int screenIndex, currentScreenIndex, targetFPS = 1;
 		bool compress, currentCompress;
 		float resolutionScale = 0.8f, currentResolutionScale = 0.8f;
 		private Timer timer;
@@ -371,7 +371,7 @@ namespace RemoteDesktop.Server
 
             //Rectangle rect = new Rectangle(0, 0, bmap.Width, bmap.Height);
             //BitmapData bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
-            bmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            bmap.RotateFlip(RotateFlipType.Rotate90FlipY);
             //bmap.UnlockBits(bmpData);
 
             Rectangle rect = new Rectangle(0, 0, bmap.Width, bmap.Height);
