@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteDesktop.Android.Core"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Server.XamaOk", "RemoteDesktop.Server.XamaOk\RemoteDesktop.Server.XamaOk.csproj", "{BC83DC80-4F71-4222-89E8-F8E7CF1F95B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Client.Windows", "RemoteDesktop.Client.Windows\RemoteDesktop.Client.Windows.csproj", "{795497AA-AC4E-438D-A4DE-1BA416B03AC2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,10 @@ Global
 		{BC83DC80-4F71-4222-89E8-F8E7CF1F95B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC83DC80-4F71-4222-89E8-F8E7CF1F95B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC83DC80-4F71-4222-89E8-F8E7CF1F95B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{795497AA-AC4E-438D-A4DE-1BA416B03AC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{795497AA-AC4E-438D-A4DE-1BA416B03AC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{795497AA-AC4E-438D-A4DE-1BA416B03AC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{795497AA-AC4E-438D-A4DE-1BA416B03AC2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
