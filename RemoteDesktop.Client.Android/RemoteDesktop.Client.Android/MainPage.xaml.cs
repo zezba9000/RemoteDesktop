@@ -38,7 +38,8 @@ namespace RemoteDesktop.Client.Android
         private int curBitmapBufOffset = 0;
         private MetaData metaData;
         private MemoryStream gzipStream;
-        private bool skipImageUpdate, processingFrame, isDisposed, connectedToLocalPC;
+        private bool skipImageUpdate, isDisposed, connectedToLocalPC;
+        private bool processingFrame = false;
         private UIStates uiState = UIStates.Stopped;
         private Thickness lastImageThickness;
 
@@ -189,9 +190,10 @@ namespace RemoteDesktop.Client.Android
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
             this.metaData = metaData;
 
-            processingFrame = true;
+
             Device.BeginInvokeOnMainThread(() =>
             {
+                processingFrame = true;
                 // create bitmap
                 if (bitmap == null)
                 {
@@ -376,7 +378,7 @@ namespace RemoteDesktop.Client.Android
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
-                targetFPS = 10f,
+                targetFPS = 1f,
                 dataSize = -1
             };
 
