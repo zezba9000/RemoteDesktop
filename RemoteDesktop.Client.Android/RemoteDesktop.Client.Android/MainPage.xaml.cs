@@ -190,23 +190,33 @@ namespace RemoteDesktop.Client.Android
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
             this.metaData = metaData;
 
-
+            var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
-                processingFrame = true;
-                // create bitmap
-                if (bitmap == null)
-                {
-                    bitmap = new Picture(null, metaData.width, metaData.height);
-                    bitmapBuffer = bitmap.getInternalBuffer();
-                    image.BindingContext = bitmap;
-                    image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
-                    width = metaData.width;
-                    height = metaData.height;
+                try {
+                    processingFrame = true;
+                    // create bitmap
+                    if (bitmap == null)
+                    {
+                        bitmap = new Picture(null, metaData.width, metaData.height);
+                        bitmapBuffer = bitmap.getInternalBuffer();
+                        image.BindingContext = bitmap;
+                        image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                        width = metaData.width;
+                        height = metaData.height;
+                    }
+                    tcs.SetResult(true);
+                } catch (Exception ex) {
+                    tcs.SetException(ex);
                 }
                 //bitmap.setStateUpdated();
             });
-
+            var task = tcs.Task;
+            try
+            {
+                task.Wait();
+            }
+            catch { }
             //// init compression
             //if (metaData.compressed)
             //{
@@ -250,29 +260,41 @@ namespace RemoteDesktop.Client.Android
             //    }
             //}
 
+            var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
-                if (!skipImageUpdate)
-                {
-                    //notify need display update area to bitmap instance
-                    //bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+                try {
+                    if (!skipImageUpdate)
+                    {
+                        //notify need display update area to bitmap instance
+                        //bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+                    }
+                    else
+                    {
+                        skipImageUpdate = false;
+                    }
+
+                    //bitmap.Unlock();
+                    //bitmapBackbuffer = IntPtr.Zero;
+
+                    // notify data update to Image component
+                    bitmap.setStateUpdated();
+
+                    curBitmapBufOffset = 0;
+
+                    Console.WriteLine("new capture image received and update bitmap object!");
+                    processingFrame = false;
+                    tcs.SetResult(true);
+                } catch (Exception ex) {
+                    tcs.SetException(ex);
                 }
-                else
-                {
-                    skipImageUpdate = false;
-                }
-
-                //bitmap.Unlock();
-                //bitmapBackbuffer = IntPtr.Zero;
-
-                // notify data update to Image component
-                bitmap.setStateUpdated();
-
-                curBitmapBufOffset = 0;
-
-                Console.WriteLine("new capture image received and update bitmap object!");
-                processingFrame = false;
             });
+            var task = tcs.Task;
+            try
+            {
+                task.Wait();
+            }
+            catch { }
             Console.WriteLine("image update Invoked at EndDataRecievedCallback!");
         }
 
@@ -378,7 +400,7 @@ namespace RemoteDesktop.Client.Android
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
-                targetFPS = 1f,
+                targetFPS = 10f,
                 dataSize = -1
             };
 
