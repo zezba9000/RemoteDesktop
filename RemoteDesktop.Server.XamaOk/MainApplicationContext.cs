@@ -27,11 +27,12 @@ namespace RemoteDesktop.Server
         int screenIndex, currentScreenIndex;
         float targetFPS = 10f;
 		bool compress, currentCompress;
-		float resolutionScale = 0.3f, currentResolutionScale = 0.3f;
+        float resolutionScale = 0.3f; //, currentResolutionScale = 0.3f;
 		private Timer timer;
 		private Dispatcher dispatcher;
 
 		private InputSimulator input;
+        private bool receivedMetaData = false;
 		//private byte inputLastMouseState;
 
 		public MainApplicationContext(int port)
@@ -150,6 +151,7 @@ namespace RemoteDesktop.Server
 					compress = metaData.compressed;
 					resolutionScale = metaData.resolutionScale;
 					targetFPS = metaData.targetFPS;
+                    receivedMetaData = true;
 					if (metaData.type == MetaDataTypes.UpdateSettings)
 					{
 						dispatcher.InvokeAsync(delegate()
@@ -249,9 +251,15 @@ namespace RemoteDesktop.Server
 		private void Socket_DisconnectedCallback()
 		{
 			DebugLog.Log("Disconnected from client");
+            receivedMetaData = false;
 			dispatcher.InvokeAsync(delegate()
 			{
-				if (timer != null) timer.Stop();
+                if (timer != null)
+                {
+					timer.Tick -= Timer_Tick;
+					timer.Dispose();
+					timer = null;
+                }
 				socket.ReListen();
 			});
 		}
@@ -292,6 +300,7 @@ namespace RemoteDesktop.Server
 			lock (this)
 			{
 				if (isDisposed) return;
+                if (!receivedMetaData) return;
 
 				CaptureScreen();
                 BitmapXama convedXBmap = null;
@@ -312,11 +321,11 @@ namespace RemoteDesktop.Server
 		{
             lock (this)
             {
-                if (bitmap == null || bitmap.PixelFormat != format || screenIndex != currentScreenIndex || compress != currentCompress || resolutionScale != currentResolutionScale)
+                if (bitmap == null || bitmap.PixelFormat != format || screenIndex != currentScreenIndex || compress != currentCompress) // || resolutionScale != currentResolutionScale)
                 {
                     currentScreenIndex = screenIndex;
                     currentCompress = compress;
-                    currentResolutionScale = resolutionScale;
+                    //currentResolutionScale = resolutionScale;
 
                     // get screen to catpure
                     var screens = Screen.AllScreens;
@@ -326,15 +335,31 @@ namespace RemoteDesktop.Server
 
                 // --- avoid noised bitmap sended due to lotate of convert to BitmapXama (not good solution) ---
                 // create bitmap resources
-                if (bitmap != null) bitmap.Dispose();
-                if (graphics != null) graphics.Dispose();
+                if (bitmap != null)
+                {
+                    bitmap.Dispose();
+                    bitmap = null;
+                }
+                if (graphics != null)
+                {
+                    graphics.Dispose();
+                    graphics = null;
+                }
                 bitmap = new Bitmap(screenRect.Width, screenRect.Height, format);
                 graphics = Graphics.FromImage(bitmap);
 
                 if (resolutionScale != 1)
                 {
-                    if (scaledBitmap != null) scaledBitmap.Dispose();
-                    if (scaledGraphics != null) scaledGraphics.Dispose();
+                    if (scaledBitmap != null)
+                    {
+                        scaledBitmap.Dispose();
+                        scaledBitmap = null;
+                    }
+                    if (scaledGraphics != null)
+                    {
+                        scaledGraphics.Dispose();
+                        scaledGraphics = null;
+                    }
                     scaledBitmap = new Bitmap((int)(screenRect.Width * resolutionScale), (int)(screenRect.Height * resolutionScale), format);
                     scaledGraphics = Graphics.FromImage(scaledBitmap);
                 }

@@ -396,7 +396,7 @@ namespace RemoteDesktop.Client.Android
             {
                 type = type,
                 compressed = false,
-                resolutionScale = .9f,
+                resolutionScale = .3f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
