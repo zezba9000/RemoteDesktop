@@ -39,11 +39,11 @@ namespace RemoteDesktop.Client.Android
         private int curBitmapBufOffset = 0;
         private MetaData metaData;
         private MemoryStream gzipStream;
-        private MemoryStream decompedStream;
-        private bool skipImageUpdate, isDisposed, connectedToLocalPC;
+        //        private MemoryStream decompedStream;
+        private bool skipImageUpdate, isDisposed; //, connectedToLocalPC;
         private bool processingFrame = false;
         private UIStates uiState = UIStates.Stopped;
-        private Thickness lastImageThickness;
+//        private Thickness lastImageThickness;
 
         //private Timer inputTimer;
         //private bool mouseUpdate;
@@ -61,7 +61,7 @@ namespace RemoteDesktop.Client.Android
         private const int SERVER_PORT = 8888;
 
         private long lastReceiveStart = -1;
-        private long lastRenderStart = -1;
+//        private long lastRenderStart = -1;
 
         public MainPage()
         {
@@ -217,15 +217,15 @@ namespace RemoteDesktop.Client.Android
                         if (gzipStream == null)
                         {
                             gzipStream = new MemoryStream();
-                            decompedStream = new MemoryStream(bitmapBuffer);
-                            decompedStream.SetLength(Picture.headerSize);
-                            decompedStream.Position = Picture.headerSize;
+                            //decompedStream = new MemoryStream(bitmapBuffer);
+                            //decompedStream.SetLength(Picture.headerSize);
+                            //decompedStream.Position = Picture.headerSize;
                         }
                         else
                         {
                             gzipStream.SetLength(0);
-                            decompedStream.SetLength(Picture.headerSize);
-                            decompedStream.Position = Picture.headerSize;
+                            //decompedStream.SetLength(Picture.headerSize);
+                            //decompedStream.Position = Picture.headerSize;
                         }
 //                        gzipStream.Write(bitmapBuffer, 0, Picture.headerSize); // write header data of Bitmap data format
                     }
@@ -310,10 +310,11 @@ namespace RemoteDesktop.Client.Android
                             {
                                 var tmpDecompedStream = new MemoryStream();
                                 gzip.CopyTo(tmpDecompedStream);
-                                Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
-                                tmpDecompedStream.CopyTo(decompedStream); // this set decompressed data to buffer of bitmap object
-                                Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
-                                Console.WriteLine("tmpDecompedStream.Length=" + tmpDecompedStream.Length.ToString() + " decompedStream.Length=" + decompedStream.Length.ToString());
+                                Array.Copy(tmpDecompedStream.GetBuffer(), 0, bitmapBuffer, Picture.headerSize, metaData.imageDataSize);
+                                //Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
+                                //tmpDecompedStream.CopyTo(decompedStream); // this set decompressed data to buffer of bitmap object
+                                //Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
+                                //Console.WriteLine("tmpDecompedStream.Length=" + tmpDecompedStream.Length.ToString() + " decompedStream.Length=" + decompedStream.Length.ToString());
                                 //gzip.CopyTo(bitmapStream);
                                 //decompedStream.Flush();
                             }
@@ -458,7 +459,7 @@ namespace RemoteDesktop.Client.Android
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
-                targetFPS = 10f,
+                targetFPS = 1.0f,
                 dataSize = -1
             };
 
