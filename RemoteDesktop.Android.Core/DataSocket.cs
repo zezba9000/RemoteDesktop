@@ -591,7 +591,9 @@ namespace RemoteDesktop.Core
                     else compressedStream.SetLength(0);
 
                     //using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
-                    var bitmapStream = new MemoryStream(bitmap.getInternalBuffer());
+                    var tmpBitmapArr = bitmap.getInternalBuffer();
+                    Array.Resize<Byte>(ref tmpBitmapArr, imageDataSize);
+                    var bitmapStream = new MemoryStream(tmpBitmapArr);
 
                     using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
                     {

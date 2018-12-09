@@ -218,11 +218,14 @@ namespace RemoteDesktop.Client.Android
                         {
                             gzipStream = new MemoryStream();
                             decompedStream = new MemoryStream(bitmapBuffer);
+                            decompedStream.SetLength(Picture.headerSize);
+                            decompedStream.Position = Picture.headerSize;
                         }
                         else
                         {
                             gzipStream.SetLength(0);
                             decompedStream.SetLength(Picture.headerSize);
+                            decompedStream.Position = Picture.headerSize;
                         }
 //                        gzipStream.Write(bitmapBuffer, 0, Picture.headerSize); // write header data of Bitmap data format
                     }
