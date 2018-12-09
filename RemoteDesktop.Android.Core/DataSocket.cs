@@ -584,27 +584,26 @@ namespace RemoteDesktop.Core
                 //// lock bitmap
                 //locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
-    //            // compress if needed
-    //            if (compress)
-				//{
-				//	if (compressedStream == null) compressedStream = new MemoryStream();
-				//	else compressedStream.SetLength(0);
+                //            // compress if needed
+                if (compress)
+                {
+                    if (compressedStream == null) compressedStream = new MemoryStream();
+                    else compressedStream.SetLength(0);
 
-				//	// DEBUG: comment out to make not unsafe code
-				//	//using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
-				//	var bitmapStream = new MemoryStream(); // DEBUG: Dummy
+                    //using (var bitmapStream = new UnmanagedMemoryStream((byte*)locked.Scan0, dataLength))
+                    var bitmapStream = new MemoryStream(bitmap.getInternalBuffer());
 
-				//	using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
-				//	{
-				//		bitmapStream.CopyTo(gzip);
-				//	}
+                    using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
+                    {
+                        bitmapStream.CopyTo(gzip);
+                    }
 
-				//	compressedStream.Flush();
-				//	dataLength = (int)compressedStream.Length;
-				//}
+                    compressedStream.Flush();
+                    dataLength = (int)compressedStream.Length;
+                }
 
-				// send meta data
-				var metaData = new MetaData()
+                // send meta data
+                var metaData = new MetaData()
 				{
 					type = MetaDataTypes.ImageData,
 					compressed = compress,
@@ -622,23 +621,17 @@ namespace RemoteDesktop.Core
 
 				SendMetaDataInternal(metaData);
 
-                // DEBUG: comment out for debug
-                //if (compress)
-                //{
-                //    throw new Exception("compress and SendStream is Invalid now");
-                //    //               compressedStream.Position = 0;
-                //    //SendStream(compressedStream);
-                //}
-                //else
-                //{
-                //    // DEBUG: comment out to make not unsafe code
-                //    //var data = (byte*)locked.Scan0;
-                //    //SendBinary(data, dataLength);
-                //    SendBinary(bitmap.getInternalBuffer(), dataLength);
-                //}
-
-                // send bitmap data
-                SendBinary(bitmap.getInternalBuffer(), dataLength);
+                if (compress)
+                {
+                    //compressedStream.Position = 0;
+                    //SendStream(compressedStream);
+                    SendBinary(compressedStream.GetBuffer(), dataLength);
+                }
+                else
+                {
+                    // send bitmap data
+                    SendBinary(bitmap.getInternalBuffer(), dataLength);
+                }
             }
 			catch (Exception e)
 			{

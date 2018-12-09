@@ -13,6 +13,7 @@ using System.Threading;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using System.IO.Compression;
 //using System.Runtime.InteropServices;
 //using System.IO.Compression;
 //using System.Text.RegularExpressions;
@@ -38,6 +39,7 @@ namespace RemoteDesktop.Client.Android
         private int curBitmapBufOffset = 0;
         private MetaData metaData;
         private MemoryStream gzipStream;
+        private MemoryStream decompedStream;
         private bool skipImageUpdate, isDisposed, connectedToLocalPC;
         private bool processingFrame = false;
         private UIStates uiState = UIStates.Stopped;
@@ -60,7 +62,6 @@ namespace RemoteDesktop.Client.Android
 
         private long lastReceiveStart = -1;
         private long lastRenderStart = -1;
-
 
         public MainPage()
         {
@@ -192,7 +193,6 @@ namespace RemoteDesktop.Client.Android
         {
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 
-
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
@@ -210,6 +210,21 @@ namespace RemoteDesktop.Client.Android
                         image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
                         width = metaData.width;
                         height = metaData.height;
+                    }
+                    // init compression
+                    if (metaData.compressed)
+                    {
+                        if (gzipStream == null)
+                        {
+                            gzipStream = new MemoryStream();
+                            decompedStream = new MemoryStream(bitmapBuffer);
+                        }
+                        else
+                        {
+                            gzipStream.SetLength(0);
+                            decompedStream.SetLength(Picture.headerSize);
+                        }
+//                        gzipStream.Write(bitmapBuffer, 0, Picture.headerSize); // write header data of Bitmap data format
                     }
                     tcs.SetResult(true);
                 } catch (Exception ex) {
@@ -283,6 +298,29 @@ namespace RemoteDesktop.Client.Android
                         skipImageUpdate = false;
                     }
 
+                    if (metaData.compressed)
+                    {
+                        try
+                        {
+                            gzipStream.Position = 0;
+                            using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
+                            {
+                                var tmpDecompedStream = new MemoryStream();
+                                gzip.CopyTo(tmpDecompedStream);
+                                Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
+                                tmpDecompedStream.CopyTo(decompedStream); // this set decompressed data to buffer of bitmap object
+                                Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
+                                Console.WriteLine("tmpDecompedStream.Length=" + tmpDecompedStream.Length.ToString() + " decompedStream.Length=" + decompedStream.Length.ToString());
+                                //gzip.CopyTo(bitmapStream);
+                                //decompedStream.Flush();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            DebugLog.LogError("Bad compressed image: " + e.Message);
+                        }
+                    }
+
                     //bitmap.Unlock();
                     //bitmapBackbuffer = IntPtr.Zero;
 
@@ -332,12 +370,19 @@ namespace RemoteDesktop.Client.Android
                     while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
                     if (uiState != UIStates.Streaming || isDisposed) return;
 
-                    if (curBitmapBufOffset == 0)
+                    if (metaData.compressed)
                     {
-                        curBitmapBufOffset = Picture.headerSize;
+                        gzipStream.Write(data, 0, dataSize);
                     }
+                    else
+                    {
+                        if (curBitmapBufOffset == 0)
+                        {
+                            curBitmapBufOffset = Picture.headerSize;
+                        }
 
-                    Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
+                        Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
+                    }
                     tcs.SetResult(true);
                 } catch (Exception ex) {
                     tcs.SetException(ex);
@@ -404,7 +449,8 @@ namespace RemoteDesktop.Client.Android
             var metaData = new MetaData()
             {
                 type = type,
-                compressed = false,
+                //compressed = false,
+                compressed = true,
                 resolutionScale = 1f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,

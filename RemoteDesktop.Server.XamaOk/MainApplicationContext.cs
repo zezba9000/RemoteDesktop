@@ -26,7 +26,7 @@ namespace RemoteDesktop.Server
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
         int screenIndex, currentScreenIndex;
         float targetFPS = 10f;
-		bool compress, currentCompress;
+        bool compress; //, currentCompress;
         float resolutionScale = 0.3f; //, currentResolutionScale = 0.3f;
 		private Timer timer;
 		private Dispatcher dispatcher;
@@ -322,10 +322,10 @@ namespace RemoteDesktop.Server
 		{
             lock (this)
             {
-                if (bitmap == null || bitmap.PixelFormat != format || screenIndex != currentScreenIndex || compress != currentCompress) // || resolutionScale != currentResolutionScale)
+                if (bitmap == null || bitmap.PixelFormat != format) // || screenIndex != currentScreenIndex) // || compress != currentCompress) // || resolutionScale != currentResolutionScale)
                 {
                     currentScreenIndex = screenIndex;
-                    currentCompress = compress;
+                    //currentCompress = compress;
                     //currentResolutionScale = resolutionScale;
 
                     // get screen to catpure
