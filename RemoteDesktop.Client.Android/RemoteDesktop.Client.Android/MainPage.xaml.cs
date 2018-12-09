@@ -58,6 +58,10 @@ namespace RemoteDesktop.Client.Android
         private const string SERVER_ADDR = "192.168.0.11";
         private const int SERVER_PORT = 8888;
 
+        private long lastReceiveStart = -1;
+        private long lastRenderStart = -1;
+
+
         public MainPage()
         {
             //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
@@ -82,17 +86,16 @@ namespace RemoteDesktop.Client.Android
             //image.BindingContext = bitmap;
             //image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
 
-            var gr = new TapGestureRecognizer();
-            gr.Tapped += (s, e) =>
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    //updateImageContentRandom();
-                });
-
-                //DisplayAlert("", "Tap", "OK");
-            };
-            image.GestureRecognizers.Add(gr);
+            //var gr = new TapGestureRecognizer();
+            //gr.Tapped += (s, e) =>
+            //{
+            //    Device.BeginInvokeOnMainThread(() =>
+            //    {
+            //        //updateImageContentRandom();
+            //    });
+            //    //DisplayAlert("", "Tap", "OK");
+            //};
+            //image.GestureRecognizers.Add(gr);
 
             Content = new StackLayout
             {
@@ -188,11 +191,14 @@ namespace RemoteDesktop.Client.Android
         private void Socket_StartDataRecievedCallback(MetaData metaData)
         {
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
-            this.metaData = metaData;
+
 
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
+                lastReceiveStart = getUnixTime();
+                Console.WriteLine("current unix time:  " + lastReceiveStart.ToString());
+                this.metaData = metaData;
                 try {
                     processingFrame = true;
                     // create bitmap
@@ -263,6 +269,9 @@ namespace RemoteDesktop.Client.Android
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
+                var now = getUnixTime();
+                Console.WriteLine("elapsed communication time for a frame: " + (now - lastReceiveStart).ToString() + "sec");
+                Console.WriteLine("current unix time: " + now.ToString());
                 try {
                     if (!skipImageUpdate)
                     {
@@ -396,7 +405,7 @@ namespace RemoteDesktop.Client.Android
             {
                 type = type,
                 compressed = false,
-                resolutionScale = .3f,
+                resolutionScale = 1f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
@@ -425,6 +434,14 @@ namespace RemoteDesktop.Client.Android
                 SetConnectionUIStates(UIStates.Stopped);
             });
         }
+
+        private long getUnixTime()
+        {
+            var now = DateTime.UtcNow;
+            long unixtime = (long)(now - new DateTime(1970, 1, 1)).TotalSeconds;
+            return unixtime;
+        }
+
 
         //private PixelFormat ConvertPixelFormat(System.Drawing.Imaging.PixelFormat format)
         //{

@@ -118,12 +118,14 @@ namespace RemoteDesktop.Core
 		private MetaData metaData;
 		private MemoryStream compressedStream;
 
+        private const int BUF_SIZE = 2048;
+
 		public DataSocket(NetworkTypes type)
 		{
 			this.type = type;
 
-			receiveBuffer = new byte[1024];
-			sendBuffer = new byte[1024];
+			receiveBuffer = new byte[BUF_SIZE];
+			sendBuffer = new byte[BUF_SIZE];
             //metaDataSize = Marshal.SizeOf<MetaData>();
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
