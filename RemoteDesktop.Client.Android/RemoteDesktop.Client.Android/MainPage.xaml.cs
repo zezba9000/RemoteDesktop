@@ -332,7 +332,6 @@ namespace RemoteDesktop.Client.Android
                     //bitmapBackbuffer = IntPtr.Zero;
 
                     // notify data update to Image component
-                    Utils.startTimeMeasure("Image_component_reflesh");
                     bitmap.setStateUpdated();
 
                     curBitmapBufOffset = 0;
