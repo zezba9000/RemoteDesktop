@@ -84,7 +84,6 @@ namespace RemoteDesktop.Client.Android
             //InitializeComponent();
 
             image.Source = local_bitmap.GetImageSource();
-            //image.Scale = 2; // scale bitmap data 2x
 
             //image.BindingContext = bitmap;
             //image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
@@ -213,6 +212,7 @@ namespace RemoteDesktop.Client.Android
                         image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
                         width = metaData.width;
                         height = metaData.height;
+                        image.Scale = 2; // scale bitmap data 2x
                         //image.HeightRequest = metaData.screenHeight;
                         //image.WidthRequest = metaData.screenWidth;
                     }
