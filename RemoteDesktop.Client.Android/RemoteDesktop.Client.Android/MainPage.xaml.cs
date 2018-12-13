@@ -84,6 +84,9 @@ namespace RemoteDesktop.Client.Android
             //InitializeComponent();
 
             image.Source = local_bitmap.GetImageSource();
+            image.ScaleX = 10; // scale bitmap data 10x
+            image.ScaleY = 10; // scale bitmap data 10x
+
             //image.BindingContext = bitmap;
             //image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
 
@@ -205,11 +208,14 @@ namespace RemoteDesktop.Client.Android
                     if (bitmap == null)
                     {
                         bitmap = new Picture(null, metaData.width, metaData.height);
+                        //bitmap = new Picture(null, metaData.screenWidth, metaData.screenHeight);
                         bitmapBuffer = bitmap.getInternalBuffer();
                         image.BindingContext = bitmap;
                         image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
                         width = metaData.width;
                         height = metaData.height;
+                        image.HeightRequest = metaData.screenHeight;
+                        image.WidthRequest = metaData.screenWidth;
                     }
                     // init compression
                     if (metaData.compressed)
@@ -459,11 +465,11 @@ namespace RemoteDesktop.Client.Android
                 type = type,
                 //compressed = false,
                 compressed = true,
-                resolutionScale = 1f,
+                resolutionScale = .1f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
-                targetFPS = 10.0f,
+                targetFPS = 1.0f,
                 dataSize = -1
             };
 
