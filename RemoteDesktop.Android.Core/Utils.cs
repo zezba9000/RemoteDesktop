@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -7,7 +8,8 @@ namespace RemoteDesktop.Core
 {
 	public static class Utils
 	{
-        private static Stopwatch sw = null;
+        private static Dictionary<string, Stopwatch> sw_dic = new Dictionary<string, Stopwatch>(); 
+        //private static Stopwatch sw = null;
 
 		// [SuppressUnmanagedCodeSecurity]
 		// [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
@@ -26,25 +28,36 @@ namespace RemoteDesktop.Core
             }
         }
 
-        public static void startTimeMeasure()
+        public static void startTimeMeasure(string sw_name)
         {
-            if(sw == null)
+            Stopwatch sw = null;
+            try
+            {
+                sw = sw_dic[sw_name];
+                sw.Reset();
+            }
+            catch(KeyNotFoundException ex)
             {
                 sw = new Stopwatch();
-            }
-            else
-            {
-                sw.Reset();
+                sw_dic[sw_name] = sw;
             }
 
             sw.Start();
         }
 
-        public static long stopMeasureAndGetElapsedMilliSeconds()
+        public static long stopMeasureAndGetElapsedMilliSeconds(string sw_name)
         {
+            Stopwatch sw = null;
+            try
+            {
+                sw = sw_dic[sw_name];
+            }
+            catch(KeyNotFoundException ex)
+            {
+                throw new Exception("specified Stopwatch not found!");
+            }
             sw.Stop();
             var ret = sw.ElapsedMilliseconds;
-            sw = null;
             return ret;
         }
 

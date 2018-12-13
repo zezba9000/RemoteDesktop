@@ -284,7 +284,7 @@ namespace RemoteDesktop.Client.Android
             //    }
             //}
 
-            Utils.startTimeMeasure();
+            Utils.startTimeMeasure("Image_Update");
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
@@ -306,11 +306,13 @@ namespace RemoteDesktop.Client.Android
                     {
                         try
                         {
+                            Utils.startTimeMeasure("Bitmap_decompress");
                             gzipStream.Position = 0;
                             using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
                             {
                                 var tmpDecompedStream = new MemoryStream();
                                 gzip.CopyTo(tmpDecompedStream);
+                                Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                                 Array.Copy(tmpDecompedStream.GetBuffer(), 0, bitmapBuffer, Picture.headerSize, metaData.imageDataSize);
                                 //Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
                                 //tmpDecompedStream.CopyTo(decompedStream); // this set decompressed data to buffer of bitmap object
@@ -347,7 +349,7 @@ namespace RemoteDesktop.Client.Android
                 task.Wait();
             }
             catch { }
-            Console.WriteLine("elapsed for Image Update: " + Utils.stopMeasureAndGetElapsedMilliSeconds().ToString() + " msec");
+            Console.WriteLine("elapsed for Image Update: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Update").ToString() + " msec");
             Console.WriteLine("image update Invoked at EndDataRecievedCallback!");
         }
 
