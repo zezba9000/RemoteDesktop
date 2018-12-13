@@ -284,6 +284,7 @@ namespace RemoteDesktop.Client.Android
             //    }
             //}
 
+            Utils.startTimeMeasure();
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
@@ -346,6 +347,7 @@ namespace RemoteDesktop.Client.Android
                 task.Wait();
             }
             catch { }
+            Console.WriteLine("elapsed for Image Update: " + Utils.stopMeasureAndGetElapsedMilliSeconds().ToString() + " msec");
             Console.WriteLine("image update Invoked at EndDataRecievedCallback!");
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -6,6 +7,8 @@ namespace RemoteDesktop.Core
 {
 	public static class Utils
 	{
+        private static Stopwatch sw = null;
+
 		// [SuppressUnmanagedCodeSecurity]
 		// [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall)]
 		// public static extern void RtlZeroMemory(IntPtr dst, IntPtr length);
@@ -21,6 +24,28 @@ namespace RemoteDesktop.Core
             {
                 buf[offset + ii] = value;
             }
+        }
+
+        public static void startTimeMeasure()
+        {
+            if(sw == null)
+            {
+                sw = new Stopwatch();
+            }
+            else
+            {
+                sw.Reset();
+            }
+
+            sw.Start();
+        }
+
+        public static long stopMeasureAndGetElapsedMilliSeconds()
+        {
+            sw.Stop();
+            var ret = sw.ElapsedMilliseconds;
+            sw = null;
+            return ret;
         }
 
 	}
