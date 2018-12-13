@@ -332,6 +332,7 @@ namespace RemoteDesktop.Client.Android
                     //bitmapBackbuffer = IntPtr.Zero;
 
                     // notify data update to Image component
+                    Utils.startTimeMeasure("Image_component_reflesh");
                     bitmap.setStateUpdated();
 
                     curBitmapBufOffset = 0;
@@ -463,7 +464,7 @@ namespace RemoteDesktop.Client.Android
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
-                targetFPS = 1.0f,
+                targetFPS = 10.0f,
                 dataSize = -1
             };
 

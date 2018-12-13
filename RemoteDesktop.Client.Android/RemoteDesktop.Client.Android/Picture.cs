@@ -39,6 +39,8 @@ namespace RemoteDesktop.Client.Android
 
         private void MakeBufferRandomImageFilled(int width, int height)
         {
+            width = 100; // DEBUG: for debug
+            height = 100; // DEBUG: for debug
             if(buffer == null)
             {
                 buffer = MakeBuffer(width, height);
@@ -63,6 +65,8 @@ namespace RemoteDesktop.Client.Android
 
         private byte[] MakeBuffer(int width, int height)
         {
+            width = 100; // DEBUG: for debug
+            height = 100; // DEBUG: for debug  
             //buffer作成
             var numPixels = width * height;
             var numPixelBytes = 3 * numPixels;
