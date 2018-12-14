@@ -66,6 +66,13 @@ namespace RemoteDesktop.Core
             return ret;
         }
 
+        public static long getUnixTime()
+        {
+            var now = DateTime.UtcNow;
+            long unixtime = (long)(now - new DateTime(1970, 1, 1)).TotalSeconds;
+            return unixtime;
+        }
+
         //public static byte[] scaleBitmapDataAsync(byte[] bitmap, int width, int height)
         //{
         //    var tcs = new TaskCompletionSource<byte[]>();

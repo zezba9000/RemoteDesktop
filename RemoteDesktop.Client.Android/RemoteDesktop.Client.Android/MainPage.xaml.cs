@@ -51,9 +51,6 @@ namespace RemoteDesktop.Client.Android
         private const string SERVER_ADDR = "192.168.0.11";
         private const int SERVER_PORT = 8888;
 
-        private long lastReceiveStart = -1;
-//        private long lastRenderStart = -1;
-
         public MainPage()
         {
             //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
@@ -173,8 +170,7 @@ namespace RemoteDesktop.Client.Android
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
-                lastReceiveStart = getUnixTime();
-                Console.WriteLine("current unix time:  " + lastReceiveStart.ToString());
+                Utils.startTimeMeasure("Image_Transfer_Communication");
                 this.metaData = metaData;
                 try {
                     processingFrame = true;
@@ -224,9 +220,7 @@ namespace RemoteDesktop.Client.Android
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
-                var now = getUnixTime();
-                Console.WriteLine("elapsed communication time for a frame: " + (now - lastReceiveStart).ToString() + "sec");
-                Console.WriteLine("current unix time: " + now.ToString());
+                Console.WriteLine("elapsed for image data transfer communication: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Transfer_Communication").ToString() + "sec");
                 try {
                     if (!skipImageUpdate)
                     {
@@ -248,8 +242,8 @@ namespace RemoteDesktop.Client.Android
                             {
                                 var tmpDecompedStream = new MemoryStream();
                                 gzip.CopyTo(tmpDecompedStream);
-                                Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                                 Array.Copy(tmpDecompedStream.GetBuffer(), 0, bitmapBuffer, Picture.headerSize, metaData.imageDataSize);
+                                Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                             }
                         }
                         catch (Exception e)
@@ -262,7 +256,7 @@ namespace RemoteDesktop.Client.Android
                     Utils.startTimeMeasure("Bitmap_Upscale");
                     Console.WriteLine("bitmap data upscale start!");
                     bitmap.scaleBitmapAndSetStateUpdated(5);
-                    Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
+                    Console.WriteLine("elapsed for bitmap upscale: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
 
                     //bitmap.setStateUpdated();
 
@@ -374,14 +368,6 @@ namespace RemoteDesktop.Client.Android
                 SetConnectionUIStates(UIStates.Stopped);
             });
         }
-
-        private long getUnixTime()
-        {
-            var now = DateTime.UtcNow;
-            long unixtime = (long)(now - new DateTime(1970, 1, 1)).TotalSeconds;
-            return unixtime;
-        }
-
 
         //private PixelFormat ConvertPixelFormat(System.Drawing.Imaging.PixelFormat format)
         //{
