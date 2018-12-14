@@ -255,7 +255,7 @@ namespace RemoteDesktop.Client.Android
                     // scale data and notify data update to Image component
                     Utils.startTimeMeasure("Bitmap_Upscale");
                     Console.WriteLine("bitmap data upscale start!");
-                    bitmap.scaleBitmapAndSetStateUpdated(5);
+                    bitmap.scaleBitmapAndSetStateUpdated(3);
                     Console.WriteLine("elapsed for bitmap upscale: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
 
                     //bitmap.setStateUpdated();
@@ -340,7 +340,7 @@ namespace RemoteDesktop.Client.Android
                 type = type,
                 //compressed = false,
                 compressed = true,
-                resolutionScale = .2f,
+                resolutionScale = .3f,
                 screenIndex = 0,
                 //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
                 //format = PixelFormatXama.Format24bppRgb,
