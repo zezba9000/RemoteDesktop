@@ -129,12 +129,74 @@ namespace RemoteDesktop.Client.Android
             return imageSource;
         }
 
-        private void makeInternalScaledBuffer(int width, int height)
+        private void makeInternalScaledBuffer(int width, int height, int scale)
         {
-            var no_header_bmp = new byte[buffer.Length - headerSize];
-            Array.Copy(buffer, headerSize, no_header_bmp, 0, no_header_bmp.Length);
-            scaled_buffer = Utils.scaleBitmapDataAsync(no_header_bmp, width, height);
+            //var no_header_bmp = new byte[buffer.Length - headerSize];
+            //Array.Copy(buffer, headerSize, no_header_bmp, 0, no_header_bmp.Length);
+            scaled_buffer = resizeBitmap(buffer, width, height, scale);
+            //scaled_buffer = Utils.scaleBitmapDataAsync(no_header_bmp, width, height);
             //scaled_buffer = Utils.scaleBitmapDataAsync(buffer, width, height);
+        }
+
+
+        // Bitmap画像データのリサイズ (ヘッダありを渡し、ヘッダありを返す)
+        private byte[] resizeBitmap(byte[] original_buf, int original_width, int original_height, int scale)
+        {
+            int target_width = (int)(original_width * scale);
+            int target_height = (int)(original_height * scale);
+            
+            var resizedBuf = new byte[headerSize + target_width * target_height * 3];
+ 
+            // まずヘッダを書き込む
+            var numPixels = target_width * target_height;
+            var numPixelBytes = 3 * numPixels;
+            var filesize = headerSize + numPixelBytes;
+            using (var memoryStream = new MemoryStream(resizedBuf))
+            {
+                using (var writer = new BinaryWriter(memoryStream, Encoding.UTF8))
+                {
+                    writer.Write(new char[] { 'B', 'M' });
+                    writer.Write(filesize);
+                    writer.Write((short)0);
+                    writer.Write((short)0);
+                    writer.Write(headerSize);
+
+                    writer.Write(40);
+                    writer.Write(target_width);
+                    writer.Write(target_height);
+                    writer.Write((short)1);
+                    writer.Write((short)24); //RGB 8*3=24, alpha is not conatined
+                    writer.Write(0);
+                    writer.Write(numPixelBytes);
+                    writer.Write(0);
+                    writer.Write(0);
+                    writer.Write(0);
+                    writer.Write(0);
+                }
+            }
+
+            for (int y = 0; y < target_height; y++)
+            {
+                for (int x = 0; x < target_width; x++)
+                {
+                    // アップスケールのための2重ループ
+                    for(int sy = 0; sy < scale; sy++)
+                    {
+                        for(int sx = 0; sx < scale; sx++)
+                        {
+                            int org_idx_base = headerSize + (y * original_width * 3) + x * 3;
+                            int scale_idx_base = headerSize + (y + sy) * target_width * 3 * scale + (x + sx);
+                            // R,G,B同じ値のため、Bの値を代表してモノクロデータへ代入 <- 元コードの話
+                            resizedBuf[scale_idx_base] = original_buf[org_idx_base];
+                            resizedBuf[scale_idx_base + 1] = original_buf[org_idx_base + 1];
+                            resizedBuf[scale_idx_base + 2] = original_buf[org_idx_base + 2];
+                        }
+                    }
+
+                }
+            }
+
+            return resizedBuf;
         }
 
         public ImageSource Source
@@ -152,9 +214,9 @@ namespace RemoteDesktop.Client.Android
             }
         }
 
-        public void scaleBitmapAndSetStateUpdated(int width, int height)
+        public void scaleBitmapAndSetStateUpdated(int width, int height, int scale)
         {
-            makeInternalScaledBuffer(width, height);
+            makeInternalScaledBuffer(width, height, scale);
             setStateUpdated();
         }
 

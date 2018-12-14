@@ -1,22 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
 using Xamarin.Forms;
 
 using RemoteDesktop.Core;
-//using System.Windows;
-//using System.Windows.Input;
-//using System.ComponentModel;
 using System.Threading;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using System.IO.Compression;
-//using System.Runtime.InteropServices;
-//using System.IO.Compression;
-//using System.Text.RegularExpressions;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -85,9 +76,6 @@ namespace RemoteDesktop.Client.Android
 
             image.Source = local_bitmap.GetImageSource();
 
-            //image.BindingContext = bitmap;
-            //image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
-
             //var gr = new TapGestureRecognizer();
             //gr.Tapped += (s, e) =>
             //{
@@ -151,23 +139,11 @@ namespace RemoteDesktop.Client.Android
         private void SetConnectionUIStates(UIStates state)
         {
             uiState = state;
-            //fullscreenButton.IsEnabled = state == UIStates.Streaming;
-            //serverComboBox.IsEnabled = state == UIStates.Stopped;
-            //serverComboBox.Visibility = settingsOverlay.settings.customSocketAddress.enabled ? Visibility.Hidden : Visibility.Visible;
-            //serverTextBox.Visibility = settingsOverlay.settings.customSocketAddress.enabled ? Visibility.Visible : Visibility.Hidden;
-            //connectButton.Content = state != UIStates.Stopped ? (state == UIStates.Streaming ? "Pause" : "Play") : "Connect";
-            //refreshButton.Content = state != UIStates.Stopped ? "Stop" : "Refresh";
-            //notConnectedImage.Visibility = state == UIStates.Stopped ? Visibility.Visible : Visibility.Hidden;
             if (state == UIStates.Stopped)
             {
                 while (processingFrame && !isDisposed) Thread.Sleep(1);
                 if (bitmap != null)
                 {
-                    //bitmap.Lock();
-                    //Utils.memset(bitmap.BackBuffer, 255, (IntPtr)metaData.imageDataSize);
-                    //bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
-                    //bitmap.Unlock();
-
                     Utils.fillValueByteArray(bitmapBuffer, 255, Picture.headerSize);
                     bitmap.setStateUpdated();
                 }
@@ -222,23 +198,16 @@ namespace RemoteDesktop.Client.Android
                         if (gzipStream == null)
                         {
                             gzipStream = new MemoryStream();
-                            //decompedStream = new MemoryStream(bitmapBuffer);
-                            //decompedStream.SetLength(Picture.headerSize);
-                            //decompedStream.Position = Picture.headerSize;
                         }
                         else
                         {
                             gzipStream.SetLength(0);
-                            //decompedStream.SetLength(Picture.headerSize);
-                            //decompedStream.Position = Picture.headerSize;
                         }
-//                        gzipStream.Write(bitmapBuffer, 0, Picture.headerSize); // write header data of Bitmap data format
                     }
                     tcs.SetResult(true);
                 } catch (Exception ex) {
                     tcs.SetException(ex);
                 }
-                //bitmap.setStateUpdated();
             });
             var task = tcs.Task;
             try
@@ -246,49 +215,11 @@ namespace RemoteDesktop.Client.Android
                 task.Wait();
             }
             catch { }
-            //// init compression
-            //if (metaData.compressed)
-            //{
-            //    if (gzipStream == null) gzipStream = new MemoryStream();
-            //    else gzipStream.SetLength(0);
-            //}
-
-            //// invoke UI thread
-            //Device.BeginInvokeOnMainThread(() =>
-            //{
-            //    // create bitmap
-            //    if (bitmap == null || bitmap.Width != metaData.width || bitmap.Height != metaData.height || ConvertPixelFormat(bitmap.Format) != metaData.format)
-            //    {
-            //        bitmap = new WriteableBitmap(metaData.width, metaData.height, 96, 96, ConvertPixelFormat(metaData.format), null);
-            //        image.Source = bitmap;
-            //    }
-
-            //    // lock bitmap
-            //    bitmap.Lock();
-            //    bitmapBackbuffer = bitmap.BackBuffer;
-            //});
         }
 
         //private unsafe void Socket_EndDataRecievedCallback()
         private void Socket_EndDataRecievedCallback()
         {
-            //if (metaData.compressed && uiState == UIStates.Streaming)
-            //{
-            //    try
-            //    {
-            //        gzipStream.Position = 0;
-            //        using (var bitmapStream = new UnmanagedMemoryStream((byte*)bitmapBackbuffer, metaData.imageDataSize, metaData.imageDataSize, FileAccess.Write))
-            //        using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
-            //        {
-            //            gzip.CopyTo(bitmapStream);
-            //        }
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        DebugLog.LogError("Bad compressed image: " + e.Message);
-            //    }
-            //}
-
             Utils.startTimeMeasure("Image_Update");
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
@@ -327,15 +258,10 @@ namespace RemoteDesktop.Client.Android
                         }
                     }
 
-                    //bitmap.Unlock();
-                    //bitmapBackbuffer = IntPtr.Zero;
-
-
-
                     // scale data and notify data update to Image component
                     Utils.startTimeMeasure("Bitmap_Upscale");
                     Console.WriteLine("bitmap data upscale start!");
-                    bitmap.scaleBitmapAndSetStateUpdated(metaData.screenWidth, metaData.screenHeight);
+                    bitmap.scaleBitmapAndSetStateUpdated(metaData.screenWidth, metaData.screenHeight, 5);
                     Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
 
                     //bitmap.setStateUpdated();
@@ -358,21 +284,6 @@ namespace RemoteDesktop.Client.Android
             Console.WriteLine("elapsed for Image Update: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Update").ToString() + " msec");
             Console.WriteLine("image update Invoked at EndDataRecievedCallback!");
         }
-
-        //public static Task BeginInvokeOnMainThreadAsync(Action a)
-        //{
-        //    var tcs = new TaskCompletionSource<bool>();
-        //    Device.BeginInvokeOnMainThread(() => 
-        //    {
-        //        try {
-        //            a();
-        //            tcs.SetResult(true);
-        //        } catch (Exception ex) {
-        //            tcs.SetException(ex);
-        //        }
-        //    });
-        //    return tcs.Task;
-        //}
 
 
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
@@ -410,35 +321,7 @@ namespace RemoteDesktop.Client.Android
                 task.Wait();
             }
             catch { }
-            //Console.WriteLine("wait task on DataReceieveCallback finished!");
         }
-
-        //private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
-        //{
-        //    Device.BeginInvokeOnMainThread(() =>
-        //    {
-        //        //while ((!processingFrame || bitmapBackbuffer == IntPtr.Zero) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-        //        while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-        //        if (uiState != UIStates.Streaming || isDisposed) return;
-
-        //        //if (metaData.compressed)
-        //        //{
-        //        //    gzipStream.Write(data, 0, dataSize);
-        //        //}
-        //        //else
-        //        //{
-        //        //    Marshal.Copy(data, 0, bitmapBackbuffer + offset, dataSize);
-        //        //}
-
-        //        if (curBitmapBufOffset == 0)
-        //        {
-        //            curBitmapBufOffset = Picture.headerSize;
-        //        }
-
-        //        //Marshal.Copy(data, 0, curBitmapBufOffset + offset, dataSize);
-        //        Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
-        //    });
-        //}
 
         private void Socket_ConnectionFailedCallback(string error)
         {
@@ -456,8 +339,6 @@ namespace RemoteDesktop.Client.Android
 
         private void ApplySettings(MetaDataTypes type)
         {
-            //lock (this)
-            //{
             if (isDisposed || socket == null) return;
 
             var metaData = new MetaData()
@@ -474,7 +355,6 @@ namespace RemoteDesktop.Client.Android
             };
 
             socket.SendMetaData(metaData);
-            //}
         }
 
         private void Socket_ConnectedCallback()

@@ -16,7 +16,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Plugin.ImageResizer" Version="1.0.1-alpha" />
+    <Compile Remove="libs\**" />
+    <EmbeddedResource Remove="libs\**" />
+    <None Remove="libs\**" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using Plugin.ImageResizer;
+﻿//using Plugin.ImageResizer;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -66,33 +66,30 @@ namespace RemoteDesktop.Core
             return ret;
         }
 
-        public static byte[] scaleBitmapDataAsync(byte[] bitmap, int width, int height)
-        {
-            var tcs = new TaskCompletionSource<byte[]>();
-            innerScaleBitmapDataAsync(bitmap, width, height, tcs);
-            var task = tcs.Task;
-
-            task.Wait();
-
-            return task.Result;
-        }
+        //public static byte[] scaleBitmapDataAsync(byte[] bitmap, int width, int height)
+        //{
+        //    var tcs = new TaskCompletionSource<byte[]>();
+        //    innerScaleBitmapDataAsync(bitmap, width, height, tcs);
+        //    var task = tcs.Task;
+        //    task.Wait();
+        //    return task.Result;
+        //}
 
 
-        private async static void innerScaleBitmapDataAsync(byte[] bitmap, int width, int height, TaskCompletionSource<byte[]> tcs)
-        {
-            try
-            {
-                width = 100;
-                height = 100;
-                byte[] resizedImage = await CrossImageResizer.Current.ResizeImageWithAspectRatioAsync(bitmap, width, height);
-                tcs.SetResult(resizedImage);
-            }
-            catch (Exception ex)
-            {
-                tcs.SetException(ex);
-            }
-
-        }
+        //private async static void innerScaleBitmapDataAsync(byte[] bitmap, int width, int height, TaskCompletionSource<byte[]> tcs)
+        //{
+        //    try
+        //    {
+        //        width = 100;
+        //        height = 100;
+        //        byte[] resizedImage = await CrossImageResizer.Current.ResizeImageWithAspectRatioAsync(bitmap, width, height);
+        //        tcs.SetResult(resizedImage);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        tcs.SetException(ex);
+        //    }
+        //}
 
     }
 }
