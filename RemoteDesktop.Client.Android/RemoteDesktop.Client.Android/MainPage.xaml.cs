@@ -261,7 +261,7 @@ namespace RemoteDesktop.Client.Android
                     // scale data and notify data update to Image component
                     Utils.startTimeMeasure("Bitmap_Upscale");
                     Console.WriteLine("bitmap data upscale start!");
-                    bitmap.scaleBitmapAndSetStateUpdated(metaData.screenWidth, metaData.screenHeight, 5);
+                    bitmap.scaleBitmapAndSetStateUpdated(5);
                     Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
 
                     //bitmap.setStateUpdated();
