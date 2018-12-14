@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RemoteDesktop.Core;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -10,7 +11,8 @@ namespace RemoteDesktop.Client.Android
     class Picture : INotifyPropertyChanged
     {
         public static int headerSize = 54;
-        private byte[] buffer;
+        private byte[] buffer = null;
+        private byte[] scaled_buffer = null;
 
         public Picture(Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo, int width, int height)
         {
@@ -110,7 +112,14 @@ namespace RemoteDesktop.Client.Android
 
         public ImageSource GetImageSource()
         {
-            MemoryStream memoryStream = new MemoryStream(buffer);
+            var ret_buf = buffer;
+            if(scaled_buffer != null)
+            {
+                ret_buf = scaled_buffer;
+                scaled_buffer = null;
+            }
+
+            MemoryStream memoryStream = new MemoryStream(ret_buf);
 
             ImageSource imageSource = ImageSource.FromStream(() =>
             {
@@ -120,19 +129,33 @@ namespace RemoteDesktop.Client.Android
             return imageSource;
         }
 
+        private void makeInternalScaledBuffer(int width, int height)
+        {
+            var no_header_bmp = new byte[buffer.Length - headerSize];
+            Array.Copy(buffer, headerSize, no_header_bmp, 0, no_header_bmp.Length);
+            scaled_buffer = Utils.scaleBitmapDataAsync(no_header_bmp, width, height);
+            //scaled_buffer = Utils.scaleBitmapDataAsync(buffer, width, height);
+        }
+
         public ImageSource Source
         {
             get
             {
-                MemoryStream memoryStream = new MemoryStream(buffer);
+                return GetImageSource();
 
-                ImageSource imageSource = ImageSource.FromStream(() =>
-                {
-                    return memoryStream;
-                });
-
-                return imageSource;
+                //MemoryStream memoryStream = new MemoryStream(buffer);
+                //ImageSource imageSource = ImageSource.FromStream(() =>
+                //{
+                //    return memoryStream;
+                //});
+                //return imageSource;
             }
+        }
+
+        public void scaleBitmapAndSetStateUpdated(int width, int height)
+        {
+            makeInternalScaledBuffer(width, height);
+            setStateUpdated();
         }
 
         public void setStateUpdated()

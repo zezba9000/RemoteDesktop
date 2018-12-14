@@ -212,7 +212,7 @@ namespace RemoteDesktop.Client.Android
                         image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
                         width = metaData.width;
                         height = metaData.height;
-                        image.Scale = 2; // scale bitmap data 2x
+                        //image.Scale = 2; // scale bitmap data 2x
                         //image.HeightRequest = metaData.screenHeight;
                         //image.WidthRequest = metaData.screenWidth;
                     }
@@ -319,12 +319,6 @@ namespace RemoteDesktop.Client.Android
                                 gzip.CopyTo(tmpDecompedStream);
                                 Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                                 Array.Copy(tmpDecompedStream.GetBuffer(), 0, bitmapBuffer, Picture.headerSize, metaData.imageDataSize);
-                                //Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
-                                //tmpDecompedStream.CopyTo(decompedStream); // this set decompressed data to buffer of bitmap object
-                                //Console.WriteLine("tmpDecompedStream.Position=" + tmpDecompedStream.Position.ToString() + " decompedStream.Position=" + decompedStream.Position.ToString());
-                                //Console.WriteLine("tmpDecompedStream.Length=" + tmpDecompedStream.Length.ToString() + " decompedStream.Length=" + decompedStream.Length.ToString());
-                                //gzip.CopyTo(bitmapStream);
-                                //decompedStream.Flush();
                             }
                         }
                         catch (Exception e)
@@ -336,8 +330,15 @@ namespace RemoteDesktop.Client.Android
                     //bitmap.Unlock();
                     //bitmapBackbuffer = IntPtr.Zero;
 
-                    // notify data update to Image component
-                    bitmap.setStateUpdated();
+
+
+                    // scale data and notify data update to Image component
+                    Utils.startTimeMeasure("Bitmap_Upscale");
+                    Console.WriteLine("bitmap data upscale start!");
+                    bitmap.scaleBitmapAndSetStateUpdated(metaData.screenWidth, metaData.screenHeight);
+                    Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
+
+                    //bitmap.setStateUpdated();
 
                     curBitmapBufOffset = 0;
 
