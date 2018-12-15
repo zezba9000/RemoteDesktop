@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Server.XamaOk
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Client.Windows", "RemoteDesktop.Client.Windows\RemoteDesktop.Client.Windows.csproj", "{795497AA-AC4E-438D-A4DE-1BA416B03AC2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WavPlayer", "WavPlayer\WavPlayer.csproj", "{A529ECB4-E537-49B1-BC71-A940CA2491A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{795497AA-AC4E-438D-A4DE-1BA416B03AC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{795497AA-AC4E-438D-A4DE-1BA416B03AC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{795497AA-AC4E-438D-A4DE-1BA416B03AC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
