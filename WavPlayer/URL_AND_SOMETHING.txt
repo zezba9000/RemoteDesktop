@@ -3,5 +3,8 @@ http://csharpwithmaddy.blogspot.com/2008/01/sending-and-playing-microphone-audio
 original zip files
 https://drive.google.com/drive/folders/1MtPkhwf9J6hXtmdWwUUBBMz2qc8KIhLo?usp=sharing
 
+LumiSoft.Net VS project (Class Library) @local machine
+F:\work\SendAudioOverNW_CSharp\Net\Net
+
 github of LumiSoft.Net Libraries
 https://github.com/pruiz/LumiSoft.Net
