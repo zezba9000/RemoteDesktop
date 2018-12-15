@@ -1,0 +1,7 @@
+http://csharpwithmaddy.blogspot.com/2008/01/sending-and-playing-microphone-audio.html?m=1
+
+original zip files
+https://drive.google.com/drive/folders/1MtPkhwf9J6hXtmdWwUUBBMz2qc8KIhLo?usp=sharing
+
+github of LumiSoft.Net Libraries
+https://github.com/pruiz/LumiSoft.Net
