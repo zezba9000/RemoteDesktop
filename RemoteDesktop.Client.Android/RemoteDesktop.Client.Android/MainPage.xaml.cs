@@ -51,6 +51,8 @@ namespace RemoteDesktop.Client.Android
         private const string SERVER_ADDR = "192.168.0.11";
         private const int SERVER_PORT = 8888;
 
+        private RTPSoundStreamPlayer player = null;
+
         public MainPage()
         {
             //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
@@ -111,7 +113,14 @@ namespace RemoteDesktop.Client.Android
             ////image.MouseWheel += Image_MouseWheel;
             ////KeyDown += Window_KeyDown;
 
-            connectToServer();
+            connectToSoundServer(); // start recieve sound data which playing on remote PC
+            //connectToServer(); // staart recieve captured bitmap image data 
+        }
+
+        public void connectToSoundServer()
+        {
+            player = new RTPSoundStreamPlayer();
+            player.togglePlaying();
         }
 
         public void updateImageContentRandom()

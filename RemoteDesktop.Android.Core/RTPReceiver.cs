@@ -90,14 +90,23 @@ namespace RemoteDesktop.Core
 			m_Address = IPAddress.Parse(strAddress);
 			m_Port = port;
 			//Socket erstellen
-			m_Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // Multicast Socket
-			//Adresse wiederverwenden
-			m_Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
-			//Generiere Endpunkt
-			m_EndPoint = new IPEndPoint(IPAddress.Any, m_Port);
-			m_Socket.Bind(m_EndPoint);
-			//Mitgliedschaft in der Multicast Gruppe bekannt geben
-			m_Socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(m_Address, IPAddress.Any));
+			//m_Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // Multicast Socket
+			m_Socket = new Socket(SocketType.Dgram, ProtocolType.Udp); // Multicast Socket
+
+			////Adresse wiederverwenden
+			//m_Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
+
+            //Generiere Endpunkt
+            //m_EndPoint = new IPEndPoint(IPAddress.Any, m_Port);
+            m_EndPoint = new IPEndPoint(IPAddress.Parse("192.168.0.11"), 10000);
+            var message = Encoding.UTF8.GetBytes("Hello world !");
+
+			//m_Socket.Bind(m_EndPoint);
+			////Mitgliedschaft in der Multicast Gruppe bekannt geben
+			//m_Socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(m_Address, IPAddress.Any));
+
+            m_Socket.SendTo(message, m_EndPoint);
+
 			//Verbunden
 			IsConnected = true;
 			//Beginnen zu lesen

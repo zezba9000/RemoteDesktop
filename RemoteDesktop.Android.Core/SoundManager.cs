@@ -13,9 +13,15 @@ namespace RemoteDesktop.Core
 
             public void PlayData(byte[] data, bool flag) { }
 
-            public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount) { return true; }
+            public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount) {
+                Opened = true;
+                return true;
+            }
 
-            public void Close() { }
+            public void Close()
+            {
+                Opened = false;
+            }
         }
 
         public class Stopwatch{

@@ -10,9 +10,90 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml.Serialization;
 using System.Runtime.InteropServices;
+using System.Net;
+using System.Net.Sockets;
 
 namespace MulticastStreamerXama
 {
+
+      public class UDPSender
+      {
+
+        public UDPSender(String address, Int32 port, int TTL)
+        {
+          //Daten übernehmen
+          m_Address = address;
+          m_Port = port;
+          m_TTL = TTL;
+
+          //Initialisieren
+          Init();
+        }
+
+        //Attribute 
+        private Socket m_Socket;
+        private IPEndPoint m_EndPoint;
+        private EndPoint m_remote_EndPoint;
+        private String m_Address;
+        private Int32 m_Port;
+        private Int32 m_TTL;
+
+        /// <summary>
+        /// Init
+        /// </summary>
+        /// <param name="args"></param>
+        private void Init()
+        {
+          //Zieladresse
+          IPAddress destAddr = IPAddress.Parse(m_Address);
+          //Multicast Socket
+          m_Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+          //if (!isBroadcast)
+          //{
+          //  //Setze TTL
+          //    m_Socket.SetSocketOption(SocketOptionLevel.IP,SocketOptionName.MulticastTimeToLive, m_TTL);
+          //}
+          //else
+          //{
+          //    //DEBUG: try change to Multicast to Broadcast for communicate 3rd party Andoid reciever app
+          //    m_Socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.IpTimeToLive, 16);
+          //    m_Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+          //}
+
+          
+          //Generiere Endpoint (local bind)
+          m_EndPoint = new IPEndPoint(destAddr, m_Port);
+
+          // recognize remote app address (block until recieve any message)
+          m_Socket.ReceiveFrom(new byte[1024], ref m_remote_EndPoint);
+        }
+
+        /// <summary>
+        /// Close
+        /// </summary>
+        public void Close()
+        {
+          m_Socket.Close();
+        }
+        /// <summary>
+        /// Bytes versenden
+        /// </summary>
+        /// <param name="args"></param>
+        public void SendBytes(Byte[] bytes)
+        {
+          m_Socket.SendTo(bytes, 0, bytes.Length, SocketFlags.None, m_EndPoint);
+        }
+        /// <summary>
+        /// Text versenden
+        /// </summary>
+        /// <param name="str"></param>
+        public void SendText(String str)
+        {
+          this.SendBytes(Encoding.ASCII.GetBytes(str));
+        }
+      }
+
     /// <summary>
     /// FormMain
     /// </summary>
@@ -28,7 +109,7 @@ namespace MulticastStreamerXama
         }
 
         //Attribute
-        private NF.MulticastSender m_MulticastSender;
+        private UDPSender m_UDPSender;
         private WinSound.Recorder m_Recorder = new WinSound.Recorder();
         private Configuration Config = new Configuration();
         private String ConfigFileName = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "config.xml");
@@ -135,8 +216,8 @@ namespace MulticastStreamerXama
 
                 //Variablen setzen
                 m_IsTimerStreamRunning = m_TimerStream.IsRunning;
-                m_MulticastSender.Close();
-                m_MulticastSender = null;
+                m_UDPSender.Close();
+                m_UDPSender = null;
                 m_CurrentRTPBufferPos = 0;
                 OnFileStreamingEnd();
             }
@@ -159,7 +240,7 @@ namespace MulticastStreamerXama
                         Array.Copy(m_FilePayloadBuffer, m_CurrentRTPBufferPos, m_PartByte, 0, m_RTPPartsLength);
                         m_CurrentRTPBufferPos += m_RTPPartsLength;
                         WinSound.RTPPacket rtp = ToRTPPacket(m_PartByte, m_FileHeader.BitsPerSample, m_FileHeader.Channels);
-                        m_MulticastSender.SendBytes(rtp.ToBytes());
+                        m_UDPSender.SendBytes(rtp.ToBytes());
                     }
                     else
                     {
@@ -168,7 +249,7 @@ namespace MulticastStreamerXama
                         Byte[] restBytes = new Byte[m_PartByte.Length];
                         Array.Copy(m_FilePayloadBuffer, m_CurrentRTPBufferPos, restBytes, 0, rest);
                         WinSound.RTPPacket rtp = ToRTPPacket(restBytes, m_FileHeader.BitsPerSample, m_FileHeader.Channels);
-                        m_MulticastSender.SendBytes(rtp.ToBytes());
+                        m_UDPSender.SendBytes(rtp.ToBytes());
 
                         if (m_Loop == false)
                         {
@@ -262,9 +343,9 @@ namespace MulticastStreamerXama
             }
 
             //Attribute
-            public String MulticasAddress = "";
+            public String localAddress = "";
             public String SoundDeviceName = "";
-            public int MulticastPort = 0;
+            public int localPort = 0;
             public int SamplesPerSecond = 8000;
             public short BitsPerSample = 16;
             public short Channels = 2;
@@ -324,8 +405,8 @@ namespace MulticastStreamerXama
             try
             {
                 Config.SoundDeviceName = ComboboxSoundDeviceName.SelectedItem != null ? ComboboxSoundDeviceName.SelectedItem.ToString() : "";
-                Config.MulticasAddress = TextBoxMulticastAddress.Text;
-                Config.MulticastPort = Convert.ToInt32(TextBoxMulticastPort.Text);
+                Config.localAddress = TextBoxMulticastAddress.Text;
+                Config.localPort = Convert.ToInt32(TextBoxMulticastPort.Text);
                 Config.SamplesPerSecond = Convert.ToInt32(ComboboxSamplesPerSecond.SelectedItem.ToString());
                 Config.BitsPerSample = Convert.ToInt16(ComboboxBitsPerSample.SelectedItem.ToString());
                 Config.Channels = Convert.ToInt16(ComboboxChannels.SelectedItem.ToString());
@@ -350,8 +431,8 @@ namespace MulticastStreamerXama
             try
             {
                 ComboboxSoundDeviceName.SelectedIndex = ComboboxSoundDeviceName.FindString(Config.SoundDeviceName);
-                TextBoxMulticastAddress.Text = Config.MulticasAddress;
-                TextBoxMulticastPort.Text = Config.MulticastPort.ToString();
+                TextBoxMulticastAddress.Text = Config.localAddress;
+                TextBoxMulticastPort.Text = Config.localPort.ToString();
                 ComboboxSamplesPerSecond.SelectedIndex = ComboboxSamplesPerSecond.FindString(Config.SamplesPerSecond.ToString());
                 ComboboxBitsPerSample.SelectedIndex = ComboboxBitsPerSample.FindString(Config.BitsPerSample.ToString());
                 ComboboxChannels.SelectedIndex = ComboboxChannels.FindString(Config.Channels.ToString());
@@ -506,7 +587,7 @@ namespace MulticastStreamerXama
                     WinSound.WaveFileHeader header = WinSound.WaveFile.Read(Config.FileName);
 
                     //MulticastSender starten
-                    m_MulticastSender = new NF.MulticastSender(Config.MulticasAddress, Config.MulticastPort, 10);
+                    m_UDPSender = new UDPSender(Config.localAddress, Config.localPort, 10);
 
                     //QueueTimer starten
                     m_TimerProgressBarFile.Start();
@@ -543,7 +624,7 @@ namespace MulticastStreamerXama
             {
                 lock (this)
                 {
-                    if (m_MulticastSender != null)
+                    if (m_UDPSender != null)
                     {
                         //Wenn Form noch aktiv
                         if (m_IsFormMain)
@@ -571,7 +652,7 @@ namespace MulticastStreamerXama
                                 //Alles in RTP Packet umwandeln
                                 Byte[] rtp = ToRTPData(data, Config.BitsPerSample, Config.Channels);
                                 //Absenden
-                                m_MulticastSender.SendBytes(rtp);
+                                m_UDPSender.SendBytes(rtp);
                             }
                         }
                     }
@@ -590,14 +671,14 @@ namespace MulticastStreamerXama
         {
             try
             {
-                if (m_MulticastSender != null)
+                if (m_UDPSender != null)
                 {
                     if (m_IsFormMain)
                     {
                         //RTP Packet in Bytes umwandeln
                         Byte[] rtpBytes = rtp.ToBytes();
                         //Absenden
-                        m_MulticastSender.SendBytes(rtpBytes);
+                        m_UDPSender.SendBytes(rtpBytes);
                     }
                 }
             }
@@ -852,9 +933,9 @@ namespace MulticastStreamerXama
                     StopStreamingFile();
                 }
 
-                if (m_MulticastSender != null)
+                if (m_UDPSender != null)
                 {
-                    m_MulticastSender.Close();
+                    m_UDPSender.Close();
                 }
 
                 m_Recorder.DataRecorded -= new WinSound.Recorder.DelegateDataRecorded(OnDataReceivedFromSoundcard);
@@ -882,15 +963,15 @@ namespace MulticastStreamerXama
                 if (m_Recorder.Started == false)
                 {
                     //Starten
-                    m_MulticastSender = new NF.MulticastSender(Config.MulticasAddress, Config.MulticastPort, 10);
+                    m_UDPSender = new UDPSender(Config.localAddress, Config.localPort, 10);
                     StartRecording();
                     ShowStarted_StreamSound();
                 }
                 else
                 {
                     //Schliessen
-                    m_MulticastSender.Close();
-                    m_MulticastSender = null;
+                    m_UDPSender.Close();
+                    m_UDPSender = null;
                     m_Recorder.Stop();
 
                     //Wenn JitterBuffer

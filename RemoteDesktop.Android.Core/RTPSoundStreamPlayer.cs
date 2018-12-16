@@ -59,7 +59,7 @@ namespace RemoteDesktop.Core
 			//Attribute
 			public String ServerAddress = "192.168.0.11";
 			public String SoundDeviceName = "";
-			public int ServerPort = 10000;
+			public int ServerPort = 10000; //Sound Server
 			public int SamplesPerSecond = 8000;
 			public short BitsPerSample = 16;
 			public short Channels = 2;
@@ -208,7 +208,7 @@ namespace RemoteDesktop.Core
 			}
 		}
 
-        private void togglePlaying()
+        public void togglePlaying()
         {
 			//Wenn geöffnet
 			if (m_Player.Opened)
