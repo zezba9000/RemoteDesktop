@@ -1,15 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Xamarin.Forms;
 
-namespace RemoteDesktop.Core
+namespace RemoteDesktop.Client.Android
 {
+
     public class SoundManager
     {
 
         public class Player
         {
             public bool Opened = false;
+            IPlatformSoundPlayer pplayer;
+
+            public Player()
+            {
+                pplayer = SoundPlayerFactory.getInstance();
+            }
 
             public void PlayData(byte[] data, bool flag) { }
 

@@ -8,8 +8,9 @@ using System.Text;
 //using System.Windows.Forms;
 using System.Xml.Serialization;
 using System.IO;
+using RemoteDesktop.Core;
 
-namespace RemoteDesktop.Core
+namespace RemoteDesktop.Client.Android
 {
 	public class RTPSoundStreamPlayer
 	{
