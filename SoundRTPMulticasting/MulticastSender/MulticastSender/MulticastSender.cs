@@ -15,18 +15,19 @@ namespace NF
     // Überprüfe ob es sich um eine gültige IPv4 Multicast-Adresse handelt
     public static bool isValid(string ip)
     {
-      try
-      {
-        int octet1 = Int32.Parse(ip.Split(new Char[] { '.' }, 4)[0]);
-        if ((octet1 >= 224) && (octet1 <= 239))
-          return true;
-      }
-      catch (Exception ex)
-      {
-        string str = ex.Message;
-      }
+        //try
+        //{
+        //  int octet1 = Int32.Parse(ip.Split(new Char[] { '.' }, 4)[0]);
+        //  if ((octet1 >= 224) && (octet1 <= 239))
+        //    return true;
+        //}
+        //catch (Exception ex)
+        //{
+        //  string str = ex.Message;
+        //}
 
-      return false;
+        //return false;
+        return true;
     }
   }
   /// <summary>
@@ -75,7 +76,12 @@ namespace NF
       //Multicast Socket
       m_Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); 
       //Setze TTL
-      m_Socket.SetSocketOption(SocketOptionLevel.IP,SocketOptionName.MulticastTimeToLive, m_TTL);
+      //m_Socket.SetSocketOption(SocketOptionLevel.IP,SocketOptionName.MulticastTimeToLive, m_TTL);
+
+      // DEBUG: try change to Multicast to Broadcast for communicate 3rd party Andoid reciever app
+      m_Socket.SetSocketOption(SocketOptionLevel.IP,SocketOptionName.IpTimeToLive, 16);
+      m_Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+
       // Generiere Endpunkt
       m_EndPoint = new IPEndPoint(destAddr, m_Port);
     }
