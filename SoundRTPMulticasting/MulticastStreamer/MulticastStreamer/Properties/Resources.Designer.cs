@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MulticastStreamer.Properties {
+namespace MulticastStreamerXama.Properties {
     using System;
     
     

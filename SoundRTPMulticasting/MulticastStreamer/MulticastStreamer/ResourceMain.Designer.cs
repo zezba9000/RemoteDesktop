@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MulticastStreamer {
+namespace MulticastStreamerXama {
     using System;
     
     

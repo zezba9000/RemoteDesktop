@@ -64,6 +64,9 @@ namespace MulticastStreamerXama
           
           //Generiere Endpoint (local bind)
           m_EndPoint = new IPEndPoint(destAddr, m_Port);
+          m_remote_EndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+          m_Socket.Bind(m_EndPoint);
 
           // recognize remote app address (block until recieve any message)
           m_Socket.ReceiveFrom(new byte[1024], ref m_remote_EndPoint);

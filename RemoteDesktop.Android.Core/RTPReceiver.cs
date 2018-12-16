@@ -47,6 +47,7 @@ namespace RemoteDesktop.Core
 		IPAddress m_Address;
 		Int32 m_Port;
 		EndPoint m_EndPoint;
+        EndPoint m_LocalEP;
 		Byte[] bytes;
 		bool IsConnected = false;
 		Object Locker = new Object();
@@ -96,15 +97,14 @@ namespace RemoteDesktop.Core
 			////Adresse wiederverwenden
 			//m_Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
 
-            //Generiere Endpunkt
-            //m_EndPoint = new IPEndPoint(IPAddress.Any, m_Port);
-            m_EndPoint = new IPEndPoint(IPAddress.Parse("192.168.0.11"), 10000);
-            var message = Encoding.UTF8.GetBytes("Hello world !");
-
-			//m_Socket.Bind(m_EndPoint);
+            m_LocalEP = new IPEndPoint(IPAddress.Parse("192.168.0.11"), 10001);
+			m_Socket.Bind(m_LocalEP);
 			////Mitgliedschaft in der Multicast Gruppe bekannt geben
 			//m_Socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(m_Address, IPAddress.Any));
 
+            var message = Encoding.UTF8.GetBytes("Hello world !");
+            //m_EndPoint = new IPEndPoint(IPAddress.Any, m_Port);
+            m_EndPoint = new IPEndPoint(m_Address, m_Port);
             m_Socket.SendTo(message, m_EndPoint);
 
 			//Verbunden

@@ -38,6 +38,7 @@
   <PropertyGroup>
     <ApplicationIcon>micro.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -51,9 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FormMain.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="FormMain.cs" />
     <Compile Include="FormMain.Designer.cs">
       <DependentUpon>FormMain.cs</DependentUpon>
     </Compile>
@@ -93,10 +92,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\MulticastSender\MulticastSender\MulticastSender.csproj">
-      <Project>{B6D3F5CD-388E-42AD-80EA-34B1010133F5}</Project>
-      <Name>MulticastSender</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\WinSound\WinSound\WinSound.csproj">
       <Project>{28120D29-4F6E-4C3B-AB6A-900A26420B9C}</Project>
       <Name>WinSound</Name>

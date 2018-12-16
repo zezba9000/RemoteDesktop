@@ -1,4 +1,4 @@
-﻿namespace MulticastStreamer
+﻿namespace MulticastStreamerXama
 {
   partial class FormMain
   {
