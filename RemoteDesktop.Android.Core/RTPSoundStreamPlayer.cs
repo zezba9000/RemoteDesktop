@@ -24,7 +24,7 @@ namespace RemoteDesktop.Core
 
 		//Attribute
 		RTPReceiver m_Receiver;
-		WinSound.Player m_Player;
+		SoundManager.Player m_Player;
 		List<String> m_Data = new List<string>();
 		private Configuration Config = new Configuration();
 		//private String ConfigFileName = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "config.xml");
@@ -35,9 +35,9 @@ namespace RemoteDesktop.Core
 		//System.Windows.Forms.Timer m_TimerDrawProgressBar;
 		//System.Windows.Forms.Timer m_TimerDrawMeasurements;
 		bool IsDrawCurve = false;
-		private WinSound.JitterBuffer m_JitterBuffer = new WinSound.JitterBuffer(null, 20, 0);
+		private SoundManager.JitterBuffer m_JitterBuffer = new SoundManager.JitterBuffer(null, 20, 0);
 		private uint m_JitterBufferLength = 20;
-		private WinSound.Stopwatch m_Stopwatch = new WinSound.Stopwatch();
+		private SoundManager.Stopwatch m_Stopwatch = new SoundManager.Stopwatch();
 		//private double m_MeasurementTimeOne = 0;
 		//private double m_MeasurementTimeTwo = 0;
 		//private Queue<double> m_QueueTimeDiffs = new Queue<double>();
@@ -76,7 +76,7 @@ namespace RemoteDesktop.Core
 			try
 			{
 				//WinSoundServer
-				m_Player = new WinSound.Player();
+				m_Player = new SoundManager.Player();
 				//Comboboxen
 				//InitComboboxes();
 				//Laden
@@ -101,13 +101,13 @@ namespace RemoteDesktop.Core
 			//Wenn vorhanden
 			if (m_JitterBuffer != null)
 			{
-				m_JitterBuffer.DataAvailable -= new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
+				m_JitterBuffer.DataAvailable -= new SoundManager.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
 			}
 
 			//Neu erstellen
-			//m_JitterBuffer = new WinSound.JitterBuffer(null, (uint)NumericUpDownJitterBuffer.Value, 20);
-			m_JitterBuffer = new WinSound.JitterBuffer(null, Config.JitterBuffer, 20);
-			m_JitterBuffer.DataAvailable += new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
+			//m_JitterBuffer = new SoundManager.JitterBuffer(null, (uint)NumericUpDownJitterBuffer.Value, 20);
+			m_JitterBuffer = new SoundManager.JitterBuffer(null, Config.JitterBuffer, 20);
+			m_JitterBuffer.DataAvailable += new SoundManager.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
 
 			//ProgressBar anpassen
 			//InitProgressBarJitterBuffer();
@@ -140,7 +140,7 @@ namespace RemoteDesktop.Core
 				if (m_Player.Opened && m_Receiver.Connected)
 				{
 					//RTP Header auslesen
-					WinSound.RTPPacket rtp = new WinSound.RTPPacket(bytes);
+					SoundManager.RTPPacket rtp = new SoundManager.RTPPacket(bytes);
 
 					////Wenn Anzeige
 					//if (IsDrawCurve)
@@ -160,7 +160,7 @@ namespace RemoteDesktop.Core
 						else
 						{
 							//Nach Linear umwandeln
-							Byte[] linearBytes = WinSound.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
+							Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
 							//Abspielen
 							m_Player.PlayData(linearBytes, false);
 						}
@@ -177,10 +177,10 @@ namespace RemoteDesktop.Core
 		/// OnDataAvailable
 		/// </summary>
 		/// <param name="packet"></param>
-		private void OnDataAvailable(Object sender, WinSound.RTPPacket rtp)
+		private void OnDataAvailable(Object sender, SoundManager.RTPPacket rtp)
 		{
 			//Nach Linear umwandeln
-			Byte[] linearBytes = WinSound.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
+			Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
 			//Abspielen
 			m_Player.PlayData(linearBytes, false);
 		}
@@ -192,12 +192,15 @@ namespace RemoteDesktop.Core
 		{
 			try
 			{
-				this.Invoke(new MethodInvoker(delegate()
-				{
-					//Player beenden
-					m_Player.Close();
-					ShowState();
-				}));
+				//this.Invoke(new MethodInvoker(delegate()
+				//{
+				//	//Player beenden
+				//	m_Player.Close();
+				//	ShowState();
+				//}));
+
+				m_Player.Close();
+				//ShowState();
 			}
 			catch (Exception ex)
 			{
