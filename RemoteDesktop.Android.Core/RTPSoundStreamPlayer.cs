@@ -141,7 +141,7 @@ namespace RemoteDesktop.Core
 				{
 					//RTP Header auslesen
 					SoundManager.RTPPacket rtp = new SoundManager.RTPPacket(bytes);
-                    Console.WriteLine("RTP Packet received: " + bytes.ToString() + " bytes");
+                    Console.WriteLine("RTP Packet received: " + bytes.Length.ToString() + " bytes");
 
 					////Wenn Anzeige
 					//if (IsDrawCurve)

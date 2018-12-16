@@ -85,7 +85,7 @@ namespace MulticastStreamerXama
         /// <param name="args"></param>
         public void SendBytes(Byte[] bytes)
         {
-          m_Socket.SendTo(bytes, 0, bytes.Length, SocketFlags.None, m_EndPoint);
+          m_Socket.SendTo(bytes, 0, bytes.Length, SocketFlags.None, m_remote_EndPoint);
         }
         /// <summary>
         /// Text versenden
