@@ -78,6 +78,9 @@ namespace RemoteDesktop.Client.Android
 			{
 				//WinSoundServer
 				m_Player = new SoundManager.Player();
+                // paramater for File streaming (Desktop/sample.wav)
+                m_Player.Open("hoge", 44100, 16, 2, 0);
+
 				//Comboboxen
 				//InitComboboxes();
 				//Laden
@@ -129,10 +132,6 @@ namespace RemoteDesktop.Client.Android
 			}
 		}
 
-		/// <summary>
-		/// OnDataReceived
-		/// </summary>
-		/// <param name="strMessage"></param>
         private void OnDataReceived(RTPReceiver rtr, Byte[] bytes)
 		{
 			try
@@ -154,18 +153,21 @@ namespace RemoteDesktop.Client.Android
 					//Wenn Header korrekt
 					if (rtp.Data != null)
 					{
-						//Wenn JitterBuffer verwendet werden soll
-						if (UseJitterBuffer)
-						{
-							m_JitterBuffer.AddData(rtp);
-						}
-						else
-						{
-							//Nach Linear umwandeln
-							Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
-							//Abspielen
-							m_Player.PlayData(linearBytes, false);
-						}
+						////Wenn JitterBuffer verwendet werden soll
+						//if (UseJitterBuffer)
+						//{
+						//	m_JitterBuffer.AddData(rtp);
+						//}
+						//else
+						//{
+
+						//Nach Linear umwandeln
+						Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
+                        //Abspielen
+                        Console.WriteLine("call PlayData func: " + linearBytes.Length.ToString() + "bytes");
+                        m_Player.PlayData(linearBytes, false);
+
+						//}
 					}
 				}
 			}
