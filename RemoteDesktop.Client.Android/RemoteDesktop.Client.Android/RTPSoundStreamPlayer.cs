@@ -74,27 +74,25 @@ namespace RemoteDesktop.Client.Android
 		/// </summary>
 		private void Init()
 		{
-			try
-			{
-				//WinSoundServer
-				m_Player = new SoundManager.Player();
-                // paramater for File streaming (Desktop/sample.wav)
-                m_Player.Open("hoge", 44100, 16, 2, 0);
+            //WinSoundServer
+			m_Player = new SoundManager.Player();
 
-				//Comboboxen
-				//InitComboboxes();
-				//Laden
-				//LoadConfig();
-				//Noch Nicht verbunden
-				//ShowDisconnected();
-				//Sonstiges
-				//InitGraphics();
-			}
-			catch (Exception ex)
-			{
-                //MessageBox.Show(ex.Message, "Fehler beim Initialisieren", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Console.WriteLine(ex);
-			}
+			//try
+			//{
+			//	//Comboboxen
+			//	//InitComboboxes();
+			//	//Laden
+			//	//LoadConfig();
+			//	//Noch Nicht verbunden
+			//	//ShowDisconnected();
+			//	//Sonstiges
+			//	//InitGraphics();
+			//}
+			//catch (Exception ex)
+			//{
+   //             //MessageBox.Show(ex.Message, "Fehler beim Initialisieren", MessageBoxButtons.OK, MessageBoxIcon.Error);
+   //             Console.WriteLine(ex);
+			//}
 		}
 
 		/// <summary>
@@ -237,14 +235,16 @@ namespace RemoteDesktop.Client.Android
 					//Zeitmessungen zurücksetzen
 					//ResetTimeMeasurements();
 
-				//MulticastReceiver
+                // paramater for File streaming (Desktop/sample.wav)
+                m_Player.Open("hoge", 44100, 16, 2, 0);
+
+				// 1 to 1 Receivr over UDP
 				m_Receiver = new RTPReceiver(Config.PacketSize);
 				m_Receiver.DataReceived2 += new RTPReceiver.DelegateDataReceived2(OnDataReceived);
 				m_Receiver.Disconnected += new RTPReceiver.DelegateDisconnected(OnDisconnected);
 				m_Receiver.Connect(Config.ServerAddress, Config.ServerPort);
 
-				//WinSound Player öffnen
-				m_Player.Open(Config.SoundDeviceName, Config.SamplesPerSecond, Config.BitsPerSample, Config.Channels, Config.BufferCount);
+				//m_Player.Open(Config.SoundDeviceName, Config.SamplesPerSecond, Config.BitsPerSample, Config.Channels, Config.BufferCount);
 
 				//Wenn JitterBuffer
 				if (UseJitterBuffer)
