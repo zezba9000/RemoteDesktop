@@ -25,7 +25,7 @@ namespace RemoteDesktop.Client.Android.Droid
             // Frequency
             samplesPerSecond,
             // Mono or stereo
-            ChannelOut.Mono,
+            ChannelOut.Stereo,
             // Audio encoding
             Encoding.Pcm16bit,
             // Length of the audio clip.
