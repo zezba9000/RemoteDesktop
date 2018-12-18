@@ -118,6 +118,11 @@ namespace RemoteDesktop.Client.Android
             //connectToServer(); // staart recieve captured bitmap image data 
         }
 
+        protected override void OnDisappearing()
+        {
+            player.togglePlaying();
+        }
+
         public void connectToSoundServer()
         {
             player = new RTPSoundStreamPlayer();

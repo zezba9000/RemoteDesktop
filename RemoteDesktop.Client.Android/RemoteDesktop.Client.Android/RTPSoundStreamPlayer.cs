@@ -219,12 +219,12 @@ namespace RemoteDesktop.Client.Android
 			if (m_Player.Opened)
 			{
 				//Wenn JitterBuffer
-				if (UseJitterBuffer)
-				{
-					m_JitterBuffer.Stop();
-					//Timer beenden
-					//StopTimerDrawProgressBar();
-				}
+				//if (UseJitterBuffer)
+				//{
+				//	m_JitterBuffer.Stop();
+				//	//Timer beenden
+				//	//StopTimerDrawProgressBar();
+				//}
 
 				//MulticastReceiver
 				m_Receiver.Disconnect();
