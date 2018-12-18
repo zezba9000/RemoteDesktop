@@ -98,7 +98,7 @@ namespace RemoteDesktop.Core
 			//m_Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
 
             //m_LocalEP = new IPEndPoint(IPAddress.Parse("192.168.0.11"), 10001);
-            m_LocalEP = new IPEndPoint(IPAddress.Parse("192.168.0.19"), 10001);
+            m_LocalEP = new IPEndPoint(Utils.getLocalIP(), 10001);
 			m_Socket.Bind(m_LocalEP);
 			////Mitgliedschaft in der Multicast Gruppe bekannt geben
 			//m_Socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(m_Address, IPAddress.Any));

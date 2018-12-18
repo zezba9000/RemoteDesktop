@@ -113,6 +113,7 @@ namespace RemoteDesktop.Client.Android
             ////image.MouseWheel += Image_MouseWheel;
             ////KeyDown += Window_KeyDown;
 
+            Utils.getLocalIP();
             connectToSoundServer(); // start recieve sound data which playing on remote PC
             //connectToServer(); // staart recieve captured bitmap image data 
         }

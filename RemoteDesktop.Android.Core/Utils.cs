@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
@@ -71,6 +72,21 @@ namespace RemoteDesktop.Core
             var now = DateTime.UtcNow;
             long unixtime = (long)(now - new DateTime(1970, 1, 1)).TotalSeconds;
             return unixtime;
+        }
+
+        public static IPAddress getLocalIP()
+        {
+            String hostName = Dns.GetHostName();    // 自身のホスト名を取得
+            IPAddress[] addresses = Dns.GetHostAddresses(hostName);
+            foreach (IPAddress address in addresses)
+            {
+                // IPv4 のみプリント
+                if ( address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork )
+                {
+                    Console.WriteLine("getLocalIP func got IP Address: " + address.ToString());
+                }
+            }
+            return addresses[0];
         }
 
         //public static byte[] scaleBitmapDataAsync(byte[] bitmap, int width, int height)
