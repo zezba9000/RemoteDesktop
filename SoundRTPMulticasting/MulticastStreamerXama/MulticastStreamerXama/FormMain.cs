@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Windows.Threading;
 
 namespace MulticastStreamerXama
 {
@@ -35,11 +36,11 @@ namespace MulticastStreamerXama
         private Socket m_Socket;
         private IPEndPoint m_EndPoint;
         private static EndPoint m_remote_EndPoint;
-        private static EndPoint m_remote_EndPoint_new;
+        //private static EndPoint m_remote_EndPoint_new;
         private String m_Address;
         private Int32 m_Port;
         private Int32 m_TTL;
-        public bool reconnected = false;
+        public bool disconnected = false;
 
         /// <summary>
         /// Init
@@ -71,16 +72,16 @@ namespace MulticastStreamerXama
 
           m_Socket.Bind(m_EndPoint);
           
-          if(m_remote_EndPoint_new != null) // 2回目以降のリクエストを受信済み
-          {
-                m_remote_EndPoint = m_remote_EndPoint_new;
-                m_remote_EndPoint_new = null;
-          }
-          else
-          {
+          //if(m_remote_EndPoint_new != null) // 2回目以降のリクエストを受信済み
+          //{
+          //      m_remote_EndPoint = m_remote_EndPoint_new;
+          //      m_remote_EndPoint_new = null;
+          //}
+          //else
+          //{
                 // recognize remote app address (block until recieve any message)
                 m_Socket.ReceiveFrom(new byte[1024], ref m_remote_EndPoint);
-          }
+          //}
 
         }
 
@@ -116,14 +117,18 @@ namespace MulticastStreamerXama
                 {
                     response = e.SocketError.ToString();
                 }
-                m_remote_EndPoint_new = e.RemoteEndPoint;
-                reconnected = true;
+                //m_remote_EndPoint_new = e.RemoteEndPoint;
+                disconnected = true;
 
                 clientDone.Set();
             });
 
             // イベントの状態をシグナルなしに設定し、スレッドのブロックを発生させる。 
             clientDone.Reset();
+
+            //var remote = new IPEndPoint(IPAddress.Any, 0) as EndPoint;
+            //socketEventArg.RemoteEndPoint = remote;
+            socketEventArg.RemoteEndPoint = m_remote_EndPoint;
 
             // ソケットを使用して非同期の受信要求を行う。 
             m_Socket.ReceiveFromAsync(socketEventArg);
@@ -169,6 +174,7 @@ namespace MulticastStreamerXama
         public FormMain()
         {
             InitializeComponent();
+            dispatcher = Dispatcher.CurrentDispatcher;
             Init();
         }
 
@@ -201,6 +207,7 @@ namespace MulticastStreamerXama
         private int m_PayloadType = 0;
         private uint m_SourceId = 0;
         WinSound.WaveFileHeader m_FileHeader = new WinSound.WaveFileHeader();
+        public Dispatcher dispatcher;
 
         /// <summary>
         /// Init
@@ -269,25 +276,30 @@ namespace MulticastStreamerXama
             m_IsTimerStreamRunning = m_TimerStream.IsRunning;
         }
 
-        private void switchFileStreamingTargetAddress()
+        //クライアント切断時に呼び出される想定
+        private void resetFileStreamingState()
         {
             if (m_TimerStream.IsRunning)
             {
-                ////QueueTimer beenden
-                //m_TimerStream.Stop();
+                this.dispatcher.BeginInvoke(new Action(() =>
+                {
+                    ////QueueTimer beenden
+                    //m_TimerStream.Stop();
 
-                ////Variablen setzen
-                //m_IsTimerStreamRunning = m_TimerStream.IsRunning;
+                    ////Variablen setzen
+                    //m_IsTimerStreamRunning = m_TimerStream.IsRunning;
 
-                //m_UDPSender.Close();
-                //m_UDPSender = null;
+                    //m_UDPSender.Close();
+                    //m_UDPSender = null;
 
-                m_CurrentRTPBufferPos = 0;
-                ProgressBarFile.Value = 0;
+                    m_CurrentRTPBufferPos = 0;
+                    ProgressBarFile.Value = 0;
 
-                m_IsTimerStreamRunning = true;
-                ButtonStreamFile_Click(null, null); // for stop streaming
-                ButtonStreamFile_Click(null, null); // for start streaming
+                    m_IsTimerStreamRunning = true;
+                    ButtonStreamFile_Click(null, null); // for stop streaming
+                    m_IsTimerStreamRunning = false;
+                    ButtonStreamFile_Click(null, null); // for start streaming
+                }));
             }
         }
 
@@ -320,10 +332,10 @@ namespace MulticastStreamerXama
             {
                 //次のコネクションが来ていないかチェックする
                 m_UDPSender.checkNextClient();
-                if(m_UDPSender.reconnected == true) // 次のコネクションが来ていたら (前の接続は切れている想定)
+                if(m_UDPSender.disconnected == true) // 次のコネクションが来ていたら (前の接続は切れている想定)
                 {
-                    switchFileStreamingTargetAddress();
-                    m_UDPSender.reconnected = false;
+                    resetFileStreamingState();
+                    m_UDPSender.disconnected = false;
                 }
 
                 //Wenn noch aktiv
