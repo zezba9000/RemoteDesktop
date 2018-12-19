@@ -12,6 +12,7 @@ using System.Xml.Serialization;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace MulticastStreamerXama
 {
@@ -33,10 +34,12 @@ namespace MulticastStreamerXama
         //Attribute 
         private Socket m_Socket;
         private IPEndPoint m_EndPoint;
-        private EndPoint m_remote_EndPoint;
+        private static EndPoint m_remote_EndPoint;
+        private static EndPoint m_remote_EndPoint_new;
         private String m_Address;
         private Int32 m_Port;
         private Int32 m_TTL;
+        public bool reconnected = false;
 
         /// <summary>
         /// Init
@@ -67,9 +70,67 @@ namespace MulticastStreamerXama
           m_remote_EndPoint = new IPEndPoint(IPAddress.Any, 0);
 
           m_Socket.Bind(m_EndPoint);
+          
+          if(m_remote_EndPoint_new != null) // 2回目以降のリクエストを受信済み
+          {
+                m_remote_EndPoint = m_remote_EndPoint_new;
+                m_remote_EndPoint_new = null;
+          }
+          else
+          {
+                // recognize remote app address (block until recieve any message)
+                m_Socket.ReceiveFrom(new byte[1024], ref m_remote_EndPoint);
+          }
 
-          // recognize remote app address (block until recieve any message)
-          m_Socket.ReceiveFrom(new byte[1024], ref m_remote_EndPoint);
+        }
+
+        //// 2回目以降の接続に対応する
+        //public void waitNewConnection()
+        //{
+        //}
+
+        // ファイル配信の場合のみ対応. データ配信はデータ位置のみ先頭に戻して継続 (送信先は新たに接続を受けたマシン).
+        public void checkNextClient()
+        {
+            // SocketAsyncEventArgs コンテキスト オブジェクトを作成する。 
+            SocketAsyncEventArgs socketEventArg = new SocketAsyncEventArgs();
+            //socketEventArg.RemoteEndPoint = new IPEndPoint(IPAddress.Any, portNumber);
+
+            // 非同期処理が完了したことを通知するために信号を送るオブジェクト。
+            ManualResetEvent clientDone = new ManualResetEvent(false);
+            // データを受信するためのバッファーを設定する。 
+            socketEventArg.SetBuffer(new Byte[1024], 0, 1024);
+
+            String response = "";
+            // Completed イベントのインライン イベント ハンドラー。 
+            // 注: メソッドを自己完結させるため、このイベント ハンドラーはインラインで実装される。 
+            socketEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(delegate (object s, SocketAsyncEventArgs e)
+            {
+                if (e.SocketError == SocketError.Success)
+                {
+                    // バッファーからデータを取得する。 
+                    response = Encoding.UTF8.GetString(e.Buffer, e.Offset, e.BytesTransferred);
+                    response = response.Trim('\0');
+                }
+                else
+                {
+                    response = e.SocketError.ToString();
+                }
+                m_remote_EndPoint_new = e.RemoteEndPoint;
+                reconnected = true;
+
+                clientDone.Set();
+            });
+
+            // イベントの状態をシグナルなしに設定し、スレッドのブロックを発生させる。 
+            clientDone.Reset();
+
+            // ソケットを使用して非同期の受信要求を行う。 
+            m_Socket.ReceiveFromAsync(socketEventArg);
+
+            // 指定ミリ秒を最大秒数として UI スレッドをブロックする。 
+            // この時間内に応答がなければ、処理を先に進める。 
+            clientDone.WaitOne(10);
         }
 
         /// <summary>
@@ -207,6 +268,29 @@ namespace MulticastStreamerXama
             m_TimerStream.Start(m_Milliseconds, 0);
             m_IsTimerStreamRunning = m_TimerStream.IsRunning;
         }
+
+        private void switchFileStreamingTargetAddress()
+        {
+            if (m_TimerStream.IsRunning)
+            {
+                ////QueueTimer beenden
+                //m_TimerStream.Stop();
+
+                ////Variablen setzen
+                //m_IsTimerStreamRunning = m_TimerStream.IsRunning;
+
+                //m_UDPSender.Close();
+                //m_UDPSender = null;
+
+                m_CurrentRTPBufferPos = 0;
+                ProgressBarFile.Value = 0;
+
+                m_IsTimerStreamRunning = true;
+                ButtonStreamFile_Click(null, null); // for stop streaming
+                ButtonStreamFile_Click(null, null); // for start streaming
+            }
+        }
+
         /// <summary>
         /// StopTimerStream
         /// </summary>
@@ -234,6 +318,14 @@ namespace MulticastStreamerXama
         {
             try
             {
+                //次のコネクションが来ていないかチェックする
+                m_UDPSender.checkNextClient();
+                if(m_UDPSender.reconnected == true) // 次のコネクションが来ていたら (前の接続は切れている想定)
+                {
+                    switchFileStreamingTargetAddress();
+                    m_UDPSender.reconnected = false;
+                }
+
                 //Wenn noch aktiv
                 if (m_IsTimerStreamRunning)
                 {
