@@ -4,7 +4,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 
-namespace RemoteDesktop.Core
+namespace RemoteDesktop.Android.Core
 {
 	///// <summary>
 	///// MCIPAddress Class

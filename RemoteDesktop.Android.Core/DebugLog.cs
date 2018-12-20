@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RemoteDesktop.Core
+namespace RemoteDesktop.Android.Core
 {
 	public static class DebugLog
 	{

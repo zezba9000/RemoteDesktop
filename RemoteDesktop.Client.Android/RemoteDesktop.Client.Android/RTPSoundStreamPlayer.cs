@@ -8,7 +8,8 @@ using System.Text;
 //using System.Windows.Forms;
 using System.Xml.Serialization;
 using System.IO;
-using RemoteDesktop.Core;
+//using RemoteDesktop.Core;
+using RemoteDesktop.Android.Core;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -138,7 +139,7 @@ namespace RemoteDesktop.Client.Android
 				if (m_Player.Opened && m_Receiver.Connected)
 				{
 					//RTP Header auslesen
-					SoundManager.RTPPacket rtp = new SoundManager.RTPPacket(bytes);
+					RTPPacket rtp = new RTPPacket(bytes);
                     Console.WriteLine("RTP Packet received: " + bytes.Length.ToString() + " bytes");
 
 					////Wenn Anzeige
@@ -160,7 +161,7 @@ namespace RemoteDesktop.Client.Android
 						//{
 
 						//Nach Linear umwandeln
-						Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
+						Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
                         //Abspielen
                         Console.WriteLine("call PlayData func at OnDataReceived: " + linearBytes.Length.ToString() + "bytes");
                         m_Player.PlayData(linearBytes, false);
@@ -179,12 +180,12 @@ namespace RemoteDesktop.Client.Android
 		/// OnDataAvailable
 		/// </summary>
 		/// <param name="packet"></param>
-		private void OnDataAvailable(Object sender, SoundManager.RTPPacket rtp)
+		private void OnDataAvailable(Object sender, RTPPacket rtp)
 		{
             //Nach Linear umwandeln
             //Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
             // for File Streaming (Desktop/sample.wav)
-            Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, 16, 2);
+            Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, 16, 2);
             //Abspielen
             Console.WriteLine("call PlayData func at OnDataAvailable: " + linearBytes.Length.ToString() + "bytes");
             m_Player.PlayData(linearBytes, false);

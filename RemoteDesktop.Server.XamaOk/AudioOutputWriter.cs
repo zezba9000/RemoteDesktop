@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using RemoteDesktop.Server.XamaOK;
-using RemoteDesktop.Core;
+using RemoteDesktop.Android.Core;
 
 namespace NAudio
 {
@@ -46,7 +46,7 @@ namespace NAudio
             this._WaveIn.DataAvailable += this.WaveInOnDataAvailable;
             this._WaveIn.RecordingStopped += this.WaveInOnRecordingStopped;
 
-            usender = new UDPSender(RemoteDesktop.Core.Utils.getLocalIP().ToString(), 10000, 10);
+            usender = new UDPSender(RemoteDesktop.Android.Core.Utils.getLocalIP().ToString(), 10000, 10);
             //this._Stream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.Write);
             this._WaveFileWriter = new WaveFileWriter(usender, this._WaveIn.WaveFormat);
 

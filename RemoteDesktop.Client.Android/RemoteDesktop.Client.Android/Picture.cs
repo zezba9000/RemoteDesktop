@@ -1,4 +1,4 @@
-﻿using RemoteDesktop.Core;
+﻿using RemoteDesktop.Android.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

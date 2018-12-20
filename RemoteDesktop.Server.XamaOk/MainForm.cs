@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 
-using RemoteDesktop.Core;
+using RemoteDesktop.Android.Core;
 using System.Windows.Threading;
 using NAudio;
 using NAudio.Wave;

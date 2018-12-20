@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 //using DevKit.Xamarin.ImageKit.Abstractions;
 
 
-namespace RemoteDesktop.Core
+namespace RemoteDesktop.Android.Core
 {
     public static class Utils
     {

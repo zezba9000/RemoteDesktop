@@ -13,7 +13,7 @@ using System.IO.Compression;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace RemoteDesktop.Core
+namespace RemoteDesktop.Android.Core
 {
 	struct ReceiveState
 	{

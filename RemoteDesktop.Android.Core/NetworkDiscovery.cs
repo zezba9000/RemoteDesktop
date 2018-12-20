@@ -8,7 +8,7 @@ using System.Net;
 
 using System.Net.Sockets;
 
-namespace RemoteDesktop.Core
+namespace RemoteDesktop.Android.Core
 {
 	public enum NetworkTypes
 	{

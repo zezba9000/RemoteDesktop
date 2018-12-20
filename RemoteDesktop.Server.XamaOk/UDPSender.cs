@@ -136,7 +136,7 @@ namespace RemoteDesktop.Server.XamaOK
             set { }
         }
 
-        public void Close()
+        public override void Close()
         {
             m_Socket.Close();
         }

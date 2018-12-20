@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Xamarin.Forms;
 
-using RemoteDesktop.Core;
+using RemoteDesktop.Android.Core;
 using System.Threading;
 using System.IO;
 using System.Net;
