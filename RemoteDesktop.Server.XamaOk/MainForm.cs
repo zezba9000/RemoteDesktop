@@ -10,21 +10,34 @@ using System.Windows.Forms;
 using System.Drawing.Imaging;
 
 using RemoteDesktop.Core;
+using System.Windows.Threading;
+using NAudio;
+using NAudio.Wave;
+using System.Net.Sockets;
+using System.Threading;
+using System.Net;
+using System.IO;
+using RemoteDesktop.Server.XamaOK;
 
 namespace RemoteDesktop.Server
 {
+
 	// NOTE: this window is only for debugging
 	public partial class MainForm : Form
 	{
 		private Bitmap bitmap;
 		private Graphics graphics;
-		private Timer timer;
+		private System.Windows.Forms.Timer timer;
+        //private AudioOutputWriter _AudioOutputWriter;
+        private Dispatcher dispatcher;
+        private CaptureSoundStreamer cap_streamer;
 
 		public MainForm()
 		{
 			InitializeComponent();
-			
-			timer = new Timer();
+
+            dispatcher = Dispatcher.CurrentDispatcher;
+            timer = new System.Windows.Forms.Timer();
 			timer.Interval = 1000 / 60;
 			timer.Tick += Timer_Tick;
 			timer.Start();
