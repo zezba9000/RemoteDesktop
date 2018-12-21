@@ -122,16 +122,17 @@ namespace RemoteDesktop.Client.Android
 					//Wenn Header korrekt
 					if (rtp.Data != null)
 					{
-						////Wenn JitterBuffer verwendet werden soll
-						//if (UseJitterBuffer)
-						//{
-						//	m_JitterBuffer.AddData(rtp);
-						//}
-						//else
-						//{
+                        ////Wenn JitterBuffer verwendet werden soll
+                        //if (UseJitterBuffer)
+                        //{
+                        //	m_JitterBuffer.AddData(rtp);
+                        //}
+                        //else
+                        //{
 
-						//Nach Linear umwandeln
-						Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, config.BitsPerSample, config.Channels);
+                        //Nach Linear umwandeln
+                        //Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, config.BitsPerSample, config.Channels);
+                        Byte[] linearBytes = rtp.Data;
                         //Abspielen
                         Console.WriteLine("call PlayData func at OnDataReceived: " + linearBytes.Length.ToString() + "bytes");
                         m_Player.PlayData(linearBytes, false);

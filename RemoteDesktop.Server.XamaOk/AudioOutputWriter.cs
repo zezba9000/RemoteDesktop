@@ -32,11 +32,11 @@ namespace RemoteDesktop.Server.XamaOK
         public bool IsRecording = false;
         private RTPConfiguration rtp_config;
 
-        private int m_CurrentRTPBufferPos = 0;
-        private int m_RTPPartsLength = 0;
-        private byte[] m_FilePayloadBuffer;
-        private byte[] m_PartByte;
-        private int m_RTPPPartsLength = 0;
+        //private int m_CurrentRTPBufferPos = 0;
+        //private int m_RTPPartsLength = 0;
+        //private byte[] m_FilePayloadBuffer;
+        //private byte[] m_PartByte;
+        //private int m_RTPPPartsLength = 0;
 
         #endregion
 
@@ -146,7 +146,7 @@ namespace RemoteDesktop.Server.XamaOK
                 {
                     // キャプチャした音声データについて情報を設定
                     updateRTPConfiguration();
-                    m_RTPPartsLength = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.SamplesPerSecond, rtp_config.Channels);
+                    //m_RTPPartsLength = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.SamplesPerSecond, rtp_config.Channels);
                     rtp_config.isAlreadySetInfoFromSndCard = true;
                 }
 

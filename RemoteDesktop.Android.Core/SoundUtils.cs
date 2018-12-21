@@ -74,15 +74,15 @@ namespace RemoteDesktop.Android.Core
                 }
             }
 
-        public static Byte[] ToRTPData(Byte[] data, RTPConfiguration config)
-        {
-            //Neues RTP Packet erstellen
-            RTPPacket rtp = ToRTPPacket(data, config);
-            //RTPHeader in Bytes erstellen
-            Byte[] rtpBytes = rtp.ToBytes();
-            //Fertig
-            return rtpBytes;
-        }
+        //public static Byte[] ToRTPData(Byte[] data, RTPConfiguration config)
+        //{
+        //    //Neues RTP Packet erstellen
+        //    RTPPacket rtp = ToRTPPacket(data, config);
+        //    //RTPHeader in Bytes erstellen
+        //    Byte[] rtpBytes = rtp.ToBytes();
+        //    //Fertig
+        //    return rtpBytes;
+        //}
 
         public static Byte[] LinearToMulaw(Byte[] bytes, int bitsPerSample, int channels)
             {
@@ -140,7 +140,8 @@ namespace RemoteDesktop.Android.Core
             public static RTPPacket ToRTPPacket(Byte[] linearData, RTPConfiguration config)
             {
                 //Daten Nach MuLaw umwandeln
-                Byte[] mulaws = LinearToMulaw(linearData, config.BitsPerSample, config.Channels);
+                //Byte[] mulaws = LinearToMulaw(linearData, config.BitsPerSample, config.Channels);
+                Byte[] mulaws = linearData;
 
                 //Neues RTP Packet erstellen
                 RTPPacket rtp = new RTPPacket();
