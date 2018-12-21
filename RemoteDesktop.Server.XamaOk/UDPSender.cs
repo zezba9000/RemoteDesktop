@@ -136,14 +136,20 @@ namespace RemoteDesktop.Server.XamaOK
             set { }
         }
 
+        // あえて Closeしない
         public override void Close()
         {
-            m_Socket.Close();
+            //m_Socket.Close();
         }
 
         public void SendBytes(Byte[] bytes)
         {
             m_Socket.SendTo(bytes, 0, bytes.Length, SocketFlags.None, m_remote_EndPoint);
+        }
+
+        public void SendBytes(Byte[] bytes, int length)
+        {
+            m_Socket.SendTo(bytes, 0, length, SocketFlags.None, m_remote_EndPoint);
         }
 
         public void SendText(String str)

@@ -28,14 +28,9 @@ namespace RemoteDesktop.Client.Android
 		RTPReceiver m_Receiver;
 		SoundManager.Player m_Player;
 		List<String> m_Data = new List<string>();
-		private Configuration Config = new Configuration();
+		private RTPConfiguration config = new RTPConfiguration();
 		//private String ConfigFileName = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "config.xml");
-		//Graphics GraphicsPanelCurve;
-		//Pen PenCurve;
 		Byte[] m_BytesToDraw;
-		//System.Windows.Forms.Timer m_TimerDrawCurve;
-		//System.Windows.Forms.Timer m_TimerDrawProgressBar;
-		//System.Windows.Forms.Timer m_TimerDrawMeasurements;
 		bool IsDrawCurve = false;
 		private SoundManager.JitterBuffer m_JitterBuffer = new SoundManager.JitterBuffer(null, 20, 0);
 		private uint m_JitterBufferLength = 20;
@@ -43,37 +38,12 @@ namespace RemoteDesktop.Client.Android
 		//private double m_MeasurementTimeOne = 0;
 		//private double m_MeasurementTimeTwo = 0;
 		//private Queue<double> m_QueueTimeDiffs = new Queue<double>();
-		bool m_TimeMeasurementToggler = false;
+		private bool m_TimeMeasurementToggler = false;
 
-		/// <summary>
-		/// Config
-		/// </summary>
-		public class Configuration
-		{
-			/// <summary>
-			/// Config
-			/// </summary>
-			public Configuration()
-			{
-
-			}
-
-			//Attribute
-			public String ServerAddress = "192.168.0.11";
-			public String SoundDeviceName = "";
-			public int ServerPort = 10000; //Sound Server
-			public int SamplesPerSecond = 8000;
-			public short BitsPerSample = 16;
-			public short Channels = 2;
-			public Int32 PacketSize = 4096;
-			public Int32 BufferCount = 8;
-			public uint JitterBuffer = 20;
-		}
-
-		/// <summary>
-		/// Start
-		/// </summary>
-		private void Init()
+        /// <summary>
+        /// Start
+        /// </summary>
+        private void Init()
 		{
             //WinSoundServer
 			m_Player = new SoundManager.Player();
@@ -109,7 +79,7 @@ namespace RemoteDesktop.Client.Android
 
 			//Neu erstellen
 			//m_JitterBuffer = new SoundManager.JitterBuffer(null, (uint)NumericUpDownJitterBuffer.Value, 20);
-			m_JitterBuffer = new SoundManager.JitterBuffer(null, Config.JitterBuffer, 20);
+			m_JitterBuffer = new SoundManager.JitterBuffer(null, config.JitterBuffer, 20);
 			m_JitterBuffer.DataAvailable += new SoundManager.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
 
 			//ProgressBar anpassen
@@ -161,7 +131,7 @@ namespace RemoteDesktop.Client.Android
 						//{
 
 						//Nach Linear umwandeln
-						Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
+						Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, config.BitsPerSample, config.Channels);
                         //Abspielen
                         Console.WriteLine("call PlayData func at OnDataReceived: " + linearBytes.Length.ToString() + "bytes");
                         m_Player.PlayData(linearBytes, false);
@@ -240,13 +210,13 @@ namespace RemoteDesktop.Client.Android
 					//ResetTimeMeasurements();
 
                 // paramater for File streaming (Desktop/sample.wav)
-                m_Player.Open("hoge", 44100, 16, 2, 0);
+                m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, 0);
 
 				// 1 to 1 Receivr over UDP
-				m_Receiver = new RTPReceiver(Config.PacketSize);
+				m_Receiver = new RTPReceiver(config.PacketSize);
 				m_Receiver.DataReceived2 += new RTPReceiver.DelegateDataReceived2(OnDataReceived);
 				m_Receiver.Disconnected += new RTPReceiver.DelegateDisconnected(OnDisconnected);
-				m_Receiver.Connect(Config.ServerAddress, Config.ServerPort);
+				m_Receiver.Connect(config.ServerAddress, config.ServerPort);
 
 				//m_Player.Open(Config.SoundDeviceName, Config.SamplesPerSecond, Config.BitsPerSample, Config.Channels, Config.BufferCount);
 

@@ -6,37 +6,10 @@ using System.Net.Sockets;
 
 namespace RemoteDesktop.Android.Core
 {
-	///// <summary>
-	///// MCIPAddress Class
-	///// </summary>
-	//public class MCIPAddress
-	//{
-	//	// Überprüfe ob es sich um eine gültige IPv4 Multicast-Adresse handelt
-	//	public static bool isValid(string ip)
-	//	{
-	//		try
-	//		{
-	//			int octet1 = Int32.Parse(ip.Split(new Char[] { '.' }, 4)[0]);
-	//			if ((octet1 >= 224) && (octet1 <= 239))
-	//				return true;
-	//		}
-	//		catch (Exception ex)
-	//		{
-	//			string str = ex.Message;
-	//		}
 
-	//		return false;
-	//	}
-	//}
-
-	/// <summary>
-	/// Multicast Receiver Klasse
-	/// </summary>
 	public class RTPReceiver
 	{
-		/// <summary>
-		/// Konstruktor
-		/// </summary>
+
 		public RTPReceiver(int bufferSize)
 		{
 			bytes = new Byte[bufferSize];
@@ -60,9 +33,6 @@ namespace RemoteDesktop.Android.Core
         public event DelegateDataReceived2 DataReceived2;
 		public event DelegateDisconnected Disconnected;
 
-        /// <summary>
-        /// Address
-        /// </summary>
         public string Address
         {
             get
@@ -70,9 +40,7 @@ namespace RemoteDesktop.Android.Core
                 return m_Address.ToString();
             }
         }
-		/// <summary>
-		/// Connected
-		/// </summary>
+
 		public bool Connected
 		{
 			get
@@ -80,11 +48,7 @@ namespace RemoteDesktop.Android.Core
 				return IsConnected;
 			}
 		}
-		/// <summary>
-		/// Connect
-		/// </summary>
-		/// <param name="strAdress"></param>
-		/// <param name="port"></param>
+
 		public void Connect(string strAddress, int port)
 		{
 			//Zieladresse und Port setzen
@@ -113,10 +77,7 @@ namespace RemoteDesktop.Android.Core
 			//Beginnen zu lesen
 			this.DoRead();
 		}
-		/// <summary>
-		/// Startet das Lesen 
-		/// </summary>
-		/// <param name="Data"></param>
+
 		private void DoRead()
 		{
 			try
@@ -128,10 +89,7 @@ namespace RemoteDesktop.Android.Core
 				throw new Exception(ex.Message);
 			}
 		}
-		/// <summary>
-		/// OnDataReceived
-		/// </summary>
-		/// <param name="ar"></param>
+
 		private void OnDataReceived(IAsyncResult ar)
 		{
 			try
@@ -182,9 +140,7 @@ namespace RemoteDesktop.Android.Core
 				Disconnect();
 			}
 		}
-		/// <summary>
-		/// Disconnect
-		/// </summary>
+
 		public void Disconnect()
 		{
 			if (IsConnected)

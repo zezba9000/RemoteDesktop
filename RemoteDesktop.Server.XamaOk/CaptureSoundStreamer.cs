@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using RemoteDesktop.Android.Core;
 
 namespace RemoteDesktop.Server.XamaOK
 {
@@ -23,16 +24,7 @@ namespace RemoteDesktop.Server.XamaOK
         {
             aservice = new AudioService();
             var devices = aservice.GetActiveRender();            
-            _AudioOutputWriter = new AudioOutputWriter(devices.First());
-            this._AudioOutputWriter.DataAvailable += this.AudioOutputWriterOnDataAvailable;
-        }
-
-        private void AudioOutputWriterOnDataAvailable(object sender, WaveInEventArgs waveInEventArgs)
-        {
-            //dispatcher.BeginInvoke(new Action(() =>
-            //{
-                Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {waveInEventArgs.BytesRecorded} bytes");
-            //}));
+            _AudioOutputWriter = new AudioOutputWriter(devices.First(), new RTPConfiguration());
         }
 
         private void startDataRecieveCaptureSound()
@@ -55,13 +47,6 @@ namespace RemoteDesktop.Server.XamaOK
         {
             if (this._AudioOutputWriter != null)
             {
-                this._AudioOutputWriter.DataAvailable -= this.AudioOutputWriterOnDataAvailable;
-
-                if (this._AudioOutputWriter.IsRecording)
-                {
-                    this._AudioOutputWriter.Stop();
-                }
-
                 this._AudioOutputWriter.Dispose();
             }
         }

@@ -37,10 +37,11 @@ namespace RemoteDesktop.Server
 			InitializeComponent();
 
             dispatcher = Dispatcher.CurrentDispatcher;
-            timer = new System.Windows.Forms.Timer();
-			timer.Interval = 1000 / 60;
-			timer.Tick += Timer_Tick;
-			timer.Start();
+            cap_streamer = new CaptureSoundStreamer();
+   //         timer = new System.Windows.Forms.Timer();
+			//timer.Interval = 1000 / 60;
+			//timer.Tick += Timer_Tick;
+			//timer.Start();
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
