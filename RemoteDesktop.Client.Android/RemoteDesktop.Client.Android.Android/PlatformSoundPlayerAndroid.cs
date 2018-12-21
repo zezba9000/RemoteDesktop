@@ -1,6 +1,7 @@
 ﻿using Android.Media;
 using RemoteDesktop.Client.Android;
 using RemoteDesktop.Client.Android.Droid;
+using System;
 using Xamarin.Forms;
 
 [assembly: Dependency (typeof (PlatformSoundPlayerAndroid))]
@@ -13,7 +14,16 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public void PlayData(byte[] data, bool flag)
         {
-            audioTrack.Write(data, 0, data.Length);
+            //audioTrack.Write(data, 0, data.Length);
+            int len = data.Length / 4;
+            float[] fdata = new float[len];
+            for(int idx = 0; idx < len; idx++)
+            {
+                fdata[idx] = BitConverter.ToSingle(data, idx * 4);
+                //Console.WriteLine(fdata[idx].ToString());
+            }
+            const int WRITE_BLOCKING = 0x00000000;
+            audioTrack.Write(fdata, 0, len, WRITE_BLOCKING);
         }
 
         public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
