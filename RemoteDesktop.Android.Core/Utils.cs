@@ -80,13 +80,15 @@ namespace RemoteDesktop.Android.Core
             IPAddress[] addresses = Dns.GetHostAddresses(hostName);
             foreach (IPAddress address in addresses)
             {
-                // IPv4 のみプリント
+                // IPv4 のみ
                 if ( address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork )
                 {
-                    Console.WriteLine("getLocalIP func got IP Address: " + address.ToString());
+                    return address;
+                    ///Console.WriteLine("getLocalIP func got IP Address: " + address.ToString());
                 }
             }
-            return addresses[0];
+            return null;
+            
         }
 
         //public static byte[] scaleBitmapDataAsync(byte[] bitmap, int width, int height)

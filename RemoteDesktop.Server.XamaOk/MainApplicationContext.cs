@@ -1,4 +1,5 @@
 ﻿using RemoteDesktop.Android.Core;
+using RemoteDesktop.Server.XamaOK;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -34,6 +35,7 @@ namespace RemoteDesktop.Server
 		private InputSimulator input;
         private bool receivedMetaData = false;
 		//private byte inputLastMouseState;
+        private CaptureSoundStreamer cap_streamer;
 
 		public MainApplicationContext(int port)
 		{
@@ -51,23 +53,22 @@ namespace RemoteDesktop.Server
 				Text = "Remote Desktop Server v0.1.0"
 			};
 
-			// init input simulation
-			input = new InputSimulator();
+            dispatcher = Dispatcher.CurrentDispatcher;
+            cap_streamer = new CaptureSoundStreamer();
 
-			// star socket
-			dispatcher = Dispatcher.CurrentDispatcher;
-			socket = new DataSocket(NetworkTypes.Server);
-			socket.ConnectedCallback += Socket_ConnectedCallback;
-			socket.DisconnectedCallback += Socket_DisconnectedCallback;
-			socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-			socket.DataRecievedCallback += Socket_DataRecievedCallback;
-			socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-			socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-			socket.Listen(IPAddress.Any, port);
+			//// init input simulation
+			//input = new InputSimulator();
 
-			// start network discovery
-			//networkDiscovery = new NetworkDiscovery(NetworkTypes.Server);
-			//networkDiscovery.Register("SimpleRemoteDesktop", port);
+			//// star socket
+			//dispatcher = Dispatcher.CurrentDispatcher;
+			//socket = new DataSocket(NetworkTypes.Server);
+			//socket.ConnectedCallback += Socket_ConnectedCallback;
+			//socket.DisconnectedCallback += Socket_DisconnectedCallback;
+			//socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+			//socket.DataRecievedCallback += Socket_DataRecievedCallback;
+			//socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+			//socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+			//socket.Listen(IPAddress.Any, port);
 		}
 
 		void Exit(object sender, EventArgs e)

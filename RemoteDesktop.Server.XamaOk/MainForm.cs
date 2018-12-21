@@ -30,19 +30,16 @@ namespace RemoteDesktop.Server
 		private System.Windows.Forms.Timer timer;
         //private AudioOutputWriter _AudioOutputWriter;
         private Dispatcher dispatcher;
-        private CaptureSoundStreamer cap_streamer;
 
 		public MainForm()
 		{
 			InitializeComponent();
 
-            dispatcher = Dispatcher.CurrentDispatcher;
-            cap_streamer = new CaptureSoundStreamer();
-   //         timer = new System.Windows.Forms.Timer();
-			//timer.Interval = 1000 / 60;
-			//timer.Tick += Timer_Tick;
-			//timer.Start();
-		}
+            timer = new System.Windows.Forms.Timer();
+            timer.Interval = 1000 / 60;
+            timer.Tick += Timer_Tick;
+            timer.Start();
+        }
 
 		protected override void OnSizeChanged(EventArgs e)
 		{

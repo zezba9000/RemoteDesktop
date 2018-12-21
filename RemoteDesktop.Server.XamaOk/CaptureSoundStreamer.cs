@@ -27,21 +27,21 @@ namespace RemoteDesktop.Server.XamaOK
             _AudioOutputWriter = new AudioOutputWriter(devices.First(), new RTPConfiguration());
         }
 
-        private void startDataRecieveCaptureSound()
-        {
-                try
-                {
-                //this.Stop();
+        //private void startDataRecieveCaptureSound()
+        //{
+        //        try
+        //        {
+        //        //this.Stop();
 
-                //var audioService = new AudioService();
-                //this._AudioOutputWriter = new AudioOutputWriter(device);
-                this._AudioOutputWriter.Start();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-        }
+        //        //var audioService = new AudioService();
+        //        //this._AudioOutputWriter = new AudioOutputWriter(device);
+        //        this._AudioOutputWriter.Start();
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Console.WriteLine(e);
+        //        }
+        //}
 
         private void StoptDataRecieveCaptureSound()
         {
