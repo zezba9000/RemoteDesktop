@@ -74,21 +74,20 @@ namespace RemoteDesktop.Android.Core
                 }
             }
 
-        //public static Byte[] ToRTPData(Byte[] data, RTPConfiguration config)
-        //{
-        //    //Neues RTP Packet erstellen
-        //    RTPPacket rtp = ToRTPPacket(data, config);
-        //    //RTPHeader in Bytes erstellen
-        //    Byte[] rtpBytes = rtp.ToBytes();
-        //    //Fertig
-        //    return rtpBytes;
-        //}
+        public static Byte[] ToRTPData(Byte[] data, RTPConfiguration config)
+        {
+            //Neues RTP Packet erstellen
+            RTPPacket rtp = ToRTPPacket(data, config);
+            //RTPHeader in Bytes erstellen
+            Byte[] rtpBytes = rtp.ToBytes();
+            //Fertig
+            return rtpBytes;
+        }
 
         public static Byte[] LinearToMulaw(Byte[] bytes, int bitsPerSample, int channels)
             {
                 //Anzahl Spuren
                 int blockAlign = channels * bitsPerSample / 8;
-
                 //Ergebnis
                 Byte[] result = new Byte[bytes.Length / blockAlign];
                 int resultIndex = 0;
@@ -181,10 +180,13 @@ namespace RemoteDesktop.Android.Core
                 return rtp;
             }
 
-            public static int GetBytesPerInterval(uint SamplesPerSecond, int BitsPerSample, int Channels)
+            public static int GetBytesPerInterval(uint SamplesPerSecond, int BitsPerSample, int Channels, bool isClient)
             {
-                //int blockAlign = ((BitsPerSample * Channels) >> 3);
-                int blockAlign = 1;
+                int blockAlign = ((BitsPerSample * Channels) >> 3);
+                if (isClient)
+                {
+                    blockAlign = 1;
+                }
                 int bytesPerSec = (int)(blockAlign * SamplesPerSecond);
                 uint sleepIntervalFactor = 1000 / 20; //20 Milliseconds
                 int bytesPerInterval = (int)(bytesPerSec / sleepIntervalFactor);

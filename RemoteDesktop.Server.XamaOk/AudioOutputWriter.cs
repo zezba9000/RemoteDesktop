@@ -62,6 +62,8 @@ namespace RemoteDesktop.Server.XamaOK
             // キャプチャしたサウンドを読み込んだ際のハンドラ
             DataAvailable += AudioOutputWriterOnDataAvailable;
 
+            WaveFormat wfmt = this._WaveIn.WaveFormat;
+            Console.WriteLine(wfmt.ToString());
             Start(); // start capture and send stream
         }
 
@@ -195,30 +197,31 @@ namespace RemoteDesktop.Server.XamaOK
                     //if (rtp_config.JitterBuffer > 1)
                     //{
                     //Sounddaten in kleinere Einzelteile zerlegen
-                    int bytesPerInterval = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels);
-                    int count = recorded_length / bytesPerInterval;
-                    int currentPos = 0;
-                    Byte[] partBytes = new Byte[bytesPerInterval];
-                    for (int i = 0; i < count; i++)
-                    {
-                        //Teilstück in RTP Packet umwandeln
 
-                        Array.Copy(recorded_buf, currentPos, partBytes, 0, bytesPerInterval);
-                        currentPos += bytesPerInterval;
-                        RTPPacket rtp = SoundUtils.ToRTPPacket(partBytes, rtp_config);
-                        usender.SendBytes(rtp.ToBytes());
-                        //In Buffer legen
-                        //m_JitterBuffer.AddData(rtp);
-                    }
+                    //int bytesPerInterval = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, false);
+                    //int count = recorded_length / bytesPerInterval;
+                    //int currentPos = 0;
+                    //Byte[] partBytes = new Byte[bytesPerInterval];
+                    //for (int i = 0; i < count; i++)
+                    //{
+                    //    //Teilstück in RTP Packet umwandeln
+
+                    //    Array.Copy(recorded_buf, currentPos, partBytes, 0, bytesPerInterval);
+                    //    currentPos += bytesPerInterval;
+                    //    RTPPacket rtp = SoundUtils.ToRTPPacket(partBytes, rtp_config);
+                    //    usender.SendBytes(rtp.ToBytes());
+                    //    //In Buffer legen
+                    //    //m_JitterBuffer.AddData(rtp);
+                    //}
                     //    }
                     //    else
                     //    {
-                    //        Byte[] justRecordedBuf = new byte[recorded_length];
-                    //        Array.Copy(recorded_buf, 0, justRecordedBuf, 0, recorded_length);
-                    //        //Alles in RTP Packet umwandeln
-                    //        Byte[] rtp = SoundUtils.ToRTPData(justRecordedBuf, rtp_config);
-                    //        //Absenden
-                    //        usender.SendBytes(rtp);
+                    Byte[] justRecordedBuf = new byte[recorded_length];
+                    Array.Copy(recorded_buf, 0, justRecordedBuf, 0, recorded_length);
+                    //Alles in RTP Packet umwandeln
+                    Byte[] rtp = SoundUtils.ToRTPData(justRecordedBuf, rtp_config);
+                    //Absenden
+                    usender.SendBytes(rtp);
                     //    }
                     //}
                 }

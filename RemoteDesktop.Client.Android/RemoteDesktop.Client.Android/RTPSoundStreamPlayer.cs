@@ -32,7 +32,7 @@ namespace RemoteDesktop.Client.Android
 		//private String ConfigFileName = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "config.xml");
 		Byte[] m_BytesToDraw;
 		bool IsDrawCurve = false;
-		private SoundManager.JitterBuffer m_JitterBuffer = new SoundManager.JitterBuffer(null, 20, 0);
+        private SoundManager.JitterBuffer m_JitterBuffer = null; // new SoundManager.JitterBuffer(null, 20, 0);
 		private uint m_JitterBufferLength = 20;
 		private SoundManager.Stopwatch m_Stopwatch = new SoundManager.Stopwatch();
 		//private double m_MeasurementTimeOne = 0;
@@ -214,7 +214,7 @@ namespace RemoteDesktop.Client.Android
                 m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, 0);
 
                 // 1 to 1 Receivr over UDP
-                config.PacketSize = SoundUtils.GetBytesPerInterval((uint)config.SamplesPerSecond, config.BitsPerSample, config.Channels);
+                config.PacketSize = SoundUtils.GetBytesPerInterval((uint)config.SamplesPerSecond, config.BitsPerSample, config.Channels, true);
 				m_Receiver = new RTPReceiver(config.PacketSize);
 				m_Receiver.DataReceived2 += new RTPReceiver.DelegateDataReceived2(OnDataReceived);
 				m_Receiver.Disconnected += new RTPReceiver.DelegateDisconnected(OnDisconnected);
@@ -222,13 +222,13 @@ namespace RemoteDesktop.Client.Android
 
 				//m_Player.Open(Config.SoundDeviceName, Config.SamplesPerSecond, Config.BitsPerSample, Config.Channels, Config.BufferCount);
 
-				//Wenn JitterBuffer
-				if (UseJitterBuffer)
-				{
-					InitJitterBuffer();
-					m_JitterBuffer.Start();
-					//StartTimerDrawProgressBar();
-				}
+				////Wenn JitterBuffer
+				//if (UseJitterBuffer)
+				//{
+				//	InitJitterBuffer();
+				//	m_JitterBuffer.Start();
+				//	//StartTimerDrawProgressBar();
+				//}
 
 				//}
 			}

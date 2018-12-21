@@ -27,7 +27,9 @@ namespace RemoteDesktop.Client.Android.Droid
             // Mono or stereo
             ChannelOut.Stereo,
             // Audio encoding
-            Encoding.Pcm16bit,
+            Encoding.PcmFloat,
+            //Encoding.Pcm16bit,
+            //Encoding.Pcm8bit,
             // Length of the audio clip.
             1024 * 1024,
             // Mode. Stream or static.
