@@ -213,7 +213,8 @@ namespace RemoteDesktop.Client.Android
                 // paramater for File streaming (Desktop/sample.wav)
                 m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, 0);
 
-				// 1 to 1 Receivr over UDP
+                // 1 to 1 Receivr over UDP
+                config.PacketSize = SoundUtils.GetBytesPerInterval((uint)config.SamplesPerSecond, config.BitsPerSample, config.Channels);
 				m_Receiver = new RTPReceiver(config.PacketSize);
 				m_Receiver.DataReceived2 += new RTPReceiver.DelegateDataReceived2(OnDataReceived);
 				m_Receiver.Disconnected += new RTPReceiver.DelegateDisconnected(OnDisconnected);
