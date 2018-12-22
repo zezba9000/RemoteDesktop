@@ -22,7 +22,7 @@ namespace RemoteDesktop.Android.Core
             //public int SamplesPerSecond = 48000; // sound card native
             public short BitsPerSample = 16;
             //public short BitsPerSample = 32;  // sound card native
-			public short Channels = 2;
+			public short Channels = 1;
 			public Int32 PacketSize = 4096; //使われていない
 			public Int32 BufferCount = 8;
 			public uint JitterBuffer = 20;

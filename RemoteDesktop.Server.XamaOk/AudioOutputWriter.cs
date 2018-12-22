@@ -192,20 +192,22 @@ namespace RemoteDesktop.Server.XamaOK
                 // Downsample to 8000
                 var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, rtp_config.SamplesPerSecond);
 
+                // Stereo to mono
+                var monoStream = new StereoToMonoSampleProvider(resamplingProvider)
+                {
+                    LeftVolume = 1f,
+                    RightVolume = 1f
+                };
+
                 // Convert to 32bit float to 16bit PCM
-                var ieeeToPcm = new SampleToWaveProvider16(resamplingProvider);
-                pcm16_len = recorded_length / (2 * 6);
+                var ieeeToPcm = new SampleToWaveProvider16(monoStream);
+                pcm16_len = recorded_length / (2 * 6 * 2);
                 pcm16_buf = new byte[pcm16_len];
 
                 waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
                 ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
 
-                //// Stereo to mono
-                //var monoStream = new StereoToMonoSampleProvider(ieeeToPcm.ToSampleProvider())
-                //{
-                //    LeftVolume = 1f,
-                //    RightVolume = 1f
-                //};
+
 
                 //var depthConvStream = new AcmStream(new WaveFormat(rtp_config.SamplesPerSecond, 16, 1), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 1));
                 //Buffer.BlockCopy(converted_buf, 0, depthConvStream.SourceBuffer, 0, convertedBytes);
@@ -216,7 +218,7 @@ namespace RemoteDesktop.Server.XamaOK
 
                 //ieeeToPcm.Read(converted_buf, 0, convertedBytes);
 
-                Console.WriteLine("convert 32bit float 64KHz stereo to 16bit PCM 8KHz stereo success");
+                Console.WriteLine("convert 32bit float 64KHz stereo to 16bit PCM 8KHz mono success");
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);

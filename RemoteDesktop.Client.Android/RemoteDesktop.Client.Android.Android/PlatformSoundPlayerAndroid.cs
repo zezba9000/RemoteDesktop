@@ -37,6 +37,15 @@ namespace RemoteDesktop.Client.Android.Droid
                 depthBits = Encoding.Pcm8bit;
             }
 
+            ChannelOut ch = ChannelOut.Stereo;
+            if(channels == 1)
+            {
+                ch = ChannelOut.Mono;
+            }
+            else
+            {
+                ch = ChannelOut.Stereo;
+            }
 #pragma warning disable CS0618 // Type or member is obsolete
            audioTrack = new AudioTrack(
             // Stream type
@@ -44,7 +53,7 @@ namespace RemoteDesktop.Client.Android.Droid
             // Frequency
             samplesPerSecond,
             // Mono or stereo
-            ChannelOut.Stereo,
+            ch,
             // Audio encoding
             depthBits,
             //Encoding.PcmFloat,
