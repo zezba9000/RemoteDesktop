@@ -153,6 +153,9 @@ namespace RemoteDesktop.Server.XamaOK
 
             byte[] converted_buf = null;
             int convertedBytes = -1;
+            
+            byte[] depthConv_buf = null;
+            int depthConvBytes = -1;
 
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {waveInEventArgs.BytesRecorded} bytes");
 
@@ -183,15 +186,32 @@ namespace RemoteDesktop.Server.XamaOK
                 waveBuffer.ReadFully = false;  // leave a buffer?
 
                 var sampleStream = new WaveToSampleProvider(waveBuffer);
+                // Stereo to mono
+                var monoStream = new StereoToMonoSampleProvider(sampleStream)
+                {
+                    LeftVolume = 1f,
+                    RightVolume = 1f
+                };
+
+                // Downsample to 8000
+                var resamplingProvider = new WdlResamplingSampleProvider(monoStream, rtp_config.SamplesPerSecond);
+
                 // Convert to 16-bit in order to use ACM or MuLaw tools.
-                var ieeeToPcm = new SampleToWaveProvider16(sampleStream);
+                var ieeeToPcm = new SampleToWaveProvider16(resamplingProvider);
 
                 waveBuffer.AddSamples(recorded_buf, 0, recorded_length);
                 convertedBytes = recorded_length / 2;
                 converted_buf = new byte[convertedBytes];
                 ieeeToPcm.Read(converted_buf, 0, convertedBytes);
+                var depthConvStream = new AcmStream(new WaveFormat(rtp_config.SamplesPerSecond, 16, 1), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 1));
+                Buffer.BlockCopy(converted_buf, 0, depthConvStream.SourceBuffer, 0, convertedBytes);
+                int sourceBytesDepthConverted = 0;
+                depthConvBytes = depthConvStream.Convert(convertedBytes, out sourceBytesDepthConverted);
+                depthConv_buf = new byte[depthConvBytes];
+                Buffer.BlockCopy(depthConvStream.DestBuffer, 0, depthConv_buf, 0, depthConvBytes);
 
-                Console.WriteLine("convert 32bit to 16bit success");
+
+                Console.WriteLine("convert 32bit float streo to 8bit PCM mono success");
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);
@@ -289,7 +309,8 @@ namespace RemoteDesktop.Server.XamaOK
                     //    System.Windows.Forms.Application.Exit();
                     //}
 
-                    usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
+                    //usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
+                    usender.SendBytes(SoundUtils.ToRTPData(depthConv_buf, rtp_config));
                     //    }
                     //}
                 }

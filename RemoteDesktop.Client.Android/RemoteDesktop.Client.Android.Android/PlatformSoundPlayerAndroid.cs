@@ -28,6 +28,15 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
         {
+            Encoding depthBits = Encoding.Pcm16bit;
+            if(bitsPerSample == 16)
+            {
+                depthBits = Encoding.Pcm16bit;
+            }else if (bitsPerSample == 8)
+            {
+                depthBits = Encoding.Pcm8bit;
+            }
+
 #pragma warning disable CS0618 // Type or member is obsolete
            audioTrack = new AudioTrack(
             // Stream type
@@ -37,7 +46,7 @@ namespace RemoteDesktop.Client.Android.Droid
             // Mono or stereo
             ChannelOut.Stereo,
             // Audio encoding
-            Encoding.Pcm16bit,
+            depthBits,
             //Encoding.PcmFloat,
             //Encoding.Pcm8bit,
             // Length of the audio clip.
