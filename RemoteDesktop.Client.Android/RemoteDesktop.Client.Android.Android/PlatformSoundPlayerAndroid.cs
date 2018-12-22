@@ -60,7 +60,7 @@ namespace RemoteDesktop.Client.Android.Droid
             //Encoding.Pcm8bit,
             // Length of the audio clip.
             //1024 * 1024,
-            256,
+            bufferCount,
             // Mode. Stream or static.
             AudioTrackMode.Stream);
 #pragma warning restore CS0618 // Type or member is obsolete
