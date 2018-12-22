@@ -9,6 +9,8 @@ using NAudio.Wave;
 using RemoteDesktop.Server.XamaOK;
 using RemoteDesktop.Android.Core;
 using NAudio.Wave.Compression;
+using System.Media;
+using NAudio.Wave.SampleProviders;
 
 namespace RemoteDesktop.Server.XamaOK
 {
@@ -149,17 +151,40 @@ namespace RemoteDesktop.Server.XamaOK
 
             try
             {
-                // 生データを再生可能なデータに変換
-                var resampleStream = new AcmStream(new WaveFormat(48000, 16, 2), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 2));
-                Buffer.BlockCopy(recorded_buf, 0, resampleStream.SourceBuffer, 0, recorded_length);
-                int sourceBytesConverted = 0;
-                convertedBytes = resampleStream.Convert(recorded_length, out sourceBytesConverted);
-                if (sourceBytesConverted != recorded_length)
-                {
-                    Console.WriteLine("We didn't convert everything {0} bytes in, {1} bytes converted");
-                }
+                //// 生データを再生可能なデータに変換
+                //var resampleStream = new AcmStream(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 2));
+                //Buffer.BlockCopy(recorded_buf, 0, resampleStream.SourceBuffer, 0, recorded_length);
+                //int sourceBytesConverted = 0;
+                //convertedBytes = resampleStream.Convert(recorded_length, out sourceBytesConverted);
+                //if (sourceBytesConverted != recorded_length)
+                //{
+                //    Console.WriteLine("We didn't convert everything {0} bytes in, {1} bytes converted");
+                //}
+                //converted_buf = new byte[convertedBytes];
+                //Buffer.BlockCopy(resampleStream.DestBuffer, 0, converted_buf, 0, convertedBytes);
+
+                //var waveProvider = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2));
+                //waveProvider.AddSamples(recorded_buf, 0, recorded_length);
+                //var sampleProvider = waveProvider.ToSampleProvider();
+                //var waveProvider16 = sampleProvider.ToWaveProvider16();
+                //convertedBytes = recorded_length / 2;
+                //converted_buf = new byte[convertedBytes];
+                //waveProvider16.Read(converted_buf, 0, convertedBytes);
+
+                var waveBuffer = new BufferedWaveProvider(this._WaveIn.WaveFormat);
+                waveBuffer.DiscardOnBufferOverflow = true;
+                waveBuffer.ReadFully = false;  // leave a buffer?
+
+                var sampleStream = new WaveToSampleProvider(waveBuffer);
+                // Convert to 16-bit in order to use ACM or MuLaw tools.
+                var ieeeToPcm = new SampleToWaveProvider16(sampleStream);
+
+                waveBuffer.AddSamples(recorded_buf, 0, recorded_length);
+                convertedBytes = recorded_length / 2;
                 converted_buf = new byte[convertedBytes];
-                Buffer.BlockCopy(resampleStream.DestBuffer, 0, converted_buf, 0, convertedBytes);
+                ieeeToPcm.Read(converted_buf, 0, convertedBytes);
+
+                Console.WriteLine("convert 32bit to 16bit success");
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);
