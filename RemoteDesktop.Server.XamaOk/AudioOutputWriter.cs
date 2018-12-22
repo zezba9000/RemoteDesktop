@@ -8,6 +8,7 @@ using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using RemoteDesktop.Server.XamaOK;
 using RemoteDesktop.Android.Core;
+using NAudio.Wave.Compression;
 
 namespace RemoteDesktop.Server.XamaOK
 {
@@ -141,7 +142,31 @@ namespace RemoteDesktop.Server.XamaOK
             byte[] recorded_buf = waveInEventArgs.Buffer;
             int recorded_length = waveInEventArgs.BytesRecorded;
 
+            byte[] converted_buf = null;
+            int convertedBytes = -1;
+
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {waveInEventArgs.BytesRecorded} bytes");
+
+            try
+            {
+                // 生データを再生可能なデータに変換
+                var resampleStream = new AcmStream(new WaveFormat(48000, 16, 2), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 2));
+                Buffer.BlockCopy(recorded_buf, 0, resampleStream.SourceBuffer, 0, recorded_length);
+                int sourceBytesConverted = 0;
+                convertedBytes = resampleStream.Convert(recorded_length, out sourceBytesConverted);
+                if (sourceBytesConverted != recorded_length)
+                {
+                    Console.WriteLine("We didn't convert everything {0} bytes in, {1} bytes converted");
+                }
+                converted_buf = new byte[convertedBytes];
+                Buffer.BlockCopy(resampleStream.DestBuffer, 0, converted_buf, 0, convertedBytes);
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                Console.WriteLine("exit...");
+                System.Windows.Forms.Application.Exit();
+            }
+
             try
             {
                 if (rtp_config.isAlreadySetInfoFromSndCard == false)
@@ -216,12 +241,15 @@ namespace RemoteDesktop.Server.XamaOK
                     //    }
                     //    else
                     //    {
-                    Byte[] justRecordedBuf = new byte[recorded_length];
-                    Array.Copy(recorded_buf, 0, justRecordedBuf, 0, recorded_length);
-                    //Alles in RTP Packet umwandeln
-                    Byte[] rtp = SoundUtils.ToRTPData(justRecordedBuf, rtp_config);
-                    //Absenden
-                    usender.SendBytes(rtp);
+
+                    //Byte[] justRecordedBuf = new byte[recorded_length];
+                    //Array.Copy(recorded_buf, 0, justRecordedBuf, 0, recorded_length);
+                    ////Alles in RTP Packet umwandeln
+                    //Byte[] rtp = SoundUtils.ToRTPData(justRecordedBuf, rtp_config);
+                    ////Absenden
+                    //usender.SendBytes(rtp);
+
+                    usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
                     //    }
                     //}
                 }

@@ -139,8 +139,8 @@ namespace RemoteDesktop.Android.Core
             public static RTPPacket ToRTPPacket(Byte[] linearData, RTPConfiguration config)
             {
                 //Daten Nach MuLaw umwandeln
-                //Byte[] mulaws = LinearToMulaw(linearData, config.BitsPerSample, config.Channels);
-                Byte[] mulaws = linearData;
+                Byte[] mulaws = LinearToMulaw(linearData, config.BitsPerSample, config.Channels);
+                //Byte[] mulaws = linearData;
 
                 //Neues RTP Packet erstellen
                 RTPPacket rtp = new RTPPacket();

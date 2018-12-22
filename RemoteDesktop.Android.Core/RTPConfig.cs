@@ -18,8 +18,10 @@ namespace RemoteDesktop.Android.Core
 			public String ServerAddress = "192.168.0.11";
 			public String SoundDeviceName = "";
 			public int ServerPort = 10000; //Sound Server
-			public int SamplesPerSecond = 48000;
-			public short BitsPerSample = 32;
+            public int SamplesPerSecond = 44100;
+            //public int SamplesPerSecond = 48000; // sound card native
+            public short BitsPerSample = 16;
+            //public short BitsPerSample = 32;  // sound card native
 			public short Channels = 2;
 			public Int32 PacketSize = 4096; //使われていない
 			public Int32 BufferCount = 8;
