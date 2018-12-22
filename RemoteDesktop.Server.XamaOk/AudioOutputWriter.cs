@@ -34,6 +34,7 @@ namespace RemoteDesktop.Server.XamaOK
         private MMDevice m_device;
         public bool IsRecording = false;
         private RTPConfiguration rtp_config;
+        //private BufferedStream checkFileStream;
 
         //private int m_CurrentRTPBufferPos = 0;
         //private int m_RTPPartsLength = 0;
@@ -50,6 +51,12 @@ namespace RemoteDesktop.Server.XamaOK
         {
             if (device == null)
                 throw new ArgumentNullException(nameof(device));
+
+            //string wavFilePath = Path.Combine(
+            //    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+            //    "check_16bit_2ch.pcm"
+            //    );
+            //checkFileStream = new BufferedStream(new FileStream(wavFilePath, FileMode.Append));
 
             rtp_config = config;
             m_device = device;
@@ -273,6 +280,14 @@ namespace RemoteDesktop.Server.XamaOK
                     //Byte[] rtp = SoundUtils.ToRTPData(justRecordedBuf, rtp_config);
                     ////Absenden
                     //usender.SendBytes(rtp);
+
+                    //checkFileStream.Write(converted_buf, 0, convertedBytes);
+                    //if(checkFileStream.Length > (48000 * 120))
+                    //{
+                    //    checkFileStream.Flush();
+                    //    checkFileStream.Close();
+                    //    System.Windows.Forms.Application.Exit();
+                    //}
 
                     usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
                     //    }

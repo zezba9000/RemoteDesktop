@@ -15,7 +15,8 @@ namespace NAudioDemo
         static void Main(string[] args)
         {
             //一般的な44.1kHz, 16bit, ステレオサウンドの音源を想定
-            var bufferedWaveProvider = new BufferedWaveProvider(new WaveFormat(44100, 16, 2));
+            //var bufferedWaveProvider = new BufferedWaveProvider(new WaveFormat(44100, 16, 2));  // for sample.wav
+            var bufferedWaveProvider = new BufferedWaveProvider(new WaveFormat(48000, 16, 2));
 
             //ボリューム調整をするために上のBufferedWaveProviderをデコレータっぽく包む
             var wavProvider = new VolumeWaveProvider16(bufferedWaveProvider);
@@ -44,18 +45,24 @@ namespace NAudioDemo
         //外部入力のダミーとしてデスクトップにある"sample.wav"あるいは"sample.mp3"を用いて音声を入力する
         static async Task StartDummySoundSource(BufferedWaveProvider provider)
         {
+            ////外部入力のダミーとして適当な音声データを用意して使う
+            //string wavFilePath = Path.Combine(
+            //    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+            //    "sample.wav"
+            //    );
+            ////mp3を使うならこう。
+            //string mp3FilePath = Path.Combine(
+            //    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+            //    "sample.mp3"
+            //    );
             //外部入力のダミーとして適当な音声データを用意して使う
             string wavFilePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "sample.wav"
-                );
-            //mp3を使うならこう。
-            string mp3FilePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "sample.mp3"
+                "check_16bit_2ch.pcm"
                 );
 
-            if (!(File.Exists(wavFilePath) || File.Exists(mp3FilePath)))
+            //if (!(File.Exists(wavFilePath) || File.Exists(mp3FilePath)))
+            if (!(File.Exists(wavFilePath)))
             {
                 Console.WriteLine("Target sound files were not found. Wav file or MP3 file is needed for this program.");
                 Console.WriteLine($"expected wav file: {wavFilePath}");
@@ -64,24 +71,25 @@ namespace NAudioDemo
                 return;
             }
 
-            //mp3しかない場合、先にwavへ変換を行う
-            if (!File.Exists(wavFilePath))
-            {
-                using (var mp3reader = new Mp3FileReader(mp3FilePath))
-                using (var pcmStream = WaveFormatConversionStream.CreatePcmStream(mp3reader))
-                {
-                    WaveFileWriter.CreateWaveFile(wavFilePath, pcmStream);
-                }
-            }
+            ////mp3しかない場合、先にwavへ変換を行う
+            //if (!File.Exists(wavFilePath))
+            //{
+            //    using (var mp3reader = new Mp3FileReader(mp3FilePath))
+            //    using (var pcmStream = WaveFormatConversionStream.CreatePcmStream(mp3reader))
+            //    {
+            //        WaveFileWriter.CreateWaveFile(wavFilePath, pcmStream);
+            //    }
+            //}
 
             byte[] data = File.ReadAllBytes(wavFilePath);
 
-            //若干効率が悪いがヘッダのバイト数を確実に割り出して削る
-            using (var r = new WaveFileReader(wavFilePath))
-            {
-                int headerLength = (int)(data.Length - r.Length);
-                data = data.Skip(headerLength).ToArray();
-            }
+            // do not need raw data only file
+            ////若干効率が悪いがヘッダのバイト数を確実に割り出して削る
+            //using (var r = new WaveFileReader(wavFilePath))
+            //{
+            //    int headerLength = (int)(data.Length - r.Length);
+            //    data = data.Skip(headerLength).ToArray();
+            //}
 
             int bufsize = 16000;
             for (int i = 0; i + bufsize < data.Length; i += bufsize)
