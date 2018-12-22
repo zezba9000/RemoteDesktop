@@ -54,7 +54,7 @@ namespace RemoteDesktop.Server.XamaOK
 
             //string wavFilePath = Path.Combine(
             //    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-            //    "check_16bit_2ch.pcm"
+            //    "check_8bit_mono.pcm"
             //    );
             //checkFileStream = new BufferedStream(new FileStream(wavFilePath, FileMode.Append));
 
@@ -148,16 +148,19 @@ namespace RemoteDesktop.Server.XamaOK
 
         private void AudioOutputWriterOnDataAvailable(object sender, WaveInEventArgs waveInEventArgs)
         {
+            Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {waveInEventArgs.BytesRecorded} bytes");
+
             byte[] recorded_buf = waveInEventArgs.Buffer;
             int recorded_length = waveInEventArgs.BytesRecorded;
 
-            byte[] converted_buf = null;
-            int convertedBytes = -1;
-            
-            byte[] depthConv_buf = null;
-            int depthConvBytes = -1;
+            //byte[] converted_buf = null;
+            //int converted_len = -1;
 
-            Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {waveInEventArgs.BytesRecorded} bytes");
+            //byte[] depthConv_buf = null;
+            //int depthConvBytes = -1;
+
+            byte[] pcm16_buf = null;
+            int pcm16_len = -1;
 
             try
             {
@@ -181,37 +184,39 @@ namespace RemoteDesktop.Server.XamaOK
                 //converted_buf = new byte[convertedBytes];
                 //waveProvider16.Read(converted_buf, 0, convertedBytes);
 
-                var waveBuffer = new BufferedWaveProvider(this._WaveIn.WaveFormat);
-                waveBuffer.DiscardOnBufferOverflow = true;
-                waveBuffer.ReadFully = false;  // leave a buffer?
-
-                var sampleStream = new WaveToSampleProvider(waveBuffer);
-                // Stereo to mono
-                var monoStream = new StereoToMonoSampleProvider(sampleStream)
-                {
-                    LeftVolume = 1f,
-                    RightVolume = 1f
-                };
+                var waveBufferResample = new BufferedWaveProvider(this._WaveIn.WaveFormat);
+                waveBufferResample.DiscardOnBufferOverflow = true;
+                waveBufferResample.ReadFully = false;  // leave a buffer?
+                var sampleStream = new WaveToSampleProvider(waveBufferResample);
 
                 // Downsample to 8000
-                var resamplingProvider = new WdlResamplingSampleProvider(monoStream, rtp_config.SamplesPerSecond);
+                var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, rtp_config.SamplesPerSecond);
 
-                // Convert to 16-bit in order to use ACM or MuLaw tools.
+                // Convert to 32bit float to 16bit PCM
                 var ieeeToPcm = new SampleToWaveProvider16(resamplingProvider);
+                pcm16_len = recorded_length / (2 * 6);
+                pcm16_buf = new byte[pcm16_len];
 
-                waveBuffer.AddSamples(recorded_buf, 0, recorded_length);
-                convertedBytes = recorded_length / 2;
-                converted_buf = new byte[convertedBytes];
-                ieeeToPcm.Read(converted_buf, 0, convertedBytes);
-                var depthConvStream = new AcmStream(new WaveFormat(rtp_config.SamplesPerSecond, 16, 1), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 1));
-                Buffer.BlockCopy(converted_buf, 0, depthConvStream.SourceBuffer, 0, convertedBytes);
-                int sourceBytesDepthConverted = 0;
-                depthConvBytes = depthConvStream.Convert(convertedBytes, out sourceBytesDepthConverted);
-                depthConv_buf = new byte[depthConvBytes];
-                Buffer.BlockCopy(depthConvStream.DestBuffer, 0, depthConv_buf, 0, depthConvBytes);
+                waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
+                ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
 
+                //// Stereo to mono
+                //var monoStream = new StereoToMonoSampleProvider(ieeeToPcm.ToSampleProvider())
+                //{
+                //    LeftVolume = 1f,
+                //    RightVolume = 1f
+                //};
 
-                Console.WriteLine("convert 32bit float streo to 8bit PCM mono success");
+                //var depthConvStream = new AcmStream(new WaveFormat(rtp_config.SamplesPerSecond, 16, 1), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 1));
+                //Buffer.BlockCopy(converted_buf, 0, depthConvStream.SourceBuffer, 0, convertedBytes);
+                //int sourceBytesDepthConverted = 0;
+                //depthConvBytes = depthConvStream.Convert(convertedBytes, out sourceBytesDepthConverted);
+                //depthConv_buf = new byte[depthConvBytes];
+                //Buffer.BlockCopy(depthConvStream.DestBuffer, 0, depthConv_buf, 0, depthConvBytes);
+
+                //ieeeToPcm.Read(converted_buf, 0, convertedBytes);
+
+                Console.WriteLine("convert 32bit float 64KHz stereo to 16bit PCM 8KHz stereo success");
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);
@@ -301,8 +306,8 @@ namespace RemoteDesktop.Server.XamaOK
                     ////Absenden
                     //usender.SendBytes(rtp);
 
-                    //checkFileStream.Write(converted_buf, 0, convertedBytes);
-                    //if(checkFileStream.Length > (48000 * 120))
+                    //checkFileStream.Write(depthConv_buf, 0, depthConvBytes);
+                    //if (checkFileStream.Length > (8000 * 120))
                     //{
                     //    checkFileStream.Flush();
                     //    checkFileStream.Close();
@@ -310,7 +315,8 @@ namespace RemoteDesktop.Server.XamaOK
                     //}
 
                     //usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
-                    usender.SendBytes(SoundUtils.ToRTPData(depthConv_buf, rtp_config));
+                    //usender.SendBytes(SoundUtils.ToRTPData(depthConv_buf, rtp_config));
+                    usender.SendBytes(SoundUtils.ToRTPData(pcm16_buf, rtp_config));
                     //    }
                     //}
                 }

@@ -16,11 +16,11 @@ namespace NAudioDemo
         {
             //一般的な44.1kHz, 16bit, ステレオサウンドの音源を想定
             //var bufferedWaveProvider = new BufferedWaveProvider(new WaveFormat(44100, 16, 2));  // for sample.wav
-            var bufferedWaveProvider = new BufferedWaveProvider(new WaveFormat(48000, 16, 2));
+            var bufferedWaveProvider = new BufferedWaveProvider(new WaveFormat(8000, 8, 1));
 
             //ボリューム調整をするために上のBufferedWaveProviderをデコレータっぽく包む
-            var wavProvider = new VolumeWaveProvider16(bufferedWaveProvider);
-            wavProvider.Volume = 0.1f;
+            //var wavProvider = new VolumeWaveProvider16(bufferedWaveProvider);
+            //wavProvider.Volume = 0.1f;
 
             //再生デバイスと出力先を設定
             var mmDevice = new MMDeviceEnumerator()
@@ -32,7 +32,8 @@ namespace NAudioDemo
             using (IWavePlayer wavPlayer = new WasapiOut(mmDevice, AudioClientShareMode.Shared, false, 200))
             {
                 //出力に入力を接続して再生開始
-                wavPlayer.Init(wavProvider);
+                //wavPlayer.Init(wavProvider);
+                wavPlayer.Init(bufferedWaveProvider);
                 wavPlayer.Play();
 
                 Console.WriteLine("Press ENTER to exit...");
@@ -58,7 +59,7 @@ namespace NAudioDemo
             //外部入力のダミーとして適当な音声データを用意して使う
             string wavFilePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "check_16bit_2ch.pcm"
+                "check_8bit_mono.pcm"
                 );
 
             //if (!(File.Exists(wavFilePath) || File.Exists(mp3FilePath)))
@@ -91,7 +92,7 @@ namespace NAudioDemo
             //    data = data.Skip(headerLength).ToArray();
             //}
 
-            int bufsize = 16000;
+            int bufsize = 24000;
             for (int i = 0; i + bufsize < data.Length; i += bufsize)
             {
                 provider.AddSamples(data, i, bufsize);
