@@ -24,7 +24,7 @@ namespace RemoteDesktop.Android.Core
             //public short BitsPerSample = 32;  // sound card native
 			public short Channels = 1;
 			public Int32 PacketSize = 4096; //使われていない
-			public Int32 BufferCount = 2048; // AndroidのAudioTrackに指定するバッファ長
+			public Int32 BufferCount = 1024 * 128; // AndroidのAudioTrackに指定するバッファ長
 			public uint JitterBuffer = 20;
 
             public bool isAlreadySetInfoFromSndCard = false;
