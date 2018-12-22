@@ -131,8 +131,8 @@ namespace RemoteDesktop.Client.Android
                         //{
 
                         //Nach Linear umwandeln
-                        //Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, config.BitsPerSample, config.Channels);
-                        Byte[] linearBytes = rtp.Data;
+                        Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, config.BitsPerSample, config.Channels);
+                        //Byte[] linearBytes = rtp.Data;
                         //Abspielen
                         Console.WriteLine("call PlayData func at OnDataReceived: " + linearBytes.Length.ToString() + "bytes");
                         m_Player.PlayData(linearBytes, false);
