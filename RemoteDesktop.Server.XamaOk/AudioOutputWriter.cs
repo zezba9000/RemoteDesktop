@@ -159,11 +159,11 @@ namespace RemoteDesktop.Server.XamaOK
             //byte[] depthConv_buf = null;
             //int depthConvBytes = -1;
 
-            //byte[] pcm16_buf = null;
-            //int pcm16_len = -1;
+            byte[] pcm16_buf = null;
+            int pcm16_len = -1;
 
-            byte[] pcm8_buf = null;
-            int pcm8_len = -1;
+            //byte[] pcm8_buf = null;
+            //int pcm8_len = -1;
 
             try
             {
@@ -204,19 +204,19 @@ namespace RemoteDesktop.Server.XamaOK
 
                 // Convert to 32bit float to 16bit PCM
                 var ieeeToPcm = new SampleToWaveProvider16(monoStream);
-                var pcm16_len = recorded_length / (2 * 6 * 2);
-                var pcm16_buf = new byte[pcm16_len];
+                pcm16_len = recorded_length / (2 * 6 * 2);
+                pcm16_buf = new byte[pcm16_len];
 
                 waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
                 ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
 
-                var depthConvStream = new AcmStream(new WaveFormat(rtp_config.SamplesPerSecond, 16, 1), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 1));
-                Buffer.BlockCopy(pcm16_buf, 0, depthConvStream.SourceBuffer, 0, pcm16_len);
-                int sourceBytesDepthConverted = 0;
+                //var depthConvStream = new AcmStream(new WaveFormat(rtp_config.SamplesPerSecond, 16, 1), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 1));
+                //Buffer.BlockCopy(pcm16_buf, 0, depthConvStream.SourceBuffer, 0, pcm16_len);
+                //int sourceBytesDepthConverted = 0;
 
-                pcm8_len = depthConvStream.Convert(pcm16_len, out sourceBytesDepthConverted);
-                pcm8_buf = new byte[pcm8_len];
-                Buffer.BlockCopy(depthConvStream.DestBuffer, 0, pcm8_buf, 0, pcm8_len);
+                //pcm8_len = depthConvStream.Convert(pcm16_len, out sourceBytesDepthConverted);
+                //pcm8_buf = new byte[pcm8_len];
+                //Buffer.BlockCopy(depthConvStream.DestBuffer, 0, pcm8_buf, 0, pcm8_len);
 
                 Console.WriteLine("convert 32bit float 64KHz stereo to 16bit PCM 8KHz mono success");
             } catch (Exception ex)
@@ -318,8 +318,8 @@ namespace RemoteDesktop.Server.XamaOK
 
                     //usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
                     //usender.SendBytes(SoundUtils.ToRTPData(depthConv_buf, rtp_config));
-                    //usender.SendBytes(SoundUtils.ToRTPData(pcm16_buf, rtp_config));
-                    usender.SendBytes(SoundUtils.ToRTPData(pcm8_buf, rtp_config));
+                    usender.SendBytes(SoundUtils.ToRTPData(pcm16_buf, rtp_config));
+                    //usender.SendBytes(SoundUtils.ToRTPData(pcm8_buf, rtp_config));
                     //    }
                     //}
                 }
