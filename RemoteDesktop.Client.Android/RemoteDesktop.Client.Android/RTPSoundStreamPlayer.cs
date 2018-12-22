@@ -66,40 +66,34 @@ namespace RemoteDesktop.Client.Android
 			//}
 		}
 
-		/// <summary>
-		/// InitJitterBuffer
-		/// </summary>
-		private void InitJitterBuffer()
-		{
-			//Wenn vorhanden
-			if (m_JitterBuffer != null)
-			{
-				m_JitterBuffer.DataAvailable -= new SoundManager.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
-			}
+		//private void InitJitterBuffer()
+		//{
+		//	//Wenn vorhanden
+		//	if (m_JitterBuffer != null)
+		//	{
+		//		m_JitterBuffer.DataAvailable -= new SoundManager.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
+		//	}
 
-			//Neu erstellen
-			//m_JitterBuffer = new SoundManager.JitterBuffer(null, (uint)NumericUpDownJitterBuffer.Value, 20);
-			m_JitterBuffer = new SoundManager.JitterBuffer(null, config.JitterBuffer, 20);
-			m_JitterBuffer.DataAvailable += new SoundManager.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
+		//	//Neu erstellen
+		//	//m_JitterBuffer = new SoundManager.JitterBuffer(null, (uint)NumericUpDownJitterBuffer.Value, 20);
+		//	m_JitterBuffer = new SoundManager.JitterBuffer(null, config.JitterBuffer, 20);
+		//	m_JitterBuffer.DataAvailable += new SoundManager.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
 
-			//ProgressBar anpassen
-			//InitProgressBarJitterBuffer();
-		}
-		/// <summary>
-		/// Gibt an ob der Jitter Buffer verwendet werden soll
-		/// </summary>
-		/// <returns></returns>
-		private bool UseJitterBuffer
-		{
-			get
-			{
-				if (m_JitterBuffer != null)
-				{
-					return m_JitterBufferLength >= 2;
-				}
-				return false;
-			}
-		}
+		//	//ProgressBar anpassen
+		//	//InitProgressBarJitterBuffer();
+		//}
+
+		//private bool UseJitterBuffer
+		//{
+		//	get
+		//	{
+		//		if (m_JitterBuffer != null)
+		//		{
+		//			return m_JitterBufferLength >= 2;
+		//		}
+		//		return false;
+		//	}
+		//}
 
         private void OnDataReceived(RTPReceiver rtr, Byte[] bytes)
 		{
@@ -131,8 +125,8 @@ namespace RemoteDesktop.Client.Android
                         //{
 
                         //Nach Linear umwandeln
-                        Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, config.BitsPerSample, config.Channels);
-                        //Byte[] linearBytes = rtp.Data;
+                        //Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, config.BitsPerSample, config.Channels);
+                        Byte[] linearBytes = rtp.Data;
                         //Abspielen
                         Console.WriteLine("call PlayData func at OnDataReceived: " + linearBytes.Length.ToString() + "bytes");
                         m_Player.PlayData(linearBytes, false);
@@ -147,20 +141,17 @@ namespace RemoteDesktop.Client.Android
 			}
 		}
 
-		/// <summary>
-		/// OnDataAvailable
-		/// </summary>
-		/// <param name="packet"></param>
-		private void OnDataAvailable(Object sender, RTPPacket rtp)
-		{
-            //Nach Linear umwandeln
-            //Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
-            // for File Streaming (Desktop/sample.wav)
-            Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, 16, 2);
-            //Abspielen
-            Console.WriteLine("call PlayData func at OnDataAvailable: " + linearBytes.Length.ToString() + "bytes");
-            m_Player.PlayData(linearBytes, false);
-		}
+		//private void OnDataAvailable(Object sender, RTPPacket rtp)
+		//{
+  //          //Nach Linear umwandeln
+  //          //Byte[] linearBytes = SoundManager.Utils.MuLawToLinear(rtp.Data, Config.BitsPerSample, Config.Channels);
+  //          // for File Streaming (Desktop/sample.wav)
+  //          //Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, 8, 1);
+  //          Byte[] linearBytes = rtp.Data;
+  //          //Abspielen
+  //          Console.WriteLine("call PlayData func at OnDataAvailable: " + linearBytes.Length.ToString() + "bytes");
+  //          m_Player.PlayData(linearBytes, false);
+		//}
 
 		/// <summary>
 		/// OnDisconnected
