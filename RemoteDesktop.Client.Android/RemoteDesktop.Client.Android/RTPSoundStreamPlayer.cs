@@ -130,9 +130,11 @@ namespace RemoteDesktop.Client.Android
 
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
         {
+            Console.WriteLine("Socket_DataRecievedCallback: recieved sound data = " + dataSize.ToString());
             Byte[] justSound_buf = new byte[dataSize];
             Array.Copy(data, 0, justSound_buf, 0, dataSize);
-            m_Player.PlayData(justSound_buf, false);
+            Byte[] linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
+            m_Player.PlayData(linearBytes, false);
         }
 
         private void Socket_ConnectionFailedCallback(string error)
