@@ -422,7 +422,7 @@ namespace RemoteDesktop.Server.XamaOK
 		private void Socket_DisconnectedCallback()
 		{
 			DebugLog.Log("Disconnected from client");
-			MainForm.dispatcher.InvokeAsync(delegate()
+			MainApplicationContext.dispatcher.InvokeAsync(delegate()
 			{
 				//sdsock.ReListen(); // resetAllInstanseStateでやるので不要
                 resetAllInstanseState();

@@ -140,36 +140,36 @@ namespace RemoteDesktop.Android.Core.Sound
 			}
 		}
 
-		//private void StartDisconnectionTimer()
-		//{
-		//	disconnectionTimer = new Timer(timerTic, null, 100, 1000);
-		//}
+        private void StartDisconnectionTimer()
+        {
+            disconnectionTimer = new Timer(timerTic, null, 100, 1000);
+        }
 
-		//private void timerTic(object state)
-		//{
-		//	lock (this)
-		//	{
-		//		if (isDisposed) return;
+        private void timerTic(object state)
+        {
+            lock (this)
+            {
+                if (isDisposed) return;
 
-		//		if (!IsConnected())
-		//		{
-		//			if (disconnectionTimer != null)
-		//			{
-		//				disconnectionTimer.Dispose();
-		//				disconnectionTimer = null;
-		//			}
+                if (!IsConnected())
+                {
+                    if (disconnectionTimer != null)
+                    {
+                        disconnectionTimer.Dispose();
+                        disconnectionTimer = null;
+                    }
 
-		//			pktHdrBufferRead = 0;
-		//			Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
-		//			Array.Clear(sendBuffer, 0, sendBuffer.Length);
-		//			Array.Clear(pktHdrBuffer, 0, pktHdrBuffer.Length);
+                    pktHdrBufferRead = 0;
+                    Array.Clear(receiveBuffer, 0, receiveBuffer.Length);
+                    Array.Clear(sendBuffer, 0, sendBuffer.Length);
+                    Array.Clear(pktHdrBuffer, 0, pktHdrBuffer.Length);
 
-		//			FireDisconnectedCallback();
-		//		}
-		//	}
-		//}
+                    FireDisconnectedCallback();
+                }
+            }
+        }
 
-		public void Listen(IPAddress ipAddress, int port)
+        public void Listen(IPAddress ipAddress, int port)
 		{
 			if (type != NetworkTypes.Server) throw new Exception("Only allowed for server!");
 
@@ -214,7 +214,7 @@ namespace RemoteDesktop.Android.Core.Sound
 				if (isDisposed) return;
 				disconnected = false;
 
-				//StartDisconnectionTimer();
+				StartDisconnectionTimer();
 
 				// connect
 				if (type == NetworkTypes.Server)

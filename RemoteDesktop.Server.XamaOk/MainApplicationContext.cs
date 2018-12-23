@@ -30,7 +30,7 @@ namespace RemoteDesktop.Server
         bool compress; //, currentCompress;
         float resolutionScale = 0.3f; //, currentResolutionScale = 0.3f;
 		private Timer timer;
-		private Dispatcher dispatcher;
+		public static Dispatcher dispatcher;
 
 		private InputSimulator input;
         private bool receivedMetaData = false;
