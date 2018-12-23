@@ -105,7 +105,7 @@ namespace RemoteDesktop.Client.Android
 			}
 			else
 			{
-                m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                //m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
 
                 sdsock = new SoundDataSocket(NetworkTypes.Client);
                 sdsock.ConnectedCallback += Socket_ConnectedCallback;
@@ -118,9 +118,27 @@ namespace RemoteDesktop.Client.Android
 			}
         }
 
-       private void Socket_StartDataRecievedCallback(PacketHeader pktHdr)
-       {
-       }
+        private void Socket_StartDataRecievedCallback(PacketHeader pktHdr)
+        {
+            // TCPの場合のみこのタイミングまでサウンドデバイスのOpenを遅らせる
+            config.SamplesPerSecond = pktHdr.SamplesPerSecond;
+            config.BitsPerSample = pktHdr.BitsPerSample;
+            config.Channels = pktHdr.Channels;
+            if (!m_Player.Opened)
+            {
+                m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                Console.WriteLine("sound device opened.");
+            }
+
+            //Device.BeginInvokeOnMainThread(() =>
+            //{
+            //    if (!m_Player.Opened)
+            //    {
+            //        m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+            //    }
+
+            //});
+        }
 
 
         private void Socket_EndDataRecievedCallback()

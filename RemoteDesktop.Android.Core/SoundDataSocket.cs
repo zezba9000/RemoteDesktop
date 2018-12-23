@@ -483,7 +483,8 @@ namespace RemoteDesktop.Android.Core.Sound
                     dataSize = dataLength,
                     soundDataSize = soundDataSize,
                     BitsPerSample = bitsPerSample,
-                    Channels = channel
+                    Channels = channel,
+                    SamplesPerSecond = samplePerSecond
 				};
 
 				SendPacketHeaderInternal(pktHeader);
