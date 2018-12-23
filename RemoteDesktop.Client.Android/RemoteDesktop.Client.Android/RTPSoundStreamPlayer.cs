@@ -124,6 +124,7 @@ namespace RemoteDesktop.Client.Android
             config.SamplesPerSecond = pktHdr.SamplesPerSecond;
             config.BitsPerSample = pktHdr.BitsPerSample;
             config.Channels = pktHdr.Channels;
+            config.isConvertMulaw = pktHdr.isConvertMulaw;
             if (!m_Player.Opened)
             {
                 m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
@@ -151,7 +152,11 @@ namespace RemoteDesktop.Client.Android
             Console.WriteLine("Socket_DataRecievedCallback: recieved sound data = " + dataSize.ToString());
             Byte[] justSound_buf = new byte[dataSize];
             Array.Copy(data, 0, justSound_buf, 0, dataSize);
-            Byte[] linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
+            Byte[] linearBytes = justSound_buf;
+            if (config.isConvertMulaw)
+            {
+                linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
+            }
             m_Player.PlayData(linearBytes, false);
         }
 

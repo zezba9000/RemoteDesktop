@@ -26,7 +26,7 @@ namespace RemoteDesktop.Android.Core
 			public int ServerPort = 10000; //Sound Server
             public int SamplesPerSecond = 8000;
             //public int SamplesPerSecond = 48000; // sound card native
-            public short BitsPerSample = 16;
+            public short BitsPerSample = 8;
             //public short BitsPerSample = 32;  // sound card native
 			public short Channels = 1;
 			public Int32 PacketSize = 4096; //使われていない
@@ -37,6 +37,7 @@ namespace RemoteDesktop.Android.Core
             public bool isAlreadySetInfoFromSndCard = false;
             public ProtcolMode protcol_mode = ProtcolMode.TCP;
             public bool compress = false;
+            public bool isConvertMulaw = false;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";

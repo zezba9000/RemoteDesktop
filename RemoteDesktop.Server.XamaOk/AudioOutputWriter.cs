@@ -233,7 +233,7 @@ namespace RemoteDesktop.Server.XamaOK
             //this.Dispose();
         }
 
-        private byte[] convertIEEE32bitFloatTo16bitPCM(WaveInEventArgs e)
+        private byte[] convertIEEE32bitFloatTo8bitPCM(WaveInEventArgs e)
         {
             byte[] recorded_buf = e.Buffer;
             int recorded_length = e.BytesRecorded;
@@ -244,7 +244,7 @@ namespace RemoteDesktop.Server.XamaOK
             byte[] pcm16_buf = null;
             int pcm16_len = -1;
 
-            //byte[] pcm8_buf = null;
+            byte[] pcm8_buf = null;
             //int pcm8_len = -1;
 
             try
@@ -273,6 +273,19 @@ namespace RemoteDesktop.Server.XamaOK
                 waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
                 ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
 
+                //NAudio.MediaFoundation.MediaType mediaType = new NAudio.MediaFoundation.MediaType(new WaveFormat(8000, 8, 1));
+                //using (MediaFoundationEncoder encoder = new MediaFoundationEncoder(mediaType))
+                //{
+                //    encoder.Encode()
+                //    //encoder.Encode("sample.wav", reader);
+                //}
+
+                int pcm8_len = pcm16_len / 2;
+                pcm8_buf = new byte[pcm8_len];
+                var depthConvertStream = new WaveFormatConversionStream(new WaveFormat(8000, 8, 1), new RawSourceWaveStream(pcm16_buf, 0, pcm16_len, new WaveFormat(8000, 16, 1)));
+                depthConvertStream.Flush();
+                depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
+
                 //var depthConvStream = new AcmStream(new WaveFormat(rtp_config.SamplesPerSecond, 16, 1), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 1));
                 //Buffer.BlockCopy(pcm16_buf, 0, depthConvStream.SourceBuffer, 0, pcm16_len);
                 //int sourceBytesDepthConverted = 0;
@@ -281,7 +294,7 @@ namespace RemoteDesktop.Server.XamaOK
                 //pcm8_buf = new byte[pcm8_len];
                 //Buffer.BlockCopy(depthConvStream.DestBuffer, 0, pcm8_buf, 0, pcm8_len);
 
-                Console.WriteLine("convert 32bit float 64KHz stereo to 16bit PCM 8KHz mono success");
+                Console.WriteLine("convert 32bit float 64KHz stereo to 8bit PCM 8KHz mono success");
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);
@@ -289,12 +302,13 @@ namespace RemoteDesktop.Server.XamaOK
                 System.Windows.Forms.Application.Exit();
             }
 
-            return pcm16_buf;
+            //return pcm16_buf;
+            return pcm8_buf;
         }
 
-        private void handleDataWithUDP(byte[] pcm16_buf)
+        private void handleDataWithUDP(byte[] pcm8_buf)
         {
-                int pcm16_len = pcm16_buf.Length;
+                int pcm8_len = pcm8_buf.Length;
 
                 //次のコネクションが来ていないかチェックする
                 usender.checkNextClient();
@@ -305,6 +319,12 @@ namespace RemoteDesktop.Server.XamaOK
                     usender.disconnected = false;
                 }
 
+                // こういうケースがあるようだ
+                if(pcm8_buf.Length == 0)
+                {
+                　　return;
+                }
+
                 //Wenn noch aktiv
                 if (!usender.disconnected)
                 {
@@ -313,24 +333,24 @@ namespace RemoteDesktop.Server.XamaOK
                     {
                         //Sounddaten in kleinere Einzelteile zerlegen
                         int bytesPerInterval = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels);
-                        int count = pcm16_len / bytesPerInterval;
+                        int count = pcm8_len / bytesPerInterval;
                         int currentPos = 0;
                         for (int i = 0; i < count; i++)
                         {
                             //Teilstück in RTP Packet umwandeln
                             Byte[] partBytes = new Byte[bytesPerInterval];
-                            Array.Copy(pcm16_buf, currentPos, partBytes, 0, bytesPerInterval);
+                            Array.Copy(pcm8_buf, currentPos, partBytes, 0, bytesPerInterval);
                             currentPos += bytesPerInterval;
                             var rtp = SoundUtils.ToRTPPacket(partBytes, rtp_config);
                             //In Buffer legen
                             m_JitterBuffer.AddData(rtp);
                         }
                         // 余りデータがあれば送信する
-                        int leftData_len = pcm16_len - currentPos;
+                        int leftData_len = pcm8_len - currentPos;
                         if(leftData_len > 0)
                         {
                             Byte[] leftData_buf = new Byte[leftData_len];
-                            Array.Copy(pcm16_buf, currentPos, leftData_buf, 0, leftData_len);
+                            Array.Copy(pcm8_buf, currentPos, leftData_buf, 0, leftData_len);
                             var rtp = SoundUtils.ToRTPPacket(leftData_buf, rtp_config);
                             m_JitterBuffer.AddData(rtp);
                         }
@@ -345,27 +365,32 @@ namespace RemoteDesktop.Server.XamaOK
                         //    System.Windows.Forms.Application.Exit();
                         //}
 
-                        usender.SendBytes(SoundUtils.ToRTPData(pcm16_buf, rtp_config));
+                        usender.SendBytes(SoundUtils.ToRTPData(pcm8_buf, rtp_config));
                     }
 
                 }
         }
 
-        private void handleDataWithTCP(byte[] pcm16_buf)
+        private void handleDataWithTCP(byte[] pcm8_buf)
         {
             if (!sdsock.IsConnected())
             {
                 return;
             }
-            RTPPacket rtp = SoundUtils.ToRTPPacket(pcm16_buf, rtp_config);
-            sdsock.SendRTPPacket(rtp, rtp_config.compress, rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels);
+            // こういうケースがあるようだ
+            if(pcm8_buf.Length == 0)
+            {
+                return;
+            }
+            RTPPacket rtp = SoundUtils.ToRTPPacket(pcm8_buf, rtp_config);
+            sdsock.SendRTPPacket(rtp, rtp_config.compress, rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, rtp_config.isConvertMulaw);
         }
 
         private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
 
-            byte[] pcm16_buf = convertIEEE32bitFloatTo16bitPCM(e);
+            byte[] pcm8_buf = convertIEEE32bitFloatTo8bitPCM(e);
 
             try
             {
@@ -379,11 +404,11 @@ namespace RemoteDesktop.Server.XamaOK
 
                 if(rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
                 {
-                    handleDataWithUDP(pcm16_buf);
+                    handleDataWithUDP(pcm8_buf);
                 }
                 else
                 {
-                    handleDataWithTCP(pcm16_buf);
+                    handleDataWithTCP(pcm8_buf);
                 }
             }
             catch (Exception ex)

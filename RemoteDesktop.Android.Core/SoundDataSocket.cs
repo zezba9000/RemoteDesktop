@@ -31,6 +31,7 @@ namespace RemoteDesktop.Android.Core.Sound
         public int SamplesPerSecond;
         public short BitsPerSample;
         public short Channels;
+        public bool isConvertMulaw;
 	}
 
 	public class SoundDataSocket : IDisposable
@@ -444,7 +445,7 @@ namespace RemoteDesktop.Android.Core.Sound
             }
         }
 
-		public void SendRTPPacket(RTPPacket packet, bool compress, int samplePerSecond, short bitsPerSample, short channel)		
+		public void SendRTPPacket(RTPPacket packet, bool compress, int samplePerSecond, short bitsPerSample, short channel, bool isConvertMulaw)		
 		{
 
 //      public int dataSize, soundDataSize;
@@ -484,7 +485,8 @@ namespace RemoteDesktop.Android.Core.Sound
                     soundDataSize = soundDataSize,
                     BitsPerSample = bitsPerSample,
                     Channels = channel,
-                    SamplesPerSecond = samplePerSecond
+                    SamplesPerSecond = samplePerSecond,
+                    isConvertMulaw = isConvertMulaw
 				};
 
 				SendPacketHeaderInternal(pktHeader);
