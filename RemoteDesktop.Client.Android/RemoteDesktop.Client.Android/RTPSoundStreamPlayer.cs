@@ -205,7 +205,7 @@ namespace RemoteDesktop.Client.Android
                 m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
 
                 // 1 to 1 Receivr over UDP
-                config.PacketSize = SoundUtils.GetBytesPerInterval((uint)config.SamplesPerSecond, config.BitsPerSample, config.Channels, true);
+                config.PacketSize = SoundUtils.GetBytesPerInterval((uint)config.SamplesPerSecond, config.BitsPerSample, config.Channels);
 				m_Receiver = new RTPReceiver(config.PacketSize);
 				m_Receiver.DataReceived2 += new RTPReceiver.DelegateDataReceived2(OnDataReceived);
 				m_Receiver.Disconnected += new RTPReceiver.DelegateDisconnected(OnDisconnected);

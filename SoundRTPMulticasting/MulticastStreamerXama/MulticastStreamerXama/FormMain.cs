@@ -14,6 +14,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Threading;
+using RemoteDesktop.Android.Core;
 
 namespace MulticastStreamerXama
 {
@@ -181,7 +182,8 @@ namespace MulticastStreamerXama
         //Attribute
         private UDPSender m_UDPSender;
         private WinSound.Recorder m_Recorder = new WinSound.Recorder();
-        private Configuration Config = new Configuration();
+        //private Configuration Config = new Configuration();
+        private RTPConfiguration Config = new RTPConfiguration();
         private String ConfigFileName = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "config.xml");
         private bool m_IsFormMain = true;
         private System.Windows.Forms.Timer m_TimerProgressBarFile = new System.Windows.Forms.Timer();
@@ -228,6 +230,25 @@ namespace MulticastStreamerXama
                 MessageBox.Show(ex.Message, "Init()", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private void OnDataAvailableForJitterBuffer(Object sender, RTPPacket rtp)
+        {
+            //try
+            //{
+            //    if (usender != null)
+            //    {
+            //            //RTP Packet in Bytes umwandeln
+            //            Byte[] rtpBytes = rtp.ToBytes();
+            //            //Absenden
+            //            usender.SendBytes(rtpBytes);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
+        }
+
         /// <summary>
         /// InitJitterBuffer
         /// </summary>
@@ -236,12 +257,12 @@ namespace MulticastStreamerXama
             //Wenn vorhanden
             if (m_JitterBuffer != null)
             {
-                m_JitterBuffer.DataAvailable -= new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
+                m_JitterBuffer.DataAvailable -= new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailableForJitterBuffer);
             }
 
             //Neu erstellen
             m_JitterBuffer = new WinSound.JitterBuffer(null, m_JitterBufferCount, m_Milliseconds);
-            m_JitterBuffer.DataAvailable += new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailable);
+            m_JitterBuffer.DataAvailable += new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailableForJitterBuffer);
         }
         /// <summary>
         /// InitTimerStream
@@ -491,7 +512,7 @@ namespace MulticastStreamerXama
                 {
                     XmlSerializer ser = new XmlSerializer(typeof(Configuration));
                     StreamReader sr = new StreamReader(ConfigFileName);
-                    Config = (Configuration)ser.Deserialize(sr);
+                    Config = (RTPConfiguration)ser.Deserialize(sr);
                     sr.Close();
                 }
 
@@ -749,7 +770,8 @@ namespace MulticastStreamerXama
                                     Byte[] partBytes = new Byte[bytesPerInterval];
                                     Array.Copy(data, currentPos, partBytes, 0, bytesPerInterval);
                                     currentPos += bytesPerInterval;
-                                    WinSound.RTPPacket rtp = ToRTPPacket(partBytes, Config.BitsPerSample, Config.Channels);
+                                    //RTPPacket rtp = ToRTPPacket(partBytes, Config.BitsPerSample, Config.Channels);
+                                    RTPPacket rtp = SoundUtils.ToRTPPacket(partBytes, Config);
                                     //In Buffer legen
                                     m_JitterBuffer.AddData(rtp);
                                 }
@@ -774,7 +796,7 @@ namespace MulticastStreamerXama
         /// OnDataAvailable
         /// </summary>
         /// <param name="packet"></param>
-        private void OnDataAvailable(Object sender, WinSound.RTPPacket rtp)
+        private void OnDataAvailable(Object sender, RTPPacket rtp)
         {
             try
             {

@@ -20,7 +20,7 @@ namespace RemoteDesktop.Server.XamaOK
 
         #region イベント
 
-        public event EventHandler<WaveInEventArgs> DataAvailable;
+        //public event EventHandler<WaveInEventArgs> DataAvailable;
 
         #endregion
 
@@ -34,6 +34,11 @@ namespace RemoteDesktop.Server.XamaOK
         private MMDevice m_device;
         public bool IsRecording = false;
         private RTPConfiguration rtp_config;
+
+        private WinSound.JitterBuffer m_JitterBuffer;
+        private uint m_JitterBufferCount = 20; // max buffering num of RTPPacket at jitter buffer
+        private uint m_Milliseconds = 20; // time period of jitter buffer (msec)
+
         //private BufferedStream checkFileStream;
 
         //private int m_CurrentRTPBufferPos = 0;
@@ -59,6 +64,9 @@ namespace RemoteDesktop.Server.XamaOK
             //checkFileStream = new BufferedStream(new FileStream(wavFilePath, FileMode.Append));
 
             rtp_config = config;
+            m_JitterBufferCount = (uint)rtp_config.BufferCount;
+            m_Milliseconds = rtp_config.JitterBufferTimerPeriodMsec;
+
             m_device = device;
 //            this._FileName = fileName;
             this._WaveIn = new WasapiLoopbackCapture(m_device);
@@ -70,10 +78,13 @@ namespace RemoteDesktop.Server.XamaOK
             //this._WaveFileWriter = new WaveFileWriter(usender, this._WaveIn.WaveFormat);
 
             // キャプチャしたサウンドを読み込んだ際のハンドラ
-            DataAvailable += AudioOutputWriterOnDataAvailable;
+            //DataAvailable += AudioOutputWriterOnDataAvailable;
 
             WaveFormat wfmt = this._WaveIn.WaveFormat;
             Console.WriteLine(wfmt.ToString());
+
+            InitJitterBuffer();
+            m_JitterBuffer.Start();
             Start(); // start capture and send stream
         }
 
@@ -93,6 +104,29 @@ namespace RemoteDesktop.Server.XamaOK
         #endregion
 
         #region メソッド
+
+        private void InitJitterBuffer()
+        {
+            //Wenn vorhanden
+            if (m_JitterBuffer != null)
+            {
+                m_JitterBuffer.DataAvailable -= new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailableForJitterBuffer);
+            }
+
+            //Neu erstellen
+            m_JitterBuffer = new WinSound.JitterBuffer(null, m_JitterBufferCount, m_Milliseconds);
+            m_JitterBuffer.DataAvailable += new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailableForJitterBuffer);
+        }
+
+        private void DisposeJitterBuffer()
+        {
+            if (m_JitterBuffer != null)
+            {
+                m_JitterBuffer.DataAvailable -= new WinSound.JitterBuffer.DelegateDataAvailable(OnDataAvailableForJitterBuffer);
+            }
+            m_JitterBuffer.Stop();
+            m_JitterBuffer = null;
+        }
 
         private void updateRTPConfiguration()
         {
@@ -114,10 +148,14 @@ namespace RemoteDesktop.Server.XamaOK
 
         private void resetAllInstanseState()
         {
-            this.DataAvailable -= this.AudioOutputWriterOnDataAvailable;
+            // UDPSenderをそのまま使いまわすため、this_WaveFileWriterはDispose的なことしない
+
+            //this.DataAvailable -= this.AudioOutputWriterOnDataAvailable;
             //this._WaveFileWriter.Close();
             //this._WaveFileWriter.Dispose();
             //this._WaveFileWriter = null;
+
+            this.DisposeJitterBuffer();
 
             this._WaveIn.DataAvailable -= this.WaveInOnDataAvailable;
             this._WaveIn.RecordingStopped -= this.WaveInOnRecordingStopped;
@@ -136,8 +174,10 @@ namespace RemoteDesktop.Server.XamaOK
             //this._WaveFileWriter = new WaveFileWriter(usender, this._WaveIn.WaveFormat);
 
             // キャプチャしたサウンドを読み込んだ際のハンドラ
-            this.DataAvailable += this.AudioOutputWriterOnDataAvailable;
+            //this.DataAvailable += this.AudioOutputWriterOnDataAvailable;
 
+            InitJitterBuffer();
+            m_JitterBuffer.Start();
             Start(); // start capture and send stream
         }
 
@@ -146,12 +186,54 @@ namespace RemoteDesktop.Server.XamaOK
 
         #region イベントハンドラ
 
-        private void AudioOutputWriterOnDataAvailable(object sender, WaveInEventArgs waveInEventArgs)
+        private void OnDataAvailableForJitterBuffer(Object sender, RTPPacket rtp)
         {
-            Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {waveInEventArgs.BytesRecorded} bytes");
+            try
+            {
+                if (usender != null)
+                {
+                        //RTP Packet in Bytes umwandeln
+                        Byte[] rtpBytes = rtp.ToBytes();
+                        //Absenden
+                        usender.SendBytes(rtpBytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
-            byte[] recorded_buf = waveInEventArgs.Buffer;
-            int recorded_length = waveInEventArgs.BytesRecorded;
+        //private void AudioOutputWriterOnDataAvailable(object sender, WaveInEventArgs waveInEventArgs)
+        //{
+        //}
+
+        private void WaveInOnRecordingStopped(object sender, StoppedEventArgs e)
+        {
+            //if (this._WaveFileWriter != null)
+            //{
+            //    this._WaveFileWriter.Close();
+            //    this._WaveFileWriter = null;
+            //}
+
+            //if (this.usender != null)
+            //{
+            //    this.usender.Close();
+            //    this.usender = null;
+            //}
+
+            //this.Dispose();
+        }
+
+        private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
+        {
+            //this._WaveFileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+            //this.DataAvailable?.Invoke(this, e);
+
+            Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
+
+            byte[] recorded_buf = e.Buffer;
+            int recorded_length = e.BytesRecorded;
 
             //byte[] converted_buf = null;
             //int converted_len = -1;
@@ -168,25 +250,6 @@ namespace RemoteDesktop.Server.XamaOK
             try
             {
                 //// 生データを再生可能なデータに変換
-                //var resampleStream = new AcmStream(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 2));
-                //Buffer.BlockCopy(recorded_buf, 0, resampleStream.SourceBuffer, 0, recorded_length);
-                //int sourceBytesConverted = 0;
-                //convertedBytes = resampleStream.Convert(recorded_length, out sourceBytesConverted);
-                //if (sourceBytesConverted != recorded_length)
-                //{
-                //    Console.WriteLine("We didn't convert everything {0} bytes in, {1} bytes converted");
-                //}
-                //converted_buf = new byte[convertedBytes];
-                //Buffer.BlockCopy(resampleStream.DestBuffer, 0, converted_buf, 0, convertedBytes);
-
-                //var waveProvider = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(48000, 2));
-                //waveProvider.AddSamples(recorded_buf, 0, recorded_length);
-                //var sampleProvider = waveProvider.ToSampleProvider();
-                //var waveProvider16 = sampleProvider.ToWaveProvider16();
-                //convertedBytes = recorded_length / 2;
-                //converted_buf = new byte[convertedBytes];
-                //waveProvider16.Read(converted_buf, 0, convertedBytes);
-
                 var waveBufferResample = new BufferedWaveProvider(this._WaveIn.WaveFormat);
                 waveBufferResample.DiscardOnBufferOverflow = true;
                 waveBufferResample.ReadFully = false;  // leave a buffer?
@@ -248,111 +311,47 @@ namespace RemoteDesktop.Server.XamaOK
                 //Wenn noch aktiv
                 if (!usender.disconnected)
                 {
-                    //if ((m_CurrentRTPBufferPos + rtp_config.PacketSize) <= m_FilePayloadBuffer.Length)
-                    //{
-                    //    //Bytes senden
-                    //    Array.Copy(m_FilePayloadBuffer, m_CurrentRTPBufferPos, m_PartByte, 0, m_RTPPartsLength);
-                    //    m_CurrentRTPBufferPos += m_RTPPartsLength;
-                    //    RTPPacket rtp = SoundUtils.ToRTPPacket(m_PartByte, rtp_config);
-                    //    usender.SendBytes(rtp.ToBytes());
-                    //}
-                    //else
-                    //{
-                    //    //Rest-Bytes senden
-                    //    int rest = m_FilePayloadBuffer.Length - m_CurrentRTPBufferPos;
-                    //    Byte[] restBytes = new Byte[m_PartByte.Length];
-                    //    Array.Copy(m_FilePayloadBuffer, m_CurrentRTPBufferPos, restBytes, 0, rest);
-                    //    RTPPacket rtp = SoundUtils.ToRTPPacket(restBytes, rtp_config);
-                    //    usender.SendBytes(rtp.ToBytes());
+                    //Wenn JitterBuffer
+                    if (rtp_config.UseJitterBuffer)
+                    {
+                        //Sounddaten in kleinere Einzelteile zerlegen
+                        int bytesPerInterval = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels);
+                        int count = pcm16_len / bytesPerInterval;
+                        int currentPos = 0;
+                        for (int i = 0; i < count; i++)
+                        {
+                            //Teilstück in RTP Packet umwandeln
+                            Byte[] partBytes = new Byte[bytesPerInterval];
+                            Array.Copy(pcm16_buf, currentPos, partBytes, 0, bytesPerInterval);
+                            currentPos += bytesPerInterval;
+                            var rtp = SoundUtils.ToRTPPacket(partBytes, rtp_config);
+                            //In Buffer legen
+                            m_JitterBuffer.AddData(rtp);
+                        }
+                    }
+                    else
+                    {
+                        //checkFileStream.Write(depthConv_buf, 0, depthConvBytes);
+                        //if (checkFileStream.Length > (8000 * 120))
+                        //{
+                        //    checkFileStream.Flush();
+                        //    checkFileStream.Close();
+                        //    System.Windows.Forms.Application.Exit();
+                        //}
 
-                    //    //if (m_Loop == false)
-                    //    //{
-                    //    //    //QueueTimer beenden
-                    //    //    StopTimerStream();
-                    //    //}
-                    //    //else
-                    //    //{
-                    //    //    //Von vorne beginnen
-                    //    //    m_CurrentRTPBufferPos = 0;
-                    //    //}
-                    //}
+                        //usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
+                        //usender.SendBytes(SoundUtils.ToRTPData(depthConv_buf, rtp_config));
+                        usender.SendBytes(SoundUtils.ToRTPData(pcm16_buf, rtp_config));
+                        //usender.SendBytes(SoundUtils.ToRTPData(pcm8_buf, rtp_config));
+                    }
 
-                    ////Wenn JitterBuffer
-                    //if (rtp_config.JitterBuffer > 1)
-                    //{
-                    //Sounddaten in kleinere Einzelteile zerlegen
-
-                    //int bytesPerInterval = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, false);
-                    //int count = recorded_length / bytesPerInterval;
-                    //int currentPos = 0;
-                    //Byte[] partBytes = new Byte[bytesPerInterval];
-                    //for (int i = 0; i < count; i++)
-                    //{
-                    //    //Teilstück in RTP Packet umwandeln
-
-                    //    Array.Copy(recorded_buf, currentPos, partBytes, 0, bytesPerInterval);
-                    //    currentPos += bytesPerInterval;
-                    //    RTPPacket rtp = SoundUtils.ToRTPPacket(partBytes, rtp_config);
-                    //    usender.SendBytes(rtp.ToBytes());
-                    //    //In Buffer legen
-                    //    //m_JitterBuffer.AddData(rtp);
-                    //}
-                    //    }
-                    //    else
-                    //    {
-
-                    //Byte[] justRecordedBuf = new byte[recorded_length];
-                    //Array.Copy(recorded_buf, 0, justRecordedBuf, 0, recorded_length);
-                    ////Alles in RTP Packet umwandeln
-                    //Byte[] rtp = SoundUtils.ToRTPData(justRecordedBuf, rtp_config);
-                    ////Absenden
-                    //usender.SendBytes(rtp);
-
-                    //checkFileStream.Write(depthConv_buf, 0, depthConvBytes);
-                    //if (checkFileStream.Length > (8000 * 120))
-                    //{
-                    //    checkFileStream.Flush();
-                    //    checkFileStream.Close();
-                    //    System.Windows.Forms.Application.Exit();
-                    //}
-
-                    //usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
-                    //usender.SendBytes(SoundUtils.ToRTPData(depthConv_buf, rtp_config));
-                    usender.SendBytes(SoundUtils.ToRTPData(pcm16_buf, rtp_config));
-                    //usender.SendBytes(SoundUtils.ToRTPData(pcm8_buf, rtp_config));
-                    //    }
-                    //}
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 resetAllInstanseState();
-                //StopTimerStream();
             }
-        }
-
-        private void WaveInOnRecordingStopped(object sender, StoppedEventArgs e)
-        {
-            //if (this._WaveFileWriter != null)
-            //{
-            //    this._WaveFileWriter.Close();
-            //    this._WaveFileWriter = null;
-            //}
-
-            //if (this.usender != null)
-            //{
-            //    this.usender.Close();
-            //    this.usender = null;
-            //}
-
-            //this.Dispose();
-        }
-
-        private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
-        {
-            //this._WaveFileWriter.Write(e.Buffer, 0, e.BytesRecorded);
-            this.DataAvailable?.Invoke(this, e);
         }
 
         #endregion
@@ -367,7 +366,7 @@ namespace RemoteDesktop.Server.XamaOK
         public void Dispose()
         {
 
-            this.DataAvailable -= this.AudioOutputWriterOnDataAvailable;
+            //this.DataAvailable -= this.AudioOutputWriterOnDataAvailable;
 
             if(this._WaveIn != null)
             {

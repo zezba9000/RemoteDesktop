@@ -33,13 +33,13 @@ namespace WinSound
         private uint m_MaxRTPPackets = 10;
         private uint m_TimerIntervalInMilliseconds = 20;
         private global::WinSound.EventTimer m_Timer = new global::WinSound.EventTimer();
-        private System.Collections.Generic.Queue<RTPPacket> m_Buffer = new Queue<RTPPacket>();
-        private RTPPacket m_LastRTPPacket = new RTPPacket();
+        private System.Collections.Generic.Queue<RemoteDesktop.Android.Core.RTPPacket> m_Buffer = new Queue<RemoteDesktop.Android.Core.RTPPacket>();
+        private RemoteDesktop.Android.Core.RTPPacket m_LastRTPPacket = new RemoteDesktop.Android.Core.RTPPacket();
         private bool m_Underflow = true;
         private bool m_Overflow = false;
 
         //Delegates bzw. Event
-        public delegate void DelegateDataAvailable(Object sender, RTPPacket packet);
+        public delegate void DelegateDataAvailable(Object sender, RemoteDesktop.Android.Core.RTPPacket packet);
         public event DelegateDataAvailable DataAvailable;
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace WinSound
         /// AddData
         /// </summary>
         /// <param name="data"></param>
-        public void AddData(RTPPacket packet)
+        public void AddData(RemoteDesktop.Android.Core.RTPPacket packet)
         {
             try
             {

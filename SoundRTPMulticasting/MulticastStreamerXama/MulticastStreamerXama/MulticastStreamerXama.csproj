@@ -95,6 +95,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\RemoteDesktop.Android.Core\RemoteDesktop.Android.Core.csproj">
+      <Project>{4ecbdb10-8923-46eb-b3a9-33016ddfb774}</Project>
+      <Name>RemoteDesktop.Android.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\WinSound\WinSound\WinSound.csproj">
       <Project>{28120D29-4F6E-4C3B-AB6A-900A26420B9C}</Project>
       <Name>WinSound</Name>

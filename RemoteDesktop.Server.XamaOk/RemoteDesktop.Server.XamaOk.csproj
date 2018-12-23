@@ -130,6 +130,10 @@
       <Project>{4ecbdb10-8923-46eb-b3a9-33016ddfb774}</Project>
       <Name>RemoteDesktop.Android.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SoundRTPMulticasting\WinSound\WinSound\WinSound.csproj">
+      <Project>{28120d29-4f6e-4c3b-ab6a-900a26420b9c}</Project>
+      <Name>WinSound</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Images\AppIcon.ico" />

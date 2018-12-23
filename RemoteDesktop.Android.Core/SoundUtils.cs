@@ -180,13 +180,9 @@ namespace RemoteDesktop.Android.Core
                 return rtp;
             }
 
-            public static int GetBytesPerInterval(uint SamplesPerSecond, int BitsPerSample, int Channels, bool isClient)
+            public static int GetBytesPerInterval(uint SamplesPerSecond, int BitsPerSample, int Channels)
             {
                 int blockAlign = ((BitsPerSample * Channels) >> 3);
-                if (isClient)
-                {
-                    blockAlign = 1;
-                }
                 int bytesPerSec = (int)(blockAlign * SamplesPerSecond);
                 uint sleepIntervalFactor = 1000 / 20; //20 Milliseconds
                 int bytesPerInterval = (int)(bytesPerSec / sleepIntervalFactor);
