@@ -29,7 +29,7 @@ namespace RemoteDesktop.Server
 		private Graphics graphics;
 		private System.Windows.Forms.Timer timer;
         //private AudioOutputWriter _AudioOutputWriter;
-        private Dispatcher dispatcher;
+        public static Dispatcher dispatcher;
 
 		public MainForm()
 		{

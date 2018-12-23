@@ -11,6 +11,8 @@ using RemoteDesktop.Android.Core;
 using NAudio.Wave.Compression;
 using System.Media;
 using NAudio.Wave.SampleProviders;
+using RemoteDesktop.Android.Core.Sound;
+using System.Net;
 
 namespace RemoteDesktop.Server.XamaOK
 {
@@ -26,11 +28,9 @@ namespace RemoteDesktop.Server.XamaOK
 
         #region フィールド
 
-        //private readonly string _FileName;
-
         private WasapiLoopbackCapture _WaveIn;
         private UDPSender usender;
-        //private WaveFileWriter _WaveFileWriter;
+        private SoundDataSocket sdsock;
         private MMDevice m_device;
         public bool IsRecording = false;
         private RTPConfiguration rtp_config;
@@ -38,14 +38,6 @@ namespace RemoteDesktop.Server.XamaOK
         private WinSound.JitterBuffer m_JitterBuffer;
         private uint m_JitterBufferCount = 20; // max buffering num of RTPPacket at jitter buffer
         private uint m_Milliseconds = 20; // time period of jitter buffer (msec)
-
-        //private BufferedStream checkFileStream;
-
-        //private int m_CurrentRTPBufferPos = 0;
-        //private int m_RTPPartsLength = 0;
-        //private byte[] m_FilePayloadBuffer;
-        //private byte[] m_PartByte;
-        //private int m_RTPPPartsLength = 0;
 
         #endregion
 
@@ -68,23 +60,30 @@ namespace RemoteDesktop.Server.XamaOK
             m_Milliseconds = rtp_config.JitterBufferTimerPeriodMsec;
 
             m_device = device;
-//            this._FileName = fileName;
             this._WaveIn = new WasapiLoopbackCapture(m_device);
             this._WaveIn.DataAvailable += this.WaveInOnDataAvailable;
             this._WaveIn.RecordingStopped += this.WaveInOnRecordingStopped;
-
-            usender = new UDPSender(Utils.getLocalIP().ToString(), 10000, 10);
-            //this._Stream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.Write);
-            //this._WaveFileWriter = new WaveFileWriter(usender, this._WaveIn.WaveFormat);
-
-            // キャプチャしたサウンドを読み込んだ際のハンドラ
-            //DataAvailable += AudioOutputWriterOnDataAvailable;
-
             WaveFormat wfmt = this._WaveIn.WaveFormat;
-            Console.WriteLine(wfmt.ToString());
 
-            InitJitterBuffer();
-            m_JitterBuffer.Start();
+            if(rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
+            {
+                usender = new UDPSender(Utils.getLocalIP().ToString(), 10000, 10);
+                InitJitterBuffer();
+                m_JitterBuffer.Start();
+            }
+            else //TCP
+            {
+                sdsock = new SoundDataSocket(NetworkTypes.Server);
+                //dispatcher = Dispatcher.CurrentDispatcher;
+                sdsock.ConnectedCallback += Socket_ConnectedCallback;
+                sdsock.DisconnectedCallback += Socket_DisconnectedCallback;
+                sdsock.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+                sdsock.DataRecievedCallback += Socket_DataRecievedCallback;
+                sdsock.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+                sdsock.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+                sdsock.Listen(IPAddress.Any, rtp_config.ServerPort);
+            }
+
             Start(); // start capture and send stream
         }
 
@@ -148,14 +147,18 @@ namespace RemoteDesktop.Server.XamaOK
 
         private void resetAllInstanseState()
         {
-            // UDPSenderをそのまま使いまわすため、this_WaveFileWriterはDispose的なことしない
+            // UDPSender や SoundDataSocketはそのまま使いまわす
 
             //this.DataAvailable -= this.AudioOutputWriterOnDataAvailable;
             //this._WaveFileWriter.Close();
             //this._WaveFileWriter.Dispose();
             //this._WaveFileWriter = null;
 
-            this.DisposeJitterBuffer();
+            if(rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
+            {
+                this.DisposeJitterBuffer();
+            }
+
 
             this._WaveIn.DataAvailable -= this.WaveInOnDataAvailable;
             this._WaveIn.RecordingStopped -= this.WaveInOnRecordingStopped;
@@ -173,11 +176,16 @@ namespace RemoteDesktop.Server.XamaOK
             //this._Stream = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.Write);
             //this._WaveFileWriter = new WaveFileWriter(usender, this._WaveIn.WaveFormat);
 
-            // キャプチャしたサウンドを読み込んだ際のハンドラ
-            //this.DataAvailable += this.AudioOutputWriterOnDataAvailable;
+            if (rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
+            {
+                InitJitterBuffer();
+                m_JitterBuffer.Start();
+            }
+            else
+            {
+                sdsock.ReListen();
+            }
 
-            InitJitterBuffer();
-            m_JitterBuffer.Start();
             Start(); // start capture and send stream
         }
 
@@ -225,18 +233,10 @@ namespace RemoteDesktop.Server.XamaOK
             //this.Dispose();
         }
 
-        private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
+        private byte[] convertIEEE32bitFloatTo16bitPCM(WaveInEventArgs e)
         {
-            //this._WaveFileWriter.Write(e.Buffer, 0, e.BytesRecorded);
-            //this.DataAvailable?.Invoke(this, e);
-
-            Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
-
             byte[] recorded_buf = e.Buffer;
             int recorded_length = e.BytesRecorded;
-
-            //byte[] converted_buf = null;
-            //int converted_len = -1;
 
             //byte[] depthConv_buf = null;
             //int depthConvBytes = -1;
@@ -289,15 +289,12 @@ namespace RemoteDesktop.Server.XamaOK
                 System.Windows.Forms.Application.Exit();
             }
 
-            try
-            {
-                if (rtp_config.isAlreadySetInfoFromSndCard == false)
-                {
-                    // キャプチャした音声データについて情報を設定
-                    updateRTPConfiguration();
-                    //m_RTPPartsLength = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.SamplesPerSecond, rtp_config.Channels);
-                    rtp_config.isAlreadySetInfoFromSndCard = true;
-                }
+            return pcm16_buf;
+        }
+
+        private void handleDataWithUDP(byte[] pcm16_buf)
+        {
+                int pcm16_len = pcm16_buf.Length;
 
                 //次のコネクションが来ていないかチェックする
                 usender.checkNextClient();
@@ -348,12 +345,45 @@ namespace RemoteDesktop.Server.XamaOK
                         //    System.Windows.Forms.Application.Exit();
                         //}
 
-                        //usender.SendBytes(SoundUtils.ToRTPData(converted_buf, rtp_config));
-                        //usender.SendBytes(SoundUtils.ToRTPData(depthConv_buf, rtp_config));
                         usender.SendBytes(SoundUtils.ToRTPData(pcm16_buf, rtp_config));
-                        //usender.SendBytes(SoundUtils.ToRTPData(pcm8_buf, rtp_config));
                     }
 
+                }
+        }
+
+        private void handleDataWithTCP(byte[] pcm16_buf)
+        {
+            if (!sdsock.IsConnected())
+            {
+                return;
+            }
+            RTPPacket rtp = SoundUtils.ToRTPPacket(pcm16_buf, rtp_config);
+            sdsock.SendRTPPacket(rtp, rtp_config.compress, rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels);
+        }
+
+        private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
+        {
+            Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
+
+            byte[] pcm16_buf = convertIEEE32bitFloatTo16bitPCM(e);
+
+            try
+            {
+                if (rtp_config.isAlreadySetInfoFromSndCard == false)
+                {
+                    // キャプチャした音声データについて情報を設定
+                    updateRTPConfiguration();
+                    //m_RTPPartsLength = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.SamplesPerSecond, rtp_config.Channels);
+                    rtp_config.isAlreadySetInfoFromSndCard = true;
+                }
+
+                if(rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
+                {
+                    handleDataWithUDP(pcm16_buf);
+                }
+                else
+                {
+                    handleDataWithTCP(pcm16_buf);
                 }
             }
             catch (Exception ex)
@@ -362,6 +392,56 @@ namespace RemoteDesktop.Server.XamaOK
                 resetAllInstanseState();
             }
         }
+
+		private void Socket_StartDataRecievedCallback(PacketHeader pktHdr)
+		{
+            // do nothing
+		}
+
+		private void Socket_EndDataRecievedCallback()
+		{
+			// do nothing
+		}
+
+		private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
+		{
+			// do nothing
+		}
+
+        // only used on Client
+		private void Socket_ConnectionFailedCallback(string error)
+		{
+			DebugLog.LogError("Failed to connect: " + error);
+		}
+
+		private void Socket_ConnectedCallback()
+		{
+			DebugLog.Log("Connected to client");
+		}
+
+		private void Socket_DisconnectedCallback()
+		{
+			DebugLog.Log("Disconnected from client");
+			MainForm.dispatcher.InvokeAsync(delegate()
+			{
+				//sdsock.ReListen(); // resetAllInstanseStateでやるので不要
+                resetAllInstanseState();
+			});
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         #endregion
 

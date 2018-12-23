@@ -35,7 +35,8 @@ namespace RemoteDesktop.Android.Core
             public uint JitterBufferTimerPeriodMsec = 20; // time period of jitter buffer (msec)
             public bool UseJitterBuffer = true;
             public bool isAlreadySetInfoFromSndCard = false;
-            public ProtcolMode protcol_mode = ProtcolMode.UDP;
+            public ProtcolMode protcol_mode = ProtcolMode.TCP;
+            public bool compress = false;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";

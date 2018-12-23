@@ -120,13 +120,20 @@ namespace RemoteDesktop.Client.Android
 
         protected override void OnDisappearing()
         {
-            player.togglePlaying();
+            player.togglePlayingUDP();
         }
 
         public void connectToSoundServer()
         {
             player = new RTPSoundStreamPlayer();
-            player.togglePlaying();
+            if(player.config.protcol_mode == RTPConfiguration.ProtcolMode.TCP)
+            {
+                player.togglePlayingTCP();
+            }
+            else
+            {
+                player.togglePlayingUDP();
+            }
         }
 
         public void updateImageContentRandom()
