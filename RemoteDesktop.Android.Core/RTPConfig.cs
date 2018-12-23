@@ -14,8 +14,14 @@ namespace RemoteDesktop.Android.Core
 
 			}
 
-			//Attribute
-			public String ServerAddress = "192.168.0.11";
+        	public enum ProtcolMode
+            {
+                UDP,
+                TCP
+            }
+
+            //Attribute
+            public String ServerAddress = "192.168.0.11";
 			public String SoundDeviceName = "";
 			public int ServerPort = 10000; //Sound Server
             public int SamplesPerSecond = 8000;
@@ -29,6 +35,7 @@ namespace RemoteDesktop.Android.Core
             public uint JitterBufferTimerPeriodMsec = 20; // time period of jitter buffer (msec)
             public bool UseJitterBuffer = true;
             public bool isAlreadySetInfoFromSndCard = false;
+            public ProtcolMode protcol_mode = ProtcolMode.UDP;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";
