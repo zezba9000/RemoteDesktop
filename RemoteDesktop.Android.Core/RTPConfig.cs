@@ -27,7 +27,7 @@ namespace RemoteDesktop.Android.Core
 			public Int32 BufferCount = 1024 * 256; // AndroidのAudioTrackに指定するバッファ長
 			public uint JitterBuffer = 20; // max buffering num of RTPPacket at jitter buffer
             public uint JitterBufferTimerPeriodMsec = 20; // time period of jitter buffer (msec)
-            public bool UseJitterBuffer = false;
+            public bool UseJitterBuffer = true;
             public bool isAlreadySetInfoFromSndCard = false;
 
             // for 流用元コード. Xamarin対応版では利用されない

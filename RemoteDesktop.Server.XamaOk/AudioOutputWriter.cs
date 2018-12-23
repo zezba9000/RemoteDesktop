@@ -328,6 +328,15 @@ namespace RemoteDesktop.Server.XamaOK
                             //In Buffer legen
                             m_JitterBuffer.AddData(rtp);
                         }
+                        // 余りデータがあれば送信する
+                        int leftData_len = pcm16_len - currentPos;
+                        if(leftData_len > 0)
+                        {
+                            Byte[] leftData_buf = new Byte[leftData_len];
+                            Array.Copy(pcm16_buf, currentPos, leftData_buf, 0, leftData_len);
+                            var rtp = SoundUtils.ToRTPPacket(leftData_buf, rtp_config);
+                            m_JitterBuffer.AddData(rtp);
+                        }
                     }
                     else
                     {
