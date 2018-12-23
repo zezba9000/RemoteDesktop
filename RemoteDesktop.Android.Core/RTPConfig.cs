@@ -24,7 +24,7 @@ namespace RemoteDesktop.Android.Core
             //public short BitsPerSample = 32;  // sound card native
 			public short Channels = 1;
 			public Int32 PacketSize = 4096; //使われていない
-			public Int32 BufferCount = 1024 * 256; // AndroidのAudioTrackに指定するバッファ長
+			public Int32 BufferCount = 1024 * 16; // AndroidのAudioTrackに指定するバッファ長
 			public uint JitterBuffer = 20; // max buffering num of RTPPacket at jitter buffer
             public uint JitterBufferTimerPeriodMsec = 20; // time period of jitter buffer (msec)
             public bool UseJitterBuffer = true;

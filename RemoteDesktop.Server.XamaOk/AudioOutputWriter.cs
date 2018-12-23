@@ -64,7 +64,7 @@ namespace RemoteDesktop.Server.XamaOK
             //checkFileStream = new BufferedStream(new FileStream(wavFilePath, FileMode.Append));
 
             rtp_config = config;
-            m_JitterBufferCount = (uint)rtp_config.BufferCount;
+            m_JitterBufferCount = rtp_config.JitterBuffer;
             m_Milliseconds = rtp_config.JitterBufferTimerPeriodMsec;
 
             m_device = device;
