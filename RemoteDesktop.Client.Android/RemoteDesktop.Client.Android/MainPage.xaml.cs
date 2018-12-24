@@ -23,7 +23,6 @@ namespace RemoteDesktop.Client.Android
     /// </summary>
     public partial class MainPage : ContentPage
     {
-        //private NetworkDiscovery networkDiscovery;
         private DataSocket socket;
         //private WriteableBitmap bitmap;
         //private IntPtr bitmapBackbuffer;
