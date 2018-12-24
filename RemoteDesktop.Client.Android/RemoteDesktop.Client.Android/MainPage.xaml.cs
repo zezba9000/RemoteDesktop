@@ -54,6 +54,7 @@ namespace RemoteDesktop.Client.Android
         private const int IMAGE_SERVER_PORT = 8888;
 
         private RTPSoundStreamPlayer player = null;
+        private AbsoluteLayout layout;
 
         public MainPage()
         {
@@ -70,30 +71,15 @@ namespace RemoteDesktop.Client.Android
             //};
             //image.GestureRecognizers.Add(gr);
 
-            //Content = new StackLayout
-            //{
-            //    // 縦は真ん中に表示
-            //    VerticalOptions = LayoutOptions.FillAndExpand, // LayoutOptions.Center,
-            //    //VerticalOptions = LayoutOptions.CenterAndExpand, // LayoutOptions.FillAndExpand,
-            //    // 横は真ん中に表示
-            //    HorizontalOptions = LayoutOptions.Center,  //LayoutOptions.FillAndExpand, // //LayoutOptions.CenterAndExpand,
-            //    //HorizontalOptions = LayoutOptions.CenterAndExpand, //LayoutOptions.FillAndExpand,
-            //    //iOSで上余白を確保
-            //    //Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0),
-            //    Children = { image }
-            //    //Children = { stackLayout }
-            //};
-
             Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
             var local_bitmap = new Picture(colorInfo, width, height);
             image.Source = local_bitmap.GetImageSource();
             image.Aspect = Aspect.AspectFit;
 
-            var layout = new AbsoluteLayout();
-            layout.Children.Add(image, new Rectangle(0, 0, width/2.5, height/2.5));
+            layout = new AbsoluteLayout();
+            //layout.Children.Add(image, new Rectangle(0, 0, width/2.5, height/2.5));
 
             Content = layout;
-
 
             ////settingsOverlay.ApplyCallback += SettingsOverlay_ApplyCallback;
             //SetConnectionUIStates(uiState);
@@ -144,6 +130,8 @@ namespace RemoteDesktop.Client.Android
 
         protected override void OnSizeAllocated(double width, double height)
         {
+            Console.WriteLine("OnSizeAllocated: " + width.ToString() + "x" + height.ToString());
+            layout.Children.Add(image, new Rectangle(0, 0, width, height));
             base.OnSizeAllocated(width, height);
         }
 
