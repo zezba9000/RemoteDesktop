@@ -4,8 +4,8 @@
              xmlns:local="clr-namespace:RemoteDesktop.Client.Android"
              x:Class="RemoteDesktop.Client.Android.MainPage">
 
-        <StackLayout VerticalOptions = "FillAndExpand" HorizontalOptions="Center">
-            <Image x:Name="image" Aspect="AspectFit" />
-        </StackLayout>
+        <!--<StackLayout VerticalOptions = "Fill" HorizontalOptions="Fill">
+            <Image x:Name="image" Aspect="Fill" />
+        </StackLayout>-->
 
 </ContentPage>

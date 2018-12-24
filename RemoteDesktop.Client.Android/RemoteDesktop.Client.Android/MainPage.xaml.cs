@@ -42,14 +42,14 @@ namespace RemoteDesktop.Client.Android
         //private sbyte mouseScroll;
         //private byte mouseScrollCount, inputMouseButtonPressed;
 
-        //private Xamarin.Forms.Image image = new Xamarin.Forms.Image();
+        private Xamarin.Forms.Image image = new Xamarin.Forms.Image();
 
         private Picture bitmap = null;
         private byte[] bitmapBuffer = null;
         public static Random rnd = new Random();
         // for ...x86_Oreo(1) emulator
-        private int width = 1440;
-        private int height = 2400; //display size is 2560
+        private int width = 1080;
+        private int height = 1800; //display size is 2560
         private const string SERVER_ADDR = "192.168.0.11";
         private const int IMAGE_SERVER_PORT = 8888;
 
@@ -57,31 +57,7 @@ namespace RemoteDesktop.Client.Android
 
         public MainPage()
         {
-            InitializeComponent();
-
-            //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
-            //var r = rnd.Next(256);
-            //var g = rnd.Next(256);
-            //var b = rnd.Next(256);
-            //for (int h = 0;h < height; h++)
-            //{
-            //    for(int w = 0; w < width; w++)
-            //    {
-            //        colorInfo[(h, w)] = (255, (byte)r,(byte)g, (byte)b);
-            //    }
-            //}
-
-            Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
-            var local_bitmap = new Picture(colorInfo, width, height);
-
-            //imgSrc = picture.GetImageSource();
             //InitializeComponent();
-
-            //image = new Xamarin.Forms.Image
-            //{
-            //    Aspect = Aspect.AspectFit, //Aspect.Fill, 
-            //};
-            image.Source = local_bitmap.GetImageSource();
 
             //var gr = new TapGestureRecognizer();
             //gr.Tapped += (s, e) =>
@@ -93,14 +69,6 @@ namespace RemoteDesktop.Client.Android
             //    //DisplayAlert("", "Tap", "OK");
             //};
             //image.GestureRecognizers.Add(gr);
-
-            //var stackLayout = new StackLayout
-            //{
-            //     Children =
-            //    {
-            //         image
-            //    }
-            //};
 
             //Content = new StackLayout
             //{
@@ -116,15 +84,15 @@ namespace RemoteDesktop.Client.Android
             //    //Children = { stackLayout }
             //};
 
-            // this Image content update code worked collectly
-            //Device.StartTimer(
-            //        TimeSpan.FromSeconds(3),
-            //        () =>
-            //        {
-            //            updateImageContentRandom();
-            //            return true;
-            //        }
-            //);
+            Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
+            var local_bitmap = new Picture(colorInfo, width, height);
+            image.Source = local_bitmap.GetImageSource();
+            image.Aspect = Aspect.AspectFit;
+
+            var layout = new AbsoluteLayout();
+            layout.Children.Add(image, new Rectangle(0, 0, width/2.5, height/2.5));
+
+            Content = layout;
 
 
             ////settingsOverlay.ApplyCallback += SettingsOverlay_ApplyCallback;
@@ -224,12 +192,13 @@ namespace RemoteDesktop.Client.Android
                     if (bitmap == null)
                     {
                         bitmap = new Picture(null, metaData.width, metaData.height);
+                        //bitmap = new Picture(null, width, height);
                         //bitmap = new Picture(null, metaData.screenWidth, metaData.screenHeight);
                         bitmapBuffer = bitmap.getInternalBuffer();
                         image.BindingContext = bitmap;
                         image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
-                        width = metaData.width;
-                        height = metaData.height;
+                        //width = metaData.width;
+                        //height = metaData.height;
                         //image.Scale = 3; // scale bitmap data 3x
                         //image.HeightRequest = metaData.screenHeight;
                         //image.WidthRequest = metaData.screenWidth;
