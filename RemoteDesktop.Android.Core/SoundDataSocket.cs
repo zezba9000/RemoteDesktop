@@ -351,7 +351,14 @@ namespace RemoteDesktop.Android.Core.Sound
                             BinaryFormatter bf = new BinaryFormatter();
                             pktHdr = (PacketHeader) bf.Deserialize(new MemoryStream(pktHdrBuffer));
 
-							if (pktHdr.dataSize == 0) throw new Exception("Invalid data size");
+							//if (pktHdr.dataSize == 0) throw new Exception("Invalid data size");
+                            if(pktHdr.dataSize == 0)
+                            {
+                                Console.WriteLine("SoundDataSocket::RecieveDataCallback: pktHdr.datasize is 0 !!!");
+                                pktHdrBufferRead = 0;
+                                try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
+                                return;
+                            }
 
 							// fire start callback
 							FireStartDataRecievedCallback(pktHdr);
