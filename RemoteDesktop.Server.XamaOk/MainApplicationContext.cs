@@ -20,7 +20,6 @@ namespace RemoteDesktop.Server
 		private NotifyIcon trayIcon;
 		//private NetworkDiscovery networkDiscovery;
 		private DataSocket socket;
-
 		private Rectangle screenRect;
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;

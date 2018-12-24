@@ -19,6 +19,12 @@ namespace RemoteDesktop.Client.Android
         Paused
     }
 
+    enum IMAGE_COMPONENT_TAG
+    {
+        IMAGE_COMPONENT_1,
+        IMAGE_COMPONENT_2,
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -42,10 +48,13 @@ namespace RemoteDesktop.Client.Android
         //private sbyte mouseScroll;
         //private byte mouseScrollCount, inputMouseButtonPressed;
 
-        private Xamarin.Forms.Image image = new Xamarin.Forms.Image();
+        private Xamarin.Forms.Image image1 = new Xamarin.Forms.Image();
+        private Xamarin.Forms.Image image2 = new Xamarin.Forms.Image();
 
-        private Picture bitmap = null;
-        private byte[] bitmapBuffer = null;
+        private Picture bitmap1 = null;
+        private Picture bitmap2 = null;
+        private byte[] bitmapBuffer1 = null;
+        private byte[] bitmapBuffer2 = null;
         public static Random rnd = new Random();
         // for ...x86_Oreo(1) emulator
         private int width = 1080;
@@ -55,6 +64,10 @@ namespace RemoteDesktop.Client.Android
 
         private RTPSoundStreamPlayer player = null;
         private AbsoluteLayout layout;
+
+        private IMAGE_COMPONENT_TAG curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
+        private IMAGE_COMPONENT_TAG curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
+        private byte[] curBitmapBuffer = null;
 
         public MainPage()
         {
@@ -73,8 +86,10 @@ namespace RemoteDesktop.Client.Android
 
             Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
             var local_bitmap = new Picture(colorInfo, width, height);
-            image.Source = local_bitmap.GetImageSource();
-            image.Aspect = Aspect.AspectFit;
+            image1.Source = local_bitmap.GetImageSource();
+            image2.Aspect = Aspect.AspectFit;
+            image1.Source = local_bitmap.GetImageSource();
+            image2.Aspect = Aspect.AspectFit;
 
             layout = new AbsoluteLayout();
             //layout.Children.Add(image, new Rectangle(0, 0, width/2.5, height/2.5));
@@ -114,11 +129,11 @@ namespace RemoteDesktop.Client.Android
             }
         }
 
-        public void updateImageContentRandom()
-        {
-            Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
-            bitmap.updateContent(colorInfo, width, height);
-        }
+        //public void updateImageContentRandom()
+        //{
+        //    Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
+        //    bitmap.updateContent(colorInfo, width, height);
+        //}
 
         protected override bool OnBackButtonPressed()
         {
@@ -131,7 +146,21 @@ namespace RemoteDesktop.Client.Android
         protected override void OnSizeAllocated(double width, double height)
         {
             Console.WriteLine("OnSizeAllocated: " + width.ToString() + "x" + height.ToString());
-            layout.Children.Add(image, new Rectangle(0, 0, width, height));
+            layout.Children.Add(image1, new Rectangle(0, 0, width, height));
+            layout.Children.Add(image2, new Rectangle(0, 0, width, height));
+
+            // 更新中対象のものは更新してからVisibleにする
+            if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+            {
+                image1.IsVisible = false;
+            }
+            else
+            {
+                image2.IsVisible = false;
+            }
+
+            this.width = (int)width;
+            this.height = (int)height;
             base.OnSizeAllocated(width, height);
         }
 
@@ -141,10 +170,12 @@ namespace RemoteDesktop.Client.Android
             if (state == UIStates.Stopped)
             {
                 while (processingFrame && !isDisposed) Thread.Sleep(1);
-                if (bitmap != null)
+                if (bitmap1 != null)
                 {
-                    Utils.fillValueByteArray(bitmapBuffer, 255, Picture.headerSize);
-                    bitmap.setStateUpdated();
+                    Utils.fillValueByteArray(bitmapBuffer1, 255, Picture.headerSize);
+                    Utils.fillValueByteArray(bitmapBuffer2, 255, Picture.headerSize);
+                    bitmap1.setStateUpdated();
+                    bitmap2.setStateUpdated();
                 }
             }
         }
@@ -165,9 +196,44 @@ namespace RemoteDesktop.Client.Android
             socket.Connect(IPAddress.Parse(SERVER_ADDR), IMAGE_SERVER_PORT);
         }
 
+        private void displayImageComponentToggle()
+        {
+            // 先に行われたImageコンポーネントへの更新通知による表示の更新が完了していない
+            // 可能性があるので少し待つ
+            Thread.Sleep(50); 
+            if(curDisplayingImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+            {
+                image2.IsVisible = true;
+                image1.IsVisible = false;
+            }
+            else
+            {
+                image2.IsVisible = true;
+                image1.IsVisible = false;
+            }
+        }
+
+        // Imageコンポーネントへのデータ更新通知もここで行う
+        private void dataUpdateTargetImageComponentToggle()
+        {
+            if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+            {
+                bitmap1.setStateUpdated();
+                curBitmapBuffer = bitmapBuffer2;
+                curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
+            }
+            else
+            {
+                bitmap2.setStateUpdated();
+                curBitmapBuffer = bitmapBuffer1;
+                curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
+            }
+        }
+
         private void Socket_StartDataRecievedCallback(MetaData metaData)
         {
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
+
 
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
@@ -175,16 +241,22 @@ namespace RemoteDesktop.Client.Android
                 Utils.startTimeMeasure("Image_Transfer_Communication");
                 this.metaData = metaData;
                 try {
+                    displayImageComponentToggle(); // 直前のデータ受信でデータを更新したImageコンポーネントを表示状態にする
+
                     processingFrame = true;
                     // create bitmap
-                    if (bitmap == null)
+                    if (bitmap1 == null)
                     {
-                        bitmap = new Picture(null, metaData.width, metaData.height);
-                        //bitmap = new Picture(null, width, height);
-                        //bitmap = new Picture(null, metaData.screenWidth, metaData.screenHeight);
-                        bitmapBuffer = bitmap.getInternalBuffer();
-                        image.BindingContext = bitmap;
-                        image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                        bitmap1 = new Picture(null, metaData.width, metaData.height);
+                        bitmapBuffer1 = bitmap1.getInternalBuffer();
+                        image1.BindingContext = bitmap1;
+                        image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                        bitmap2 = new Picture(null, metaData.width, metaData.height);
+                        bitmapBuffer2 = bitmap2.getInternalBuffer();
+                        image1.BindingContext = bitmap2;
+                        image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+
+                        curBitmapBuffer = bitmapBuffer2;
                         //width = metaData.width;
                         //height = metaData.height;
                         //image.Scale = 3; // scale bitmap data 3x
@@ -245,7 +317,7 @@ namespace RemoteDesktop.Client.Android
                             {
                                 var tmpDecompedStream = new MemoryStream();
                                 gzip.CopyTo(tmpDecompedStream);
-                                Array.Copy(tmpDecompedStream.GetBuffer(), 0, bitmapBuffer, Picture.headerSize, metaData.imageDataSize);
+                                Array.Copy(tmpDecompedStream.GetBuffer(), 0, curBitmapBuffer, Picture.headerSize, metaData.imageDataSize);
                                 Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                             }
                         }
@@ -261,7 +333,10 @@ namespace RemoteDesktop.Client.Android
                     //bitmap.scaleBitmapAndSetStateUpdated(3);
                     //Console.WriteLine("elapsed for bitmap upscale: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
 
-                    bitmap.setStateUpdated();
+                    // このメソッドの中でImageコンポーネントへの更新通知も行う
+                    dataUpdateTargetImageComponentToggle();
+
+                    //bitmap.setStateUpdated();
 
                     curBitmapBufOffset = 0;
 
@@ -303,7 +378,7 @@ namespace RemoteDesktop.Client.Android
                             curBitmapBufOffset = Picture.headerSize;
                         }
 
-                        Array.Copy(data, 0, bitmapBuffer, curBitmapBufOffset + offset, dataSize);
+                        Array.Copy(data, 0, curBitmapBuffer, curBitmapBufOffset + offset, dataSize);
                     }
                     tcs.SetResult(true);
                 } catch (Exception ex) {
