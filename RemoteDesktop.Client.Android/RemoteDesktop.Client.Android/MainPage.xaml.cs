@@ -48,7 +48,7 @@ namespace RemoteDesktop.Client.Android
         private int width = 1440;
         private int height = 2400; //display size is 2560
         private const string SERVER_ADDR = "192.168.0.11";
-        private const int SERVER_PORT = 8888;
+        private const int IMAGE_SERVER_PORT = 8888;
 
         private RTPSoundStreamPlayer player = null;
 
@@ -114,7 +114,7 @@ namespace RemoteDesktop.Client.Android
 
             //Utils.getLocalIP();
             connectToSoundServer(); // start recieve sound data which playing on remote PC
-            //connectToServer(); // staart recieve captured bitmap image data 
+            connectToImageServer(); // staart recieve captured bitmap image data 
         }
 
         protected override void OnDisappearing()
@@ -168,7 +168,7 @@ namespace RemoteDesktop.Client.Android
             }
         }
 
-        private void connectToServer()
+        private void connectToImageServer()
         {
             // handle connect
             SetConnectionUIStates(UIStates.Streaming);
@@ -181,7 +181,7 @@ namespace RemoteDesktop.Client.Android
             socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
             socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             //socket.Connect(host.endpoints[0]);
-            socket.Connect(IPAddress.Parse(SERVER_ADDR), SERVER_PORT);
+            socket.Connect(IPAddress.Parse(SERVER_ADDR), IMAGE_SERVER_PORT);
         }
 
         private void Socket_StartDataRecievedCallback(MetaData metaData)

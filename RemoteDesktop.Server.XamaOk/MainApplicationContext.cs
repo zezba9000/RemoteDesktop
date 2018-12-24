@@ -37,7 +37,7 @@ namespace RemoteDesktop.Server
 		//private byte inputLastMouseState;
         private CaptureSoundStreamer cap_streamer;
 
-		public MainApplicationContext(int port)
+		public MainApplicationContext(int cap_image_serv_port)
 		{
 			// init tray icon
 			var menuItems = new MenuItem[]
@@ -56,20 +56,20 @@ namespace RemoteDesktop.Server
             dispatcher = Dispatcher.CurrentDispatcher;
             cap_streamer = new CaptureSoundStreamer();
 
-			//// init input simulation
-			//input = new InputSimulator();
+            //// init input simulation
+            //input = new InputSimulator();
 
-			//// star socket
-			//dispatcher = Dispatcher.CurrentDispatcher;
-			//socket = new DataSocket(NetworkTypes.Server);
-			//socket.ConnectedCallback += Socket_ConnectedCallback;
-			//socket.DisconnectedCallback += Socket_DisconnectedCallback;
-			//socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-			//socket.DataRecievedCallback += Socket_DataRecievedCallback;
-			//socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-			//socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-			//socket.Listen(IPAddress.Any, port);
-		}
+            //// star socket
+            dispatcher = Dispatcher.CurrentDispatcher;
+            socket = new DataSocket(NetworkTypes.Server);
+            socket.ConnectedCallback += Socket_ConnectedCallback;
+            socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            socket.Listen(IPAddress.Any, cap_image_serv_port);
+        }
 
 		void Exit(object sender, EventArgs e)
 		{
