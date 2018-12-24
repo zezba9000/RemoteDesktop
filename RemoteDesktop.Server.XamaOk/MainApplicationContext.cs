@@ -28,7 +28,8 @@ namespace RemoteDesktop.Server
         int screenIndex, currentScreenIndex;
         float targetFPS = 10f;
         bool compress; //, currentCompress;
-        float resolutionScale = 0.3f; //, currentResolutionScale = 0.3f;
+        float resolutionScale = 0.3f;
+        float fixedResolutionScale = 0.2f; // if this value is not 1, this value is used at scaling always
 		private Timer timer;
 		public static Dispatcher dispatcher;
 
@@ -306,7 +307,7 @@ namespace RemoteDesktop.Server
 
 				CaptureScreen();
                 BitmapXama convedXBmap = null;
-                if (resolutionScale == 1)
+                if (resolutionScale == 1 && fixedResolutionScale == 1)
                 {
                     convedXBmap = convertToBitmapXamaAndRotate(bitmap);
                     socket.SendImage(convedXBmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
@@ -350,7 +351,8 @@ namespace RemoteDesktop.Server
                 bitmap = new Bitmap(screenRect.Width, screenRect.Height, format);
                 graphics = Graphics.FromImage(bitmap);
 
-                if (resolutionScale != 1)
+                float localScale = 1;
+                if (resolutionScale != 1 || fixedResolutionScale != 1)
                 {
                     if (scaledBitmap != null)
                     {
@@ -362,14 +364,22 @@ namespace RemoteDesktop.Server
                         scaledGraphics.Dispose();
                         scaledGraphics = null;
                     }
-                    scaledBitmap = new Bitmap((int)(screenRect.Width * resolutionScale), (int)(screenRect.Height * resolutionScale), format);
+                    localScale = resolutionScale;
+                    if(fixedResolutionScale != 1)
+                    {
+                        localScale = fixedResolutionScale;
+                    }
+                    scaledBitmap = new Bitmap((int)(screenRect.Width * localScale), (int)(screenRect.Height * localScale), format);
                     scaledGraphics = Graphics.FromImage(scaledBitmap);
                 }
                 // ---                                         end                                          ---
 
                 // capture screen
                 graphics.CopyFromScreen(screenRect.Left, screenRect.Top, 0, 0, bitmap.Size, CopyPixelOperation.SourceCopy);
-                if (resolutionScale != 1) scaledGraphics.DrawImage(bitmap, 0, 0, scaledBitmap.Width, scaledBitmap.Height);
+                if (localScale != 1)
+                {
+                    scaledGraphics.DrawImage(bitmap, 0, 0, scaledBitmap.Width, scaledBitmap.Height);
+                }
             }
         }
 

@@ -22,7 +22,7 @@ using RemoteDesktop.Server.XamaOK;
 namespace RemoteDesktop.Server
 {
 
-	// NOTE: this window is only for debugging
+	// NOTE: this window is only for debugging. not used!!!
 	public partial class MainForm : Form
 	{
 		private Bitmap bitmap;
