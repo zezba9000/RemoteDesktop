@@ -29,7 +29,7 @@ namespace RemoteDesktop.Server
         float targetFPS = 10f;
         bool compress; //, currentCompress;
         float resolutionScale = 0.3f;
-        float fixedResolutionScale = 0.2f; // if this value is not 1, this value is used at scaling always
+        float fixedResolutionScale = 0.5f; // if this value is not 1, this value is used at scaling always
 		private Timer timer;
 		public static Dispatcher dispatcher;
 

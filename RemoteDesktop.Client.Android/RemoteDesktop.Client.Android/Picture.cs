@@ -15,6 +15,7 @@ namespace RemoteDesktop.Client.Android
         private byte[] scaled_buffer = null;
         private int buffer_height = -1;
         private int buffer_width = -1;
+        private ImageSource latestSource;
 
         public Picture(Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo, int width, int height)
         {
@@ -114,6 +115,11 @@ namespace RemoteDesktop.Client.Android
             //buffer[index + 3] = (byte)a;
         }
 
+        private void setupImageSourceBeforeNotify()
+        {
+
+        }
+
         public ImageSource GetImageSource()
         {
             var ret_buf = buffer;
@@ -211,7 +217,7 @@ namespace RemoteDesktop.Client.Android
         {
             get
             {
-                return GetImageSource();
+                return latestSource;
 
                 //MemoryStream memoryStream = new MemoryStream(buffer);
                 //ImageSource imageSource = ImageSource.FromStream(() =>
@@ -230,6 +236,7 @@ namespace RemoteDesktop.Client.Android
 
         public void setStateUpdated()
         {
+            latestSource = GetImageSource();
             notifyPropertyChanged("Source");
         }
 
