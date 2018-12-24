@@ -9,7 +9,7 @@ namespace RemoteDesktop.Client.Android
     {
         public App()
         {
-            //InitializeComponent();
+            InitializeComponent();
 
             MainPage = new MainPage();
         }

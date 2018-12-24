@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using System.IO.Compression;
+using Xamarin.Forms.Xaml;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -33,14 +34,16 @@ namespace RemoteDesktop.Client.Android
         private bool skipImageUpdate, isDisposed; //, connectedToLocalPC;
         private bool processingFrame = false;
         private UIStates uiState = UIStates.Stopped;
-//        private Thickness lastImageThickness;
+        //        private Thickness lastImageThickness;
 
         //private Timer inputTimer;
         //private bool mouseUpdate;
         //private Point mousePoint;
         //private sbyte mouseScroll;
         //private byte mouseScrollCount, inputMouseButtonPressed;
-        private Xamarin.Forms.Image image = new Xamarin.Forms.Image();
+
+        //private Xamarin.Forms.Image image = new Xamarin.Forms.Image();
+
         private Picture bitmap = null;
         private byte[] bitmapBuffer = null;
         public static Random rnd = new Random();
@@ -54,6 +57,8 @@ namespace RemoteDesktop.Client.Android
 
         public MainPage()
         {
+            InitializeComponent();
+
             //var colorInfo = new Dictionary<(int,int),(byte,byte,byte,byte)>();
             //var r = rnd.Next(256);
             //var g = rnd.Next(256);
@@ -72,6 +77,10 @@ namespace RemoteDesktop.Client.Android
             //imgSrc = picture.GetImageSource();
             //InitializeComponent();
 
+            //image = new Xamarin.Forms.Image
+            //{
+            //    Aspect = Aspect.AspectFit, //Aspect.Fill, 
+            //};
             image.Source = local_bitmap.GetImageSource();
 
             //var gr = new TapGestureRecognizer();
@@ -85,12 +94,27 @@ namespace RemoteDesktop.Client.Android
             //};
             //image.GestureRecognizers.Add(gr);
 
-            Content = new StackLayout
-            {
-                //iOSで上余白を確保
-                Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0),
-                Children = { image }
-            };
+            //var stackLayout = new StackLayout
+            //{
+            //     Children =
+            //    {
+            //         image
+            //    }
+            //};
+
+            //Content = new StackLayout
+            //{
+            //    // 縦は真ん中に表示
+            //    VerticalOptions = LayoutOptions.FillAndExpand, // LayoutOptions.Center,
+            //    //VerticalOptions = LayoutOptions.CenterAndExpand, // LayoutOptions.FillAndExpand,
+            //    // 横は真ん中に表示
+            //    HorizontalOptions = LayoutOptions.Center,  //LayoutOptions.FillAndExpand, // //LayoutOptions.CenterAndExpand,
+            //    //HorizontalOptions = LayoutOptions.CenterAndExpand, //LayoutOptions.FillAndExpand,
+            //    //iOSで上余白を確保
+            //    //Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0),
+            //    Children = { image }
+            //    //Children = { stackLayout }
+            //};
 
             // this Image content update code worked collectly
             //Device.StartTimer(
@@ -111,6 +135,7 @@ namespace RemoteDesktop.Client.Android
             //image.MouseUp += Image_MousePress;
             ////image.MouseWheel += Image_MouseWheel;
             ////KeyDown += Window_KeyDown;
+
 
             //Utils.getLocalIP();
             connectToSoundServer(); // start recieve sound data which playing on remote PC
@@ -205,7 +230,7 @@ namespace RemoteDesktop.Client.Android
                         image.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
                         width = metaData.width;
                         height = metaData.height;
-                        //image.Scale = 2; // scale bitmap data 2x
+                        //image.Scale = 3; // scale bitmap data 3x
                         //image.HeightRequest = metaData.screenHeight;
                         //image.WidthRequest = metaData.screenWidth;
                     }
@@ -274,12 +299,12 @@ namespace RemoteDesktop.Client.Android
                     }
 
                     // scale data and notify data update to Image component
-                    Utils.startTimeMeasure("Bitmap_Upscale");
-                    Console.WriteLine("bitmap data upscale start!");
-                    bitmap.scaleBitmapAndSetStateUpdated(3);
-                    Console.WriteLine("elapsed for bitmap upscale: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
+                    //Utils.startTimeMeasure("Bitmap_Upscale");
+                    //Console.WriteLine("bitmap data upscale start!");
+                    //bitmap.scaleBitmapAndSetStateUpdated(3);
+                    //Console.WriteLine("elapsed for bitmap upscale: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
 
-                    //bitmap.setStateUpdated();
+                    bitmap.setStateUpdated();
 
                     curBitmapBufOffset = 0;
 
