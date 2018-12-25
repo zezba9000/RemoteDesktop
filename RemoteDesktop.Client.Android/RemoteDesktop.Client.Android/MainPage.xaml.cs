@@ -90,6 +90,7 @@ namespace RemoteDesktop.Client.Android
             var local_bitmap = new Picture(colorInfo, width, height);
             image1.Source = local_bitmap.GetImageSource();
             image2.Aspect = Aspect.AspectFit;
+            local_bitmap = new Picture(colorInfo, width, height);
             image1.Source = local_bitmap.GetImageSource();
             image2.Aspect = Aspect.AspectFit;
 
@@ -147,7 +148,7 @@ namespace RemoteDesktop.Client.Android
 
         private void addImageComponentToLayout()
         {
-            layout.Children.Add(image1, new Rectangle(0, 0, width, height));
+            //layout.Children.Add(image1, new Rectangle(0, 0, width, height));
             layout.Children.Add(image2, new Rectangle(0, 0, width, height));
 
             Console.WriteLine("addImageComponentToLayout: two image components added to layout");
@@ -209,19 +210,23 @@ namespace RemoteDesktop.Client.Android
         {
             // 先に行われたImageコンポーネントへの更新通知による表示の更新が完了していない
             // 可能性があるので少し待つ
-            Thread.Sleep(50); 
+            //Thread.Sleep(200); 
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
                 Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
-                image2.IsVisible = true;
-                image1.IsVisible = false;
+                //image2.IsVisible = true;
+                //image1.IsVisible = false;
+                image2.Opacity = 1.0;
+                image1.Opacity = 0;
                 //curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
             }
             else
             {
                 Console.WriteLine("double_image: set image1 visible @ displayImageComponentToggle");
-                image2.IsVisible = true;
-                image1.IsVisible = false;
+                //image2.IsVisible = false;
+                //image1.IsVisible = true;
+                image2.Opacity = 0;
+                image1.Opacity = 1.0;
                 //curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
             }
             Console.WriteLine("double_image: updateTarget=" + curUpdateTargetImgComp.ToString() + " @ end of displayImageComponentToggle");
@@ -278,6 +283,7 @@ namespace RemoteDesktop.Client.Android
                         image1.BindingContext = bitmap2;
                         image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
 
+                        curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
                         curBitmapBuffer = bitmapBuffer2;
                         //width = metaData.width;
                         //height = metaData.height;

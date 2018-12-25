@@ -115,10 +115,10 @@ namespace RemoteDesktop.Client.Android
             //buffer[index + 3] = (byte)a;
         }
 
-        private void setupImageSourceBeforeNotify()
-        {
+        //private void setupImageSourceBeforeNotify()
+        //{
 
-        }
+        //}
 
         public ImageSource GetImageSource()
         {
