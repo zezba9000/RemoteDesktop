@@ -155,11 +155,13 @@ namespace RemoteDesktop.Client.Android
             // 更新中対象のものは更新してからVisibleにする
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
-                image1.IsVisible = false;
+                image1.Opacity = 0;
+                image2.Opacity = 1.0;
             }
             else
             {
-                image2.IsVisible = false;
+                image1.Opacity = 1.0;
+                image2.Opacity = 0;
             }
             isImageComponetsAdded = true;
         }

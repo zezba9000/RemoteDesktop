@@ -91,7 +91,7 @@ namespace RemoteDesktop.Client.Android
 				m_Receiver = new RTPReceiver(config.PacketSize);
 				m_Receiver.DataReceived2 += new RTPReceiver.DelegateDataReceived2(OnDataReceivedUDP);
 				m_Receiver.Disconnected += new RTPReceiver.DelegateDisconnected(OnDisconnectedUDP);
-				m_Receiver.Connect(config.ServerAddress, config.ServerPort);
+				m_Receiver.Connect(RTPConfiguration.ServerAddress, config.ServerPort);
 			}
         }
 
@@ -114,7 +114,7 @@ namespace RemoteDesktop.Client.Android
                 sdsock.DataRecievedCallback += Socket_DataRecievedCallback;
                 sdsock.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
                 sdsock.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-                sdsock.Connect(System.Net.IPAddress.Parse(config.ServerAddress), config.ServerPort); 
+                sdsock.Connect(System.Net.IPAddress.Parse(RTPConfiguration.ServerAddress), config.ServerPort); 
 			}
         }
 
