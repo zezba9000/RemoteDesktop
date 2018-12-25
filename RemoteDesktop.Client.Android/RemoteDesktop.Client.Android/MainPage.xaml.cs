@@ -67,7 +67,7 @@ namespace RemoteDesktop.Client.Android
 
         private IMAGE_COMPONENT_TAG curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
         //private IMAGE_COMPONENT_TAG curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
-        private byte[] curBitmapBuffer = null;
+//        private byte[] curBitmapBuffer = null;
         private bool isAppDisplaySizeGot = false;
         private bool isImageComponetsAdded = false;
 
@@ -110,7 +110,7 @@ namespace RemoteDesktop.Client.Android
 
 
             //Utils.getLocalIP();
-            connectToSoundServer(); // start recieve sound data which playing on remote PC
+            //connectToSoundServer(); // start recieve sound data which playing on remote PC
             connectToImageServer(); // staart recieve captured bitmap image data 
         }
 
@@ -148,7 +148,7 @@ namespace RemoteDesktop.Client.Android
 
         private void addImageComponentToLayout()
         {
-            //layout.Children.Add(image1, new Rectangle(0, 0, width, height));
+            layout.Children.Add(image1, new Rectangle(0, 0, width, height));
             layout.Children.Add(image2, new Rectangle(0, 0, width, height));
 
             Console.WriteLine("addImageComponentToLayout: two image components added to layout");
@@ -240,14 +240,14 @@ namespace RemoteDesktop.Client.Android
             {
                 Console.WriteLine("double_image: state update bitmap1, curBitmapBuffer <- bitmapBuffer2, target <- image2 @ dataUpdateTargetImageComponentToggle");
                 bitmap1.setStateUpdated();
-                curBitmapBuffer = bitmapBuffer2;
+                //curBitmapBuffer = bitmapBuffer2;
                 curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
             }
             else
             {
                 Console.WriteLine("double_image: state update bitmap2, curBitmapBuffer <- bitmapBuffer1, target <- image1 @ dataUpdateTargetImageComponentToggle");
                 bitmap2.setStateUpdated();
-                curBitmapBuffer = bitmapBuffer1;
+                //curBitmapBuffer = bitmapBuffer1;
                 curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
             }
         }
@@ -284,7 +284,8 @@ namespace RemoteDesktop.Client.Android
                         image2.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
 
                         curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
-                        curBitmapBuffer = bitmapBuffer2;
+                        //curBitmapBuffer = bitmapBuffer2;
+
                         //width = metaData.width;
                         //height = metaData.height;
                         //image.Scale = 3; // scale bitmap data 3x
@@ -345,6 +346,14 @@ namespace RemoteDesktop.Client.Android
                             {
                                 var tmpDecompedStream = new MemoryStream();
                                 gzip.CopyTo(tmpDecompedStream);
+                                byte[] curBitmapBuffer = null;
+                                if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1) {
+                                    curBitmapBuffer = bitmapBuffer1;
+                                }
+                                else
+                                {
+                                    curBitmapBuffer = bitmapBuffer2;
+                                }
                                 Array.Copy(tmpDecompedStream.GetBuffer(), 0, curBitmapBuffer, Picture.headerSize, metaData.imageDataSize);
                                 Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                             }
@@ -404,6 +413,15 @@ namespace RemoteDesktop.Client.Android
                         if (curBitmapBufOffset == 0)
                         {
                             curBitmapBufOffset = Picture.headerSize;
+                        }
+
+                        byte[] curBitmapBuffer = null;
+                        if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1) {
+                            curBitmapBuffer = bitmapBuffer1;
+                        }
+                        else
+                        {
+                            curBitmapBuffer = bitmapBuffer2;
                         }
 
                         Array.Copy(data, 0, curBitmapBuffer, curBitmapBufOffset + offset, dataSize);

@@ -54,7 +54,9 @@ namespace RemoteDesktop.Server
 			};
 
             dispatcher = Dispatcher.CurrentDispatcher;
-            cap_streamer = new CaptureSoundStreamer();
+
+            // 一旦音声配信は止める
+            //cap_streamer = new CaptureSoundStreamer();
 
             //// init input simulation
             //input = new InputSimulator();
@@ -68,7 +70,8 @@ namespace RemoteDesktop.Server
             socket.DataRecievedCallback += Socket_DataRecievedCallback;
             socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
             socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-            socket.Listen(IPAddress.Any, cap_image_serv_port);
+            //socket.Listen(IPAddress.Any, cap_image_serv_port);
+            socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), cap_image_serv_port);
         }
 
 		void Exit(object sender, EventArgs e)

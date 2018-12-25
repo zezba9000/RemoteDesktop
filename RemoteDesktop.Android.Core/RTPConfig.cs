@@ -21,7 +21,7 @@ namespace RemoteDesktop.Android.Core
             }
 
             //Attribute
-            public String ServerAddress = "192.168.0.11";
+            public static String ServerAddress = "192.168.0.11";
 			public String SoundDeviceName = "";
 			public int ServerPort = 10000; //Sound Server
             public int SamplesPerSecond = 8000;

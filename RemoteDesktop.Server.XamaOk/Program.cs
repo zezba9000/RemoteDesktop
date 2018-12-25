@@ -11,11 +11,11 @@ namespace RemoteDesktop.Server
 			// parse args
 			bool isDebugMode = false;
 			int port = 8888;
-			foreach (var arg in args)
-			{
-				if (arg == "debug") isDebugMode = true;
-				else if (arg.StartsWith("port=")) port = int.Parse(arg.Split('=')[1]);
-			}
+			//foreach (var arg in args)
+			//{
+			//	if (arg == "debug") isDebugMode = true;
+			//	else if (arg.StartsWith("port=")) port = int.Parse(arg.Split('=')[1]);
+			//}
 
 			// start app
 			Application.EnableVisualStyles();
