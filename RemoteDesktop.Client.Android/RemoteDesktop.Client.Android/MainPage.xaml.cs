@@ -66,8 +66,10 @@ namespace RemoteDesktop.Client.Android
         private AbsoluteLayout layout;
 
         private IMAGE_COMPONENT_TAG curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
-        private IMAGE_COMPONENT_TAG curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
+        //private IMAGE_COMPONENT_TAG curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
         private byte[] curBitmapBuffer = null;
+        private bool isAppDisplaySizeGot = false;
+        private bool isImageComponetsAdded = false;
 
         public MainPage()
         {
@@ -143,12 +145,12 @@ namespace RemoteDesktop.Client.Android
             return true;
         }
 
-        protected override void OnSizeAllocated(double width, double height)
+        private void addImageComponentToLayout()
         {
-            Console.WriteLine("OnSizeAllocated: " + width.ToString() + "x" + height.ToString());
             layout.Children.Add(image1, new Rectangle(0, 0, width, height));
             layout.Children.Add(image2, new Rectangle(0, 0, width, height));
 
+            Console.WriteLine("addImageComponentToLayout: two image components added to layout");
             // 更新中対象のものは更新してからVisibleにする
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
@@ -158,7 +160,14 @@ namespace RemoteDesktop.Client.Android
             {
                 image2.IsVisible = false;
             }
+            isImageComponetsAdded = true;
+        }
 
+        protected override void OnSizeAllocated(double width, double height)
+        {
+            Console.WriteLine("OnSizeAllocated: " + width.ToString() + "x" + height.ToString());
+
+            this.isAppDisplaySizeGot = true;
             this.width = (int)width;
             this.height = (int)height;
             base.OnSizeAllocated(width, height);
@@ -201,29 +210,37 @@ namespace RemoteDesktop.Client.Android
             // 先に行われたImageコンポーネントへの更新通知による表示の更新が完了していない
             // 可能性があるので少し待つ
             Thread.Sleep(50); 
-            if(curDisplayingImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+            if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
+                Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
                 image2.IsVisible = true;
                 image1.IsVisible = false;
+                //curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
             }
             else
             {
+                Console.WriteLine("double_image: set image1 visible @ displayImageComponentToggle");
                 image2.IsVisible = true;
                 image1.IsVisible = false;
+                //curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
             }
+            Console.WriteLine("double_image: updateTarget=" + curUpdateTargetImgComp.ToString() + " @ end of displayImageComponentToggle");
         }
 
         // Imageコンポーネントへのデータ更新通知もここで行う
         private void dataUpdateTargetImageComponentToggle()
         {
+            Console.WriteLine("double_image: updateTarget=" + curUpdateTargetImgComp.ToString() + " @ star of dataUpdateTargetImageComponentToggle");
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
+                Console.WriteLine("double_image: state update bitmap1, curBitmapBuffer <- bitmapBuffer2, target <- image2 @ dataUpdateTargetImageComponentToggle");
                 bitmap1.setStateUpdated();
                 curBitmapBuffer = bitmapBuffer2;
                 curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
             }
             else
             {
+                Console.WriteLine("double_image: state update bitmap2, curBitmapBuffer <- bitmapBuffer1, target <- image1 @ dataUpdateTargetImageComponentToggle");
                 bitmap2.setStateUpdated();
                 curBitmapBuffer = bitmapBuffer1;
                 curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
@@ -234,11 +251,16 @@ namespace RemoteDesktop.Client.Android
         {
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 
-
             var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
                 Utils.startTimeMeasure("Image_Transfer_Communication");
+
+                if (isAppDisplaySizeGot && (isImageComponetsAdded == false))
+                {
+                    addImageComponentToLayout();
+                }
+
                 this.metaData = metaData;
                 try {
                     displayImageComponentToggle(); // 直前のデータ受信でデータを更新したImageコンポーネントを表示状態にする
