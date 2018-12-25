@@ -89,9 +89,9 @@ namespace RemoteDesktop.Client.Android
             Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
             var local_bitmap = new Picture(colorInfo, width, height);
             image1.Source = local_bitmap.GetImageSource();
-            image2.Aspect = Aspect.AspectFit;
+            image1.Aspect = Aspect.AspectFit;
             local_bitmap = new Picture(colorInfo, width, height);
-            image1.Source = local_bitmap.GetImageSource();
+            image2.Source = local_bitmap.GetImageSource();
             image2.Aspect = Aspect.AspectFit;
 
             layout = new AbsoluteLayout();
@@ -177,17 +177,17 @@ namespace RemoteDesktop.Client.Android
         private void SetConnectionUIStates(UIStates state)
         {
             uiState = state;
-            if (state == UIStates.Stopped)
-            {
-                while (processingFrame && !isDisposed) Thread.Sleep(1);
-                if (bitmap1 != null)
-                {
-                    Utils.fillValueByteArray(bitmapBuffer1, 255, Picture.headerSize);
-                    Utils.fillValueByteArray(bitmapBuffer2, 255, Picture.headerSize);
-                    bitmap1.setStateUpdated();
-                    bitmap2.setStateUpdated();
-                }
-            }
+            //if (state == UIStates.Stopped)
+            //{
+            //    while (processingFrame && !isDisposed) Thread.Sleep(1);
+            //    if (bitmap1 != null)
+            //    {
+            //        Utils.fillValueByteArray(bitmapBuffer1, 255, Picture.headerSize);
+            //        Utils.fillValueByteArray(bitmapBuffer2, 255, Picture.headerSize);
+            //        bitmap1.setStateUpdated();
+            //        bitmap2.setStateUpdated();
+            //    }
+            //}
         }
 
         private void connectToImageServer()
@@ -235,7 +235,7 @@ namespace RemoteDesktop.Client.Android
         // Imageコンポーネントへのデータ更新通知もここで行う
         private void dataUpdateTargetImageComponentToggle()
         {
-            Console.WriteLine("double_image: updateTarget=" + curUpdateTargetImgComp.ToString() + " @ star of dataUpdateTargetImageComponentToggle");
+            Console.WriteLine("double_image: updateTarget=" + curUpdateTargetImgComp.ToString() + " @ start of dataUpdateTargetImageComponentToggle");
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
                 Console.WriteLine("double_image: state update bitmap1, curBitmapBuffer <- bitmapBuffer2, target <- image2 @ dataUpdateTargetImageComponentToggle");
@@ -280,8 +280,8 @@ namespace RemoteDesktop.Client.Android
                         image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
                         bitmap2 = new Picture(null, metaData.width, metaData.height);
                         bitmapBuffer2 = bitmap2.getInternalBuffer();
-                        image1.BindingContext = bitmap2;
-                        image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                        image2.BindingContext = bitmap2;
+                        image2.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
 
                         curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
                         curBitmapBuffer = bitmapBuffer2;
