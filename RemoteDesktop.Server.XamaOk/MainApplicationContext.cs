@@ -25,8 +25,8 @@ namespace RemoteDesktop.Server
 		private Graphics graphics, scaledGraphics;
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
         int screenIndex, currentScreenIndex;
-        float targetFPS = 3f;
-        float fixedTargetFPS = 3f;
+        float targetFPS = 2f;
+        float fixedTargetFPS = 2f;
         bool compress; //, currentCompress;
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = true;

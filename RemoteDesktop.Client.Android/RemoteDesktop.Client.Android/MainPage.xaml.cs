@@ -259,7 +259,7 @@ namespace RemoteDesktop.Client.Android
 
             // 先に行われたImageコンポーネントへの更新通知によるImageコンポーネントの表示の更新が完了していない
             // 可能性があるので少し待つ
-            Thread.Sleep(50); 
+            Thread.Sleep(150); 
 
             //var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
