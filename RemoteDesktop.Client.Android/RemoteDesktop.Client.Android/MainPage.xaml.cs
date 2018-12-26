@@ -212,7 +212,7 @@ namespace RemoteDesktop.Client.Android
         {
             // 先に行われたImageコンポーネントへの更新通知による表示の更新が完了していない
             // 可能性があるので少し待つ
-            //Thread.Sleep(200); 
+            Thread.Sleep(50); 
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
                 Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
@@ -258,189 +258,218 @@ namespace RemoteDesktop.Client.Android
         {
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 
-            var tcs = new TaskCompletionSource<bool>();
+            //var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
-                Utils.startTimeMeasure("Image_Transfer_Communication");
-
-                if (isAppDisplaySizeGot && (isImageComponetsAdded == false))
+                lock (this)
                 {
-                    addImageComponentToLayout();
-                }
+                    Utils.startTimeMeasure("Image_Transfer_Communication");
 
-                this.metaData = metaData;
-                try {
-                    displayImageComponentToggle(); // 直前のデータ受信でデータを更新したImageコンポーネントを表示状態にする
-
-                    processingFrame = true;
-                    // create bitmap
-                    if (bitmap1 == null)
+                    if (isAppDisplaySizeGot && (isImageComponetsAdded == false))
                     {
-                        bitmap1 = new Picture(null, metaData.width, metaData.height);
-                        bitmapBuffer1 = bitmap1.getInternalBuffer();
-                        image1.BindingContext = bitmap1;
-                        image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
-                        bitmap2 = new Picture(null, metaData.width, metaData.height);
-                        bitmapBuffer2 = bitmap2.getInternalBuffer();
-                        image2.BindingContext = bitmap2;
-                        image2.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
-
-                        curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
-                        //curBitmapBuffer = bitmapBuffer2;
-
-                        //width = metaData.width;
-                        //height = metaData.height;
-                        //image.Scale = 3; // scale bitmap data 3x
-                        //image.HeightRequest = metaData.screenHeight;
-                        //image.WidthRequest = metaData.screenWidth;
+                        addImageComponentToLayout();
                     }
-                    // init compression
-                    if (metaData.compressed)
+
+                    this.metaData = metaData;
+                    try
                     {
-                        if (gzipStream == null)
+                        displayImageComponentToggle(); // 直前のデータ受信でデータを更新したImageコンポーネントを表示状態にする
+
+                        //processingFrame = true;
+                        // create bitmap
+                        if (bitmap1 == null)
                         {
-                            gzipStream = new MemoryStream();
+                            bitmap1 = new Picture(null, metaData.width, metaData.height);
+                            bitmapBuffer1 = bitmap1.getInternalBuffer();
+                            image1.BindingContext = bitmap1;
+                            image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                            bitmap2 = new Picture(null, metaData.width, metaData.height);
+                            bitmapBuffer2 = bitmap2.getInternalBuffer();
+                            image2.BindingContext = bitmap2;
+                            image2.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+
+                            curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
+                            //curBitmapBuffer = bitmapBuffer2;
+
+                            //width = metaData.width;
+                            //height = metaData.height;
+                            //image.Scale = 3; // scale bitmap data 3x
+                            //image.HeightRequest = metaData.screenHeight;
+                            //image.WidthRequest = metaData.screenWidth;
                         }
-                        else
+                        // init compression
+                        if (metaData.compressed)
                         {
-                            gzipStream.SetLength(0);
+                            if (gzipStream == null)
+                            {
+                                gzipStream = new MemoryStream();
+                            }
+                            else
+                            {
+                                gzipStream.SetLength(0);
+                            }
                         }
+                        //tcs.SetResult(true);
                     }
-                    tcs.SetResult(true);
-                } catch (Exception ex) {
-                    tcs.SetException(ex);
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        //tcs.SetException(ex);
+                    }
                 }
             });
-            var task = tcs.Task;
-            try
-            {
-                task.Wait();
-            }
-            catch { }
+            //var task = tcs.Task;
+            //try
+            //{
+            //    task.Wait();
+            //}
+            //catch { }
         }
 
         //private unsafe void Socket_EndDataRecievedCallback()
         private void Socket_EndDataRecievedCallback()
         {
-            Utils.startTimeMeasure("Image_Update");
-            var tcs = new TaskCompletionSource<bool>();
+            //Utils.startTimeMeasure("Image_Update");
+            //var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
-                Console.WriteLine("elapsed for image data transfer communication: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Transfer_Communication").ToString() + " msec");
-                try {
-                    if (!skipImageUpdate)
+                lock (this)
+                {
+                    Console.WriteLine("elapsed for image data transfer communication: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Transfer_Communication").ToString() + " msec");
+                    try
                     {
-                        //notify need display update area to bitmap instance
-                        //bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
-                    }
-                    else
-                    {
-                        skipImageUpdate = false;
-                    }
-
-                    if (metaData.compressed)
-                    {
-                        try
+                        if (!skipImageUpdate)
                         {
-                            Utils.startTimeMeasure("Bitmap_decompress");
-                            gzipStream.Position = 0;
-                            using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
+                            //notify need display update area to bitmap instance
+                            //bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+                        }
+                        else
+                        {
+                            skipImageUpdate = false;
+                        }
+
+                        if (metaData.compressed)
+                        {
+                            try
                             {
-                                var tmpDecompedStream = new MemoryStream();
-                                gzip.CopyTo(tmpDecompedStream);
-                                byte[] curBitmapBuffer = null;
-                                if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1) {
-                                    curBitmapBuffer = bitmapBuffer1;
-                                }
-                                else
+                                Utils.startTimeMeasure("Bitmap_decompress");
+                                gzipStream.Position = 0;
+                                using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
                                 {
-                                    curBitmapBuffer = bitmapBuffer2;
+                                    var tmpDecompedStream = new MemoryStream();
+                                    gzip.CopyTo(tmpDecompedStream);
+                                    byte[] curBitmapBuffer = null;
+                                    if (curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+                                    {
+                                        curBitmapBuffer = bitmapBuffer1;
+                                    }
+                                    else
+                                    {
+                                        curBitmapBuffer = bitmapBuffer2;
+                                    }
+                                    Array.Copy(tmpDecompedStream.GetBuffer(), 0, curBitmapBuffer, Picture.headerSize, metaData.imageDataSize);
+                                    Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                                 }
-                                Array.Copy(tmpDecompedStream.GetBuffer(), 0, curBitmapBuffer, Picture.headerSize, metaData.imageDataSize);
-                                Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
+                            }
+                            catch (Exception e)
+                            {
+                                DebugLog.LogError("Bad compressed image: " + e.Message);
                             }
                         }
-                        catch (Exception e)
-                        {
-                            DebugLog.LogError("Bad compressed image: " + e.Message);
-                        }
+
+                        // scale data and notify data update to Image component
+                        //Utils.startTimeMeasure("Bitmap_Upscale");
+                        //Console.WriteLine("bitmap data upscale start!");
+                        //bitmap.scaleBitmapAndSetStateUpdated(3);
+                        //Console.WriteLine("elapsed for bitmap upscale: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
+
+                        // このメソッドの中でImageコンポーネントへの更新通知も行う
+                        dataUpdateTargetImageComponentToggle();
+
+                        //bitmap.setStateUpdated();
+
+                        curBitmapBufOffset = 0;
+
+                        Console.WriteLine("new capture image received and update bitmap object!");
+                        //processingFrame = false;
+                        //tcs.SetResult(true);
                     }
-
-                    // scale data and notify data update to Image component
-                    //Utils.startTimeMeasure("Bitmap_Upscale");
-                    //Console.WriteLine("bitmap data upscale start!");
-                    //bitmap.scaleBitmapAndSetStateUpdated(3);
-                    //Console.WriteLine("elapsed for bitmap upscale: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_Upscale").ToString() + " msec");
-
-                    // このメソッドの中でImageコンポーネントへの更新通知も行う
-                    dataUpdateTargetImageComponentToggle();
-
-                    //bitmap.setStateUpdated();
-
-                    curBitmapBufOffset = 0;
-
-                    Console.WriteLine("new capture image received and update bitmap object!");
-                    processingFrame = false;
-                    tcs.SetResult(true);
-                } catch (Exception ex) {
-                    tcs.SetException(ex);
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        //tcs.SetException(ex);
+                    }
                 }
             });
-            var task = tcs.Task;
-            try
-            {
-                task.Wait();
-            }
-            catch { }
-            Console.WriteLine("elapsed for Image Update: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Update").ToString() + " msec");
+            //var task = tcs.Task;
+            //try
+            //{
+            //    task.Wait();
+            //}
+            //catch { }
+            //Console.WriteLine("elapsed for Image Update: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Update").ToString() + " msec");
             Console.WriteLine("image update Invoked at EndDataRecievedCallback!");
         }
 
 
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
         {
-            var tcs = new TaskCompletionSource<bool>();
-            Device.BeginInvokeOnMainThread(() => 
+            byte[] local_buf = new byte[dataSize];
+            Array.Copy(data, 0, local_buf, 0, dataSize);
+            //var tcs = new TaskCompletionSource<bool>();
+            Device.BeginInvokeOnMainThread(() =>
             {
-                try {
-                    while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-                    if (uiState != UIStates.Streaming || isDisposed) return;
+                lock (this) {
+                //while (processingFrame && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
+                //processingFrame = true;
 
-                    if (metaData.compressed)
+                    try
                     {
-                        gzipStream.Write(data, 0, dataSize);
-                    }
-                    else
-                    {
-                        if (curBitmapBufOffset == 0)
+                        if (uiState != UIStates.Streaming || isDisposed) return;
+
+                        if (metaData.compressed)
                         {
-                            curBitmapBufOffset = Picture.headerSize;
-                        }
-
-                        byte[] curBitmapBuffer = null;
-                        if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1) {
-                            curBitmapBuffer = bitmapBuffer1;
+                            gzipStream.Write(local_buf, 0, dataSize);
                         }
                         else
                         {
-                            curBitmapBuffer = bitmapBuffer2;
+                            if (curBitmapBufOffset == 0)
+                            {
+                                curBitmapBufOffset = Picture.headerSize;
+                            }
+
+                            byte[] curBitmapBuffer = null;
+                            if (curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+                            {
+                                curBitmapBuffer = bitmapBuffer1;
+                            }
+                            else
+                            {
+                                curBitmapBuffer = bitmapBuffer2;
+                            }
+
+                            Array.Copy(local_buf, 0, curBitmapBuffer, curBitmapBufOffset + offset, dataSize);
                         }
 
-                        Array.Copy(data, 0, curBitmapBuffer, curBitmapBufOffset + offset, dataSize);
+                        //tcs.SetResult(true);
                     }
-                    tcs.SetResult(true);
-                } catch (Exception ex) {
-                    tcs.SetException(ex);
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        //tcs.SetException(ex);
+                    }
+
+                    //processingFrame = false;
                 }
             });
 
             // wait until codes passed to Device.BeginInvokeOnMainThread func
-            var task = tcs.Task;
-            try
-            {
-                task.Wait();
-            }
-            catch { }
+            //var task = tcs.Task;
+            //try
+            //{
+            //    task.Wait();
+            //}
+            //catch { }
         }
 
         private void Socket_ConnectionFailedCallback(string error)

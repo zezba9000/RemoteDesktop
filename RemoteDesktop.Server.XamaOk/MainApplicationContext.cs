@@ -26,9 +26,12 @@ namespace RemoteDesktop.Server
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
         int screenIndex, currentScreenIndex;
         float targetFPS = 10f;
+        float fixedTargetFPS = 1f;
         bool compress; //, currentCompress;
-        float resolutionScale = 0.3f;
-        float fixedResolutionScale = 0.5f; // if this value is not 1, this value is used at scaling always
+        bool isFixedParamUse = true; // use server side hard coded parameter on running
+        bool fixedCompress = true;
+        float resolutionScale = 0.25f;
+        float fixedResolutionScale = 0.25f; // if this value is not 1, this value is used at scaling always
 		private Timer timer;
 		public static Dispatcher dispatcher;
 
@@ -137,7 +140,7 @@ namespace RemoteDesktop.Server
 					if (timer == null)
 					{
 						timer = new Timer();
-                        timer.Interval = (int) (1000f / metaData.targetFPS);
+                        timer.Interval = (int) (1000f / targetFPS); // targetFPSは呼び出し時には適切に更新が行われていることを想定
 						timer.Tick += Timer_Tick;
 					}
 
@@ -156,6 +159,11 @@ namespace RemoteDesktop.Server
 					compress = metaData.compressed;
 					resolutionScale = metaData.resolutionScale;
 					targetFPS = metaData.targetFPS;
+                    if (isFixedParamUse)
+                    {
+                        compress = fixedCompress;
+                        targetFPS = fixedTargetFPS;
+                    }
                     receivedMetaData = true;
 					if (metaData.type == MetaDataTypes.UpdateSettings)
 					{
