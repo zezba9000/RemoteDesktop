@@ -418,8 +418,8 @@ namespace RemoteDesktop.Android.Core
                             //metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
                             //handle.Free();
 
-                            Console.Write("metaDataBuffer: ");
-                            debugPrintByteArray4ElemSpan(metaDataBuffer);
+                            //Console.Write("metaDataBuffer: ");
+                            //debugPrintByteArray4ElemSpan(metaDataBuffer);
                             BinaryFormatter bf = new BinaryFormatter();
                             metaData = (MetaData) bf.Deserialize(new MemoryStream(metaDataBuffer));
 

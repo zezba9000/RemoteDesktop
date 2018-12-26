@@ -212,7 +212,7 @@ namespace RemoteDesktop.Client.Android
         {
             // 先に行われたImageコンポーネントへの更新通知による表示の更新が完了していない
             // 可能性があるので少し待つ
-            Thread.Sleep(100); 
+            Thread.Sleep(50); 
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
                 Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
@@ -258,6 +258,7 @@ namespace RemoteDesktop.Client.Android
         {
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 
+            Console.WriteLine("recieved MetaData @ StartDataRecievedCallback");
             //var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
@@ -421,12 +422,12 @@ namespace RemoteDesktop.Client.Android
                 {
                     try
                     {
-                        while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-                        if (uiState != UIStates.Streaming || isDisposed) return;
+                        //while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
+                        //if (uiState != UIStates.Streaming || isDisposed) return;
 
                         if (metaData.compressed)
                         {
-                            gzipStream.Write(data, 0, dataSize);
+                            gzipStream.Write(local_buf, 0, dataSize);
                         }
                         else
                         {

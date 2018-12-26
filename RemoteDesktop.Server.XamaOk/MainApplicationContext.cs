@@ -128,7 +128,7 @@ namespace RemoteDesktop.Server
 			{
 				if (isDisposed) return;
 
-				void CreateTimer(bool recreate)
+				void CreateTimer(bool recreate, int fps)
 				{
 					if (recreate && timer != null)
 					{
@@ -140,7 +140,7 @@ namespace RemoteDesktop.Server
 					if (timer == null)
 					{
 						timer = new Timer();
-                        timer.Interval = (int) (1000f / targetFPS); // targetFPSは呼び出し時には適切に更新が行われていることを想定
+                        timer.Interval = (int) (1000f / fps); // targetFPSは呼び出し時には適切に更新が行われていることを想定
 						timer.Tick += Timer_Tick;
 					}
 
@@ -170,7 +170,7 @@ namespace RemoteDesktop.Server
 					{
 						dispatcher.InvokeAsync(delegate()
 						{
-							CreateTimer(true);
+							CreateTimer(true, (int)targetFPS);
 						});
 					}
 				}
@@ -180,7 +180,7 @@ namespace RemoteDesktop.Server
 				{
 					dispatcher.InvokeAsync(delegate()
 					{
-						CreateTimer(false);
+						CreateTimer(false, (int)targetFPS);
 					});
 				}
 				else if (metaData.type == MetaDataTypes.PauseCapture)
