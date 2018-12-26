@@ -212,7 +212,7 @@ namespace RemoteDesktop.Client.Android
         {
             // 先に行われたImageコンポーネントへの更新通知による表示の更新が完了していない
             // 可能性があるので少し待つ
-            Thread.Sleep(50); 
+            Thread.Sleep(100); 
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
                 Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
@@ -275,7 +275,7 @@ namespace RemoteDesktop.Client.Android
                     {
                         displayImageComponentToggle(); // 直前のデータ受信でデータを更新したImageコンポーネントを表示状態にする
 
-                        //processingFrame = true;
+                        processingFrame = true;
                         // create bitmap
                         if (bitmap1 == null)
                         {
@@ -313,7 +313,6 @@ namespace RemoteDesktop.Client.Android
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex);
                         //tcs.SetException(ex);
                     }
                 }
@@ -391,12 +390,11 @@ namespace RemoteDesktop.Client.Android
                         curBitmapBufOffset = 0;
 
                         Console.WriteLine("new capture image received and update bitmap object!");
-                        //processingFrame = false;
+                        processingFrame = false;
                         //tcs.SetResult(true);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex);
                         //tcs.SetException(ex);
                     }
                 }
@@ -414,22 +412,21 @@ namespace RemoteDesktop.Client.Android
 
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
         {
+            //var tcs = new TaskCompletionSource<bool>();
             byte[] local_buf = new byte[dataSize];
             Array.Copy(data, 0, local_buf, 0, dataSize);
-            //var tcs = new TaskCompletionSource<bool>();
-            Device.BeginInvokeOnMainThread(() =>
+            Device.BeginInvokeOnMainThread(() => 
             {
-                lock (this) {
-                //while (processingFrame && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-                //processingFrame = true;
-
+                lock (this)
+                {
                     try
                     {
+                        while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
                         if (uiState != UIStates.Streaming || isDisposed) return;
 
                         if (metaData.compressed)
                         {
-                            gzipStream.Write(local_buf, 0, dataSize);
+                            gzipStream.Write(data, 0, dataSize);
                         }
                         else
                         {
@@ -450,16 +447,12 @@ namespace RemoteDesktop.Client.Android
 
                             Array.Copy(local_buf, 0, curBitmapBuffer, curBitmapBufOffset + offset, dataSize);
                         }
-
                         //tcs.SetResult(true);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex);
                         //tcs.SetException(ex);
                     }
-
-                    //processingFrame = false;
                 }
             });
 
