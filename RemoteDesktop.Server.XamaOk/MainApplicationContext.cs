@@ -25,13 +25,13 @@ namespace RemoteDesktop.Server
 		private Graphics graphics, scaledGraphics;
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
         int screenIndex, currentScreenIndex;
-        float targetFPS = 10f;
+        float targetFPS = 1f;
         float fixedTargetFPS = 1f;
         bool compress; //, currentCompress;
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = true;
-        float resolutionScale = 0.25f;
-        float fixedResolutionScale = 0.25f; // if this value is not 1, this value is used at scaling always
+        float resolutionScale = 1.0f;
+        float fixedResolutionScale = 1.0f; // if this value is not 1, this value is used at scaling always
 		private Timer timer;
 		public static Dispatcher dispatcher;
 
@@ -163,6 +163,7 @@ namespace RemoteDesktop.Server
                     {
                         compress = fixedCompress;
                         targetFPS = fixedTargetFPS;
+                        resolutionScale = fixedResolutionScale;
                     }
                     receivedMetaData = true;
 					if (metaData.type == MetaDataTypes.UpdateSettings)
@@ -317,7 +318,7 @@ namespace RemoteDesktop.Server
 
 				CaptureScreen();
                 BitmapXama convedXBmap = null;
-                if (resolutionScale == 1 && fixedResolutionScale == 1)
+                if (resolutionScale == 1)
                 {
                     convedXBmap = convertToBitmapXamaAndRotate(bitmap);
                     socket.SendImage(convedXBmap, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
@@ -362,7 +363,7 @@ namespace RemoteDesktop.Server
                 graphics = Graphics.FromImage(bitmap);
 
                 float localScale = 1;
-                if (resolutionScale != 1 || fixedResolutionScale != 1)
+                if (resolutionScale != 1)
                 {
                     if (scaledBitmap != null)
                     {
