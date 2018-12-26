@@ -25,13 +25,13 @@ namespace RemoteDesktop.Server
 		private Graphics graphics, scaledGraphics;
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
         int screenIndex, currentScreenIndex;
-        float targetFPS = 2f;
-        float fixedTargetFPS = 2f;
+        float targetFPS = 1f;
+        float fixedTargetFPS = 1f;
         bool compress; //, currentCompress;
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = true;
         float resolutionScale = 1.0f;
-        float fixedResolutionScale = 0.25f; // if this value is not 1, this value is used at scaling always
+        float fixedResolutionScale = 0.5f; // if this value is not 1, this value is used at scaling always
 		private Timer timer;
 		public static Dispatcher dispatcher;
 

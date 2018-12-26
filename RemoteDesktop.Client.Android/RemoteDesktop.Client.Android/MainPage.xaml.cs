@@ -219,6 +219,7 @@ namespace RemoteDesktop.Client.Android
                 Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
                 image2.IsVisible = true;
                 image1.IsVisible = false;
+
                 //image2.Opacity = 1.0;
                 //image1.Opacity = 0;
                 //curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
@@ -226,8 +227,9 @@ namespace RemoteDesktop.Client.Android
             else
             {
                 Console.WriteLine("double_image: set image1 visible @ displayImageComponentToggle");
-                image2.IsVisible = false;
                 image1.IsVisible = true;
+                image2.IsVisible = false;
+
                 //image2.Opacity = 0;
                 //image1.Opacity = 1.0;
                 //curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
@@ -263,7 +265,7 @@ namespace RemoteDesktop.Client.Android
 
             // 先に行われたImageコンポーネントへの更新通知によるImageコンポーネントの表示の更新が完了していない
             // 可能性があるので少し待つ
-            Thread.Sleep(150); 
+            //Thread.Sleep(200); 
 
             //var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
