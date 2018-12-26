@@ -38,7 +38,7 @@ namespace RemoteDesktop.Client.Android
         private MemoryStream gzipStream;
         //        private MemoryStream decompedStream;
         private bool skipImageUpdate, isDisposed; //, connectedToLocalPC;
-        private bool processingFrame = false;
+        //private bool processingFrame = false;
         private UIStates uiState = UIStates.Stopped;
         //        private Thickness lastImageThickness;
 
@@ -210,9 +210,6 @@ namespace RemoteDesktop.Client.Android
 
         private void displayImageComponentToggle()
         {
-            // 先に行われたImageコンポーネントへの更新通知による表示の更新が完了していない
-            // 可能性があるので少し待つ
-            Thread.Sleep(50); 
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
                 Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
@@ -259,6 +256,11 @@ namespace RemoteDesktop.Client.Android
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 
             Console.WriteLine("recieved MetaData @ StartDataRecievedCallback");
+
+            // 先に行われたImageコンポーネントへの更新通知によるImageコンポーネントの表示の更新が完了していない
+            // 可能性があるので少し待つ
+            Thread.Sleep(50); 
+
             //var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
@@ -276,7 +278,7 @@ namespace RemoteDesktop.Client.Android
                     {
                         displayImageComponentToggle(); // 直前のデータ受信でデータを更新したImageコンポーネントを表示状態にする
 
-                        processingFrame = true;
+                        //processingFrame = true;
                         // create bitmap
                         if (bitmap1 == null)
                         {
@@ -391,7 +393,7 @@ namespace RemoteDesktop.Client.Android
                         curBitmapBufOffset = 0;
 
                         Console.WriteLine("new capture image received and update bitmap object!");
-                        processingFrame = false;
+                        //processingFrame = false;
                         //tcs.SetResult(true);
                     }
                     catch (Exception ex)
