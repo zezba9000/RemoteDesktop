@@ -155,13 +155,17 @@ namespace RemoteDesktop.Client.Android
             // 更新中対象のものは更新してからVisibleにする
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
-                image1.Opacity = 0;
-                image2.Opacity = 1.0;
+                //image1.Opacity = 0;
+                //image2.Opacity = 1.0;
+                image1.IsVisible = false;
+                image2.IsVisible = true;
             }
             else
             {
-                image1.Opacity = 1.0;
-                image2.Opacity = 0;
+                //image1.Opacity = 1.0;
+                //image2.Opacity = 0;
+                image1.IsVisible = true;
+                image2.IsVisible = false;
             }
             isImageComponetsAdded = true;
         }
@@ -213,19 +217,19 @@ namespace RemoteDesktop.Client.Android
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
                 Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
-                //image2.IsVisible = true;
-                //image1.IsVisible = false;
-                image2.Opacity = 1.0;
-                image1.Opacity = 0;
+                image2.IsVisible = true;
+                image1.IsVisible = false;
+                //image2.Opacity = 1.0;
+                //image1.Opacity = 0;
                 //curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
             }
             else
             {
                 Console.WriteLine("double_image: set image1 visible @ displayImageComponentToggle");
-                //image2.IsVisible = false;
-                //image1.IsVisible = true;
-                image2.Opacity = 0;
-                image1.Opacity = 1.0;
+                image2.IsVisible = false;
+                image1.IsVisible = true;
+                //image2.Opacity = 0;
+                //image1.Opacity = 1.0;
                 //curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
             }
             Console.WriteLine("double_image: updateTarget=" + curUpdateTargetImgComp.ToString() + " @ end of displayImageComponentToggle");
