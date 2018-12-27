@@ -91,6 +91,21 @@ namespace RemoteDesktop.Android.Core
             
         }
 
+        public static byte[] convertBitmapRGB24toRGBA32(byte[] bitmap)
+        {
+            int pixels = bitmap.Length / 3;
+            byte[] conved = new byte[pixels * 4];
+            for (int idx = 0; idx < pixels; idx++)
+            {
+                conved[idx * 4] = bitmap[idx * 3];
+                conved[idx * 4 + 1] = bitmap[idx * 3 + 1];
+                conved[idx * 4 + 2] = bitmap[idx * 3 + 2];
+                conved[idx * 4 + 3] = 0xFF;
+            }
+
+            return conved;
+        }
+
         //public static byte[] scaleBitmapDataAsync(byte[] bitmap, int width, int height)
         //{
         //    var tcs = new TaskCompletionSource<byte[]>();

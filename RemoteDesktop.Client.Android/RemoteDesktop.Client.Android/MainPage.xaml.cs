@@ -11,6 +11,7 @@ using System.IO.Compression;
 using Xamarin.Forms.Xaml;
 using SkiaSharp.Views.Forms;
 using SkiaSharp;
+using System.Runtime.InteropServices;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -167,10 +168,18 @@ namespace RemoteDesktop.Client.Android
                 dataLength = skiaBufStreams[0].Length;
                 skiaBufStreams[0].Position = 0;
             }
-            SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgb888x, SKAlphaType.Opaque);
+            //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            SKBitmap skbitmap = new SKBitmap();
 
-            SKRect destRect = new SKRect(0, 0, metaData.width, metaData.height);
+            SKRect destRect = new SKRect(0, 0, metaData.width * 2, metaData.height * 2);
             SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
+
+            // pin the managed array so that the GC doesn't move it
+            var gcHandle = GCHandle.Alloc(Utils.convertBitmapRGB24toRGBA32(bitmap_data), GCHandleType.Pinned);
+
+            // install the pixels with the color type of the pixel data
+            var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
 
             // Display the bitmap
             canvas.DrawBitmap(skbitmap, sourceRect, destRect);
