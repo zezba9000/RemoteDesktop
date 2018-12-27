@@ -158,11 +158,13 @@ namespace RemoteDesktop.Client.Android
             {
                 bitmap_data = skiaBufStreams[1].ToArray();
                 dataLength = skiaBufStreams[1].Length;
+                skiaBufStreams[1].Position = 0;
             }
             else
             {
                 bitmap_data = skiaBufStreams[0].ToArray();
                 dataLength = skiaBufStreams[0].Length;
+                skiaBufStreams[0].Position = 0;
             }
             SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgb888x, SKAlphaType.Opaque);
 
@@ -171,6 +173,7 @@ namespace RemoteDesktop.Client.Android
 
             // Display the bitmap
             canvas.DrawBitmap(skbitmap, sourceRect, destRect);
+
             Console.Write("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
         }
 
