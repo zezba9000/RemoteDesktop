@@ -91,7 +91,7 @@ namespace RemoteDesktop.Android.Core
             
         }
 
-        public static byte[] convertBitmapRGB24toRGBA32(byte[] bitmap)
+        public static byte[] convertBitmapBGR24toBGRA32(byte[] bitmap)
         {
             int pixels = bitmap.Length / 3;
             byte[] conved = new byte[pixels * 4];

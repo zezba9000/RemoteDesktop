@@ -171,17 +171,26 @@ namespace RemoteDesktop.Client.Android
             //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
             SKBitmap skbitmap = new SKBitmap();
 
-            SKRect destRect = new SKRect(0, 0, metaData.width * 2, metaData.height * 2);
+            SKRect destRect = new SKRect(0, 0, metaData.width * 1.85f, metaData.height * 1.85f); // 1.8x is OK
+            //SKRect destRect = new SKRect(0, 0, metaData.width, metaData.height);
             SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
 
             // pin the managed array so that the GC doesn't move it
-            var gcHandle = GCHandle.Alloc(Utils.convertBitmapRGB24toRGBA32(bitmap_data), GCHandleType.Pinned);
+            var gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
+ 
 
             // install the pixels with the color type of the pixel data
-            var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
+
             skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
 
             // Display the bitmap
+            //canvas.DrawBitmap(skbitmap, sourceRect, destRect);
+            canvas.Clear();
+            //canvas.Scale(1, -1, 0, skbitmap.Height / 2);
+            //canvas.Scale(1, -1, 0, skbitmap.Height);
+            canvas.Scale(1, -1, 0, info.Height / 2);
             canvas.DrawBitmap(skbitmap, sourceRect, destRect);
 
             Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
