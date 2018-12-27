@@ -75,9 +75,9 @@ namespace RemoteDesktop.Client.Android
         private int totalDisplayedFrames = 0;
         private bool isBitDisplayCompOrBufInited = false;
 
-        private bool isUseSkia = false;
+        private bool isUseSkia = true;
         private SKCanvasView canvas = null;
-        private SKBitmap[] bitmaps;
+        //private SKBitmap[] bitmaps;
         private MemoryStream[] skiaBufStreams;
 
         public MainPage()
@@ -106,6 +106,7 @@ namespace RemoteDesktop.Client.Android
                 };
                 canvas.PaintSurface += OnCanvasViewPaintSurface;
                 // Skiaを利用する場合、ビットマップデータのバッファはここで用意してしまう
+                skiaBufStreams = new MemoryStream[2];
                 skiaBufStreams.SetValue(new MemoryStream(), 0);
                 skiaBufStreams.SetValue(new MemoryStream(), 1);
             }
@@ -174,7 +175,7 @@ namespace RemoteDesktop.Client.Android
             // Display the bitmap
             canvas.DrawBitmap(skbitmap, sourceRect, destRect);
 
-            Console.Write("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
+            Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
         }
 
         protected override void OnDisappearing()
@@ -380,8 +381,7 @@ namespace RemoteDesktop.Client.Android
                 }
                 else
                 {
-                    Console.WriteLine("double_image: rerender canvas, target <- COMPONENT2 @ dataUpdateTargetImageComponentToggle");
-                    bitmap2.setStateUpdated();
+                    Console.WriteLine("double_image: rerender canvas, target <- COMPONENT1 @ dataUpdateTargetImageComponentToggle");
                     curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1;
                 }
                 Console.WriteLine("double_image: call canvas.InvalidateSurface");
@@ -533,7 +533,7 @@ namespace RemoteDesktop.Client.Android
                                     else
                                     {
                                         Array.Copy(tmpDecompedStream.GetBuffer(), 0, curBitmapBuffer, Picture.headerSize, metaData.imageDataSize);
-                                    }
+                                    }                                    
 
                                     Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                                 }
