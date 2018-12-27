@@ -70,6 +70,7 @@ namespace RemoteDesktop.Client.Android
 //        private byte[] curBitmapBuffer = null;
         private bool isAppDisplaySizeGot = false;
         private bool isImageComponetsAdded = false;
+        private int totalDisplayedFrames = 0;
 
         public MainPage()
         {
@@ -212,11 +213,91 @@ namespace RemoteDesktop.Client.Android
             socket.Connect(IPAddress.Parse(SERVER_ADDR), IMAGE_SERVER_PORT);
         }
 
+        
+        private void setNewImageComponentAndBitmap(IMAGE_COMPONENT_TAG tag)
+        {
+            if (isImageComponetsAdded)
+            {
+                if(tag == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+                {
+                    layout.Children.Remove(image1);
+                }
+                else
+                {
+                    layout.Children.Remove(image2);
+                }
+            }
+
+            if(tag == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+            {
+                Console.WriteLine("double_image: image1 replaced.");
+                bitmap1 = new Picture(null, metaData.width, metaData.height);
+                bitmapBuffer1 = bitmap1.getInternalBuffer();
+                image1 = new Image
+                {
+                    BindingContext = bitmap1,
+                    Aspect = Aspect.AspectFit
+                };
+                image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                image1.IsVisible = false;
+            }
+            else
+            {
+                Console.WriteLine("double_image: image2 replaced.");
+                bitmap2 = new Picture(null, metaData.width, metaData.height);
+                bitmapBuffer2 = bitmap2.getInternalBuffer();
+                image2 = new Image
+                {
+                    BindingContext = bitmap2,
+                    Aspect = Aspect.AspectFit
+                };
+                image2.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                image2.IsVisible = false;
+            }
+
+            if (isImageComponetsAdded)
+            {
+                if(tag == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+                {
+                    layout.Children.Add(image1, new Rectangle(0, 0, width, height));
+                }
+                else
+                {
+                    layout.Children.Add(image2, new Rectangle(0, 0, width, height));
+                }
+            }
+        }
+
         private void displayImageComponentToggle()
         {
-            if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
+            Console.WriteLine("double_image: image1.isLoading=" + image1.IsLoading.ToString() + " @ start of displayImageComponentToggle");
+            Console.WriteLine("double_image: image2.isLoading=" + image2.IsLoading.ToString() + " @ start of displayImageComponentToggle");
+
+            //int sleepCnt = 0;
+            ////// 両方のImageコンポーネントが更新済みになるまでSleepする
+            //while (totalDisplayedFrames > 5 && (image1.IsLoading || image2.IsLoading))
+            //{
+            //    Thread.Sleep(1);
+            //    sleepCnt += 1;
+            //    if (sleepCnt > 1000)
+            //    {
+            //        Console.WriteLine("double_image: 500ms sleep timeout image1.isLoading=" + image1.IsLoading.ToString() + " image2.isLoading=" + image2.IsLoading.ToString() + "@ start of displayImageComponentToggle");
+            //        if (image1.IsLoading)
+            //        {
+            //            setNewImageComponentAndBitmap(IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1);
+            //        }
+            //        else
+            //        {
+            //            setNewImageComponentAndBitmap(IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2);
+            //        }
+            //        break;
+            //    }
+            //};
+
+            if (curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
                 Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
+                //while ( image2.IsLoading ) { Thread.Sleep(1); }
                 image2.IsVisible = true;
                 image1.IsVisible = false;
 
@@ -227,6 +308,7 @@ namespace RemoteDesktop.Client.Android
             else
             {
                 Console.WriteLine("double_image: set image1 visible @ displayImageComponentToggle");
+                //while ( image1.IsLoading ) { Thread.Sleep(1); }
                 image1.IsVisible = true;
                 image2.IsVisible = false;
 
@@ -240,6 +322,8 @@ namespace RemoteDesktop.Client.Android
         // Imageコンポーネントへのデータ更新通知もここで行う
         private void dataUpdateTargetImageComponentToggle()
         {
+            Console.WriteLine("double_image: image1.isLoading=" + image1.IsLoading.ToString() + " @ start of dataUpdateTargetImageComponentToggle");
+            Console.WriteLine("double_image: image2.isLoading=" + image2.IsLoading.ToString() + " @ start of dataUpdateTargetImageComponentToggle");
             Console.WriteLine("double_image: updateTarget=" + curUpdateTargetImgComp.ToString() + " @ start of dataUpdateTargetImageComponentToggle");
             if(curUpdateTargetImgComp == IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1)
             {
@@ -267,7 +351,9 @@ namespace RemoteDesktop.Client.Android
             // 可能性があるので少し待つ
             //Thread.Sleep(200); 
 
-            //var tcs = new TaskCompletionSource<bool>();
+            //Imageコンポーネントの差し替えにともなってバッファアドレスが変わるかもしれないので
+            //待つ
+            var tcs = new TaskCompletionSource<bool>();
             Device.BeginInvokeOnMainThread(() =>
             {
                 lock (this)
@@ -282,20 +368,21 @@ namespace RemoteDesktop.Client.Android
                     this.metaData = metaData;
                     try
                     {
-                        displayImageComponentToggle(); // 直前のデータ受信でデータを更新したImageコンポーネントを表示状態にする
 
                         //processingFrame = true;
                         // create bitmap
                         if (bitmap1 == null)
                         {
-                            bitmap1 = new Picture(null, metaData.width, metaData.height);
-                            bitmapBuffer1 = bitmap1.getInternalBuffer();
-                            image1.BindingContext = bitmap1;
-                            image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
-                            bitmap2 = new Picture(null, metaData.width, metaData.height);
-                            bitmapBuffer2 = bitmap2.getInternalBuffer();
-                            image2.BindingContext = bitmap2;
-                            image2.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                            //bitmap1 = new Picture(null, metaData.width, metaData.height);
+                            //bitmapBuffer1 = bitmap1.getInternalBuffer();
+                            //image1.BindingContext = bitmap1;
+                            //image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                            //bitmap2 = new Picture(null, metaData.width, metaData.height);
+                            //bitmapBuffer2 = bitmap2.getInternalBuffer();
+                            //image2.BindingContext = bitmap2;
+                            //image2.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
+                            setNewImageComponentAndBitmap(IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1);
+                            setNewImageComponentAndBitmap(IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2);
 
                             curUpdateTargetImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_2;
                             //curBitmapBuffer = bitmapBuffer2;
@@ -306,6 +393,12 @@ namespace RemoteDesktop.Client.Android
                             //image.HeightRequest = metaData.screenHeight;
                             //image.WidthRequest = metaData.screenWidth;
                         }
+
+                        if (isImageComponetsAdded)
+                        {
+                            displayImageComponentToggle(); // 直前のデータ受信でデータを更新したImageコンポーネントを表示状態にする
+                        }
+
                         // init compression
                         if (metaData.compressed)
                         {
@@ -318,20 +411,21 @@ namespace RemoteDesktop.Client.Android
                                 gzipStream.SetLength(0);
                             }
                         }
-                        //tcs.SetResult(true);
+                        tcs.SetResult(true);
                     }
                     catch (Exception ex)
                     {
-                        //tcs.SetException(ex);
+                        Console.WriteLine(ex);
+                        tcs.SetException(ex);
                     }
                 }
             });
-            //var task = tcs.Task;
-            //try
-            //{
-            //    task.Wait();
-            //}
-            //catch { }
+            var task = tcs.Task;
+            try
+            {
+                task.Wait();
+            }
+            catch { }
         }
 
         //private unsafe void Socket_EndDataRecievedCallback()
@@ -406,6 +500,12 @@ namespace RemoteDesktop.Client.Android
                     {
                         //tcs.SetException(ex);
                     }
+
+                    if (isImageComponetsAdded)
+                    {
+                        totalDisplayedFrames += 1;
+                    }
+
                 }
             });
             //var task = tcs.Task;

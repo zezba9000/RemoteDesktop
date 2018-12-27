@@ -17,6 +17,7 @@ namespace RemoteDesktop.Client.Android.Droid
             TabLayoutResource = Resource.Layout.Tabbar;
             ToolbarResource = Resource.Layout.Toolbar;
 
+            Xamarin.Forms.Forms.SetFlags("FastRenderers_Experimental");
             base.OnCreate(savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
             LoadApplication(new App());
