@@ -149,7 +149,7 @@ namespace RemoteDesktop.Client.Android
                 fit_height *= y_ratio;
             }
 
-            SKRect destRect = new SKRect(0, 0, fit_width, fit_height);
+            SKRect destRect = new SKRect(info.Width - fit_width, 0, fit_width, fit_height);
             SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
 
             // pin the managed array so that the GC doesn't move it
