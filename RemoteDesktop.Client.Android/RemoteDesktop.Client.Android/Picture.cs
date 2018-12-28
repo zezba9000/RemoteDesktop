@@ -50,22 +50,6 @@ namespace RemoteDesktop.Client.Android
             {
                 buffer = MakeBuffer(width, height);
             }
-            byte r = (byte)MainPage.rnd.Next(256);
-            byte g = (byte)MainPage.rnd.Next(256);
-            byte b = (byte)MainPage.rnd.Next(256);
-            //byte a = (byte)255;
-            long index = 0;
-            for (int h = 0;h < height; h++)
-            {
-                for(int w = 0; w < width; w++)
-                {
-                    index = (h * width + w) * 3 + headerSize;
-                    buffer[index + 0] = b;
-                    buffer[index + 1] = g;
-                    buffer[index + 2] = r;
-                    //buffer[index + 3] = a;
-                }
-            }
         }
 
         private byte[] MakeBuffer(int width, int height)

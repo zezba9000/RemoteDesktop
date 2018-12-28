@@ -34,16 +34,10 @@ namespace RemoteDesktop.Client.Android
     public partial class MainPage : ContentPage
     {
         private DataSocket socket;
-        //private WriteableBitmap bitmap;
-        //private IntPtr bitmapBackbuffer;
-        private int curBitmapBufOffset = 0;
         private MetaData metaData;
         private MemoryStream gzipStream;
-        //        private MemoryStream decompedStream;
-        private bool skipImageUpdate, isDisposed; //, connectedToLocalPC;
-        //private bool processingFrame = false;
+        private bool isDisposed;
         private UIStates uiState = UIStates.Stopped;
-        //        private Thickness lastImageThickness;
 
         //private Timer inputTimer;
         //private bool mouseUpdate;
@@ -51,34 +45,20 @@ namespace RemoteDesktop.Client.Android
         //private sbyte mouseScroll;
         //private byte mouseScrollCount, inputMouseButtonPressed;
 
-        private Xamarin.Forms.Image image1 = new Xamarin.Forms.Image();
-        private Xamarin.Forms.Image image2 = new Xamarin.Forms.Image();
-
-        private Picture bitmap1 = null;
-        private Picture bitmap2 = null;
-        private byte[] bitmapBuffer1 = null;
-        private byte[] bitmapBuffer2 = null;
-        public static Random rnd = new Random();
-        // for ...x86_Oreo(1) emulator
-        private int width = 1080;
-        private int height = 1800; //display size is 2560
-        private const string SERVER_ADDR = "192.168.0.11"; // not used
+        private int width = 432; // dp based app display area size is set
+        private int height = 708; // dp based app display area size is set
         private const int IMAGE_SERVER_PORT = 8888;
 
         private RTPSoundStreamPlayer player = null;
         private AbsoluteLayout layout;
 
         private BITMAP_DISPLAY_COMPONENT_TAG curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2;
-        //private IMAGE_COMPONENT_TAG curDisplayingImgComp = IMAGE_COMPONENT_TAG.IMAGE_COMPONENT_1;
-//        private byte[] curBitmapBuffer = null;
         private bool isAppDisplaySizeGot = false;
         private bool isBitDisplayComponetsAdded = false;
         private int totalDisplayedFrames = 0;
         private bool isBitDisplayCompOrBufInited = false;
 
-        private bool isUseSkia = true;
         private SKCanvasView canvas = null;
-        //private SKBitmap[] bitmaps;
         private MemoryStream[] skiaBufStreams;
 
         public MainPage()
@@ -96,34 +76,16 @@ namespace RemoteDesktop.Client.Android
             //};
             //image.GestureRecognizers.Add(gr);
 
-            if (isUseSkia)
+            canvas = new SKCanvasView
             {
-                //<skia:SKCanvasView x:Name="canvasView"
-                //                   VerticalOptions="FillAndExpand"
-                //                   PaintSurface="OnCanvasViewPaintSurface" />
-                canvas = new SKCanvasView
-                {
-                    VerticalOptions = LayoutOptions.FillAndExpand
-                };
-                canvas.PaintSurface += OnCanvasViewPaintSurface;
-                // Skiaを利用する場合、ビットマップデータのバッファはここで用意してしまう
-                skiaBufStreams = new MemoryStream[2];
-                skiaBufStreams.SetValue(new MemoryStream(), 0);
-                skiaBufStreams.SetValue(new MemoryStream(), 1);
-            }
-            else { 
-                Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
-                var local_bitmap = new Picture(colorInfo, width, height);
-                image1.Source = local_bitmap.GetImageSource();
-                image1.Aspect = Aspect.AspectFit;
-                local_bitmap = new Picture(colorInfo, width, height);
-                image2.Source = local_bitmap.GetImageSource();
-                image2.Aspect = Aspect.AspectFit;
-            }
+                VerticalOptions = LayoutOptions.FillAndExpand
+            };
+            canvas.PaintSurface += OnCanvasViewPaintSurface;
+            // Skiaを利用する場合、ビットマップデータのバッファはここで用意してしまう
+            skiaBufStreams = new MemoryStream[2];
+            skiaBufStreams.SetValue(new MemoryStream(), 0);
+            skiaBufStreams.SetValue(new MemoryStream(), 1);
 
-
-            //layout.Children.Add(image, new Rectangle(0, 0, width/2.5, height/2.5));
-                
             layout = new AbsoluteLayout();
             Content = layout;
 
@@ -148,7 +110,7 @@ namespace RemoteDesktop.Client.Android
             SKSurface surface = args.Surface;
             SKCanvas canvas = surface.Canvas;
 
-            if(!(isBitDisplayComponetsAdded && isBitDisplayCompOrBufInited))
+            if (!(isBitDisplayComponetsAdded && isBitDisplayCompOrBufInited))
             {
                 return;
             }
@@ -156,7 +118,7 @@ namespace RemoteDesktop.Client.Android
             byte[] bitmap_data = null;
             long dataLength = -1;
             // curUpdateTargetComoonentOrBuf は既に更新中のものになっているはずなので、以下はその前提
-            if(curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
+            if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
             {
                 bitmap_data = skiaBufStreams[1].ToArray();
                 dataLength = skiaBufStreams[1].Length;
@@ -174,9 +136,9 @@ namespace RemoteDesktop.Client.Android
             float fit_width = metaData.width;
             float fit_height = metaData.height;
 
-            float x_ratio = info.Height / (float) metaData.height;
-            float y_ratio = info.Width / (float) metaData.width;
-            if(x_ratio < y_ratio)
+            float x_ratio = info.Height / (float)metaData.height;
+            float y_ratio = info.Width / (float)metaData.width;
+            if (x_ratio < y_ratio)
             {
                 fit_width *= x_ratio;
                 fit_height *= x_ratio;
@@ -192,7 +154,7 @@ namespace RemoteDesktop.Client.Android
 
             // pin the managed array so that the GC doesn't move it
             var gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
- 
+
 
             // install the pixels with the color type of the pixel data
             //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
@@ -219,7 +181,7 @@ namespace RemoteDesktop.Client.Android
         public void connectToSoundServer()
         {
             player = new RTPSoundStreamPlayer();
-            if(player.config.protcol_mode == RTPConfiguration.ProtcolMode.TCP)
+            if (player.config.protcol_mode == RTPConfiguration.ProtcolMode.TCP)
             {
                 player.togglePlayingTCP();
             }
@@ -239,32 +201,8 @@ namespace RemoteDesktop.Client.Android
 
         private void addBitmatDisplayComponentToLayout()
         {
-            if (isUseSkia)
-            {
-                layout.Children.Add(canvas, new Rectangle(0, 0, width, height));
-            }
-            else
-            {
-                layout.Children.Add(image1, new Rectangle(0, 0, width, height));
-                layout.Children.Add(image2, new Rectangle(0, 0, width, height));
+            layout.Children.Add(canvas, new Rectangle(0, 0, width, height));
 
-                Console.WriteLine("addImageComponentToLayout: two image components added to layout");
-                // 更新中対象のものは更新してからVisibleにする
-                if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                {
-                    //image1.Opacity = 0;
-                    //image2.Opacity = 1.0;
-                    image1.IsVisible = false;
-                    image2.IsVisible = true;
-                }
-                else
-                {
-                    //image1.Opacity = 1.0;
-                    //image2.Opacity = 0;
-                    image1.IsVisible = true;
-                    image2.IsVisible = false;
-                }
-            }
             isBitDisplayComponetsAdded = true;
         }
 
@@ -296,130 +234,36 @@ namespace RemoteDesktop.Client.Android
             socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
             socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             //socket.Connect(host.endpoints[0]);
-            socket.Connect(IPAddress.Parse(SERVER_ADDR), IMAGE_SERVER_PORT);
+            socket.Connect(IPAddress.Parse(RTPConfiguration.ServerAddress), IMAGE_SERVER_PORT);
         }
 
-        
+
         private void setNewBitmapDisplayComponentAndBitmap(BITMAP_DISPLAY_COMPONENT_TAG tag)
         {
-            if (isUseSkia)
-            {
-                layout.Children.Add(canvas, new Rectangle(0, 0, width, height));
-            }
-            else
-            {
-                if (isBitDisplayComponetsAdded)
-                {
-                    if (tag == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                    {
-                        layout.Children.Remove(image1);
-                    }
-                    else
-                    {
-                        layout.Children.Remove(image2);
-                    }
-                }
-
-                if (tag == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                {
-                    Console.WriteLine("double_image: image1 replaced.");
-                    bitmap1 = new Picture(null, metaData.width, metaData.height);
-                    bitmapBuffer1 = bitmap1.getInternalBuffer();
-                    image1 = new Image
-                    {
-                        BindingContext = bitmap1,
-                        Aspect = Aspect.AspectFit
-                    };
-                    image1.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
-                    image1.IsVisible = false;
-                }
-                else
-                {
-                    Console.WriteLine("double_image: image2 replaced.");
-                    bitmap2 = new Picture(null, metaData.width, metaData.height);
-                    bitmapBuffer2 = bitmap2.getInternalBuffer();
-                    image2 = new Image
-                    {
-                        BindingContext = bitmap2,
-                        Aspect = Aspect.AspectFit
-                    };
-                    image2.SetBinding(Xamarin.Forms.Image.SourceProperty, "Source");
-                    image2.IsVisible = false;
-                }
-
-                if (isBitDisplayComponetsAdded)
-                {
-                    if (tag == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                    {
-                        layout.Children.Add(image1, new Rectangle(0, 0, width, height));
-                    }
-                    else
-                    {
-                        layout.Children.Add(image2, new Rectangle(0, 0, width, height));
-                    }
-                }
-            }
+            layout.Children.Add(canvas, new Rectangle(0, 0, width, height));
         }
 
         private void displayComponentOrBufferToggle()
         {
-            if (isUseSkia)
-            {
-                // do nothing
-            }
-            else {
-                if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                {
-                    Console.WriteLine("double_image: set image2 visible @ displayImageComponentToggle");
-                    image2.IsVisible = true;
-                    image1.IsVisible = false;
-                }
-                else
-                {
-                    Console.WriteLine("double_image: set image1 visible @ displayImageComponentToggle");
-                    image1.IsVisible = true;
-                    image2.IsVisible = false;
-                }
-                Console.WriteLine("double_image: updateTarget=" + curUpdateTargetComoonentOrBuf.ToString() + " @ end of displayImageComponentToggle");
-            }
+            // do nothing
         }
 
         // Imageコンポーネントへのデータ更新通知もここで行う
         private void dataUpdateTargetImageComponentToggle()
         {
-            if (isUseSkia)
+            Console.WriteLine("double_image: updateTarget=" + curUpdateTargetComoonentOrBuf.ToString() + " @ start of dataUpdateTargetImageComponentToggle");
+            if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
             {
-                Console.WriteLine("double_image: updateTarget=" + curUpdateTargetComoonentOrBuf.ToString() + " @ start of dataUpdateTargetImageComponentToggle");
-                if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                {
-                    Console.WriteLine("double_image: rerender canvas, target <- COMPONENT2 @ dataUpdateTargetImageComponentToggle");
-                    curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2;
-                }
-                else
-                {
-                    Console.WriteLine("double_image: rerender canvas, target <- COMPONENT1 @ dataUpdateTargetImageComponentToggle");
-                    curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1;
-                }
-                Console.WriteLine("double_image: call canvas.InvalidateSurface");
-                canvas.InvalidateSurface();
+                Console.WriteLine("double_image: rerender canvas, target <- COMPONENT2 @ dataUpdateTargetImageComponentToggle");
+                curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2;
             }
-            else {
-                Console.WriteLine("double_image: updateTarget=" + curUpdateTargetComoonentOrBuf.ToString() + " @ start of dataUpdateTargetImageComponentToggle");
-                if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                {
-                    Console.WriteLine("double_image: state update bitmap1, curBitmapBuffer <- bitmapBuffer2, target <- image2 @ dataUpdateTargetImageComponentToggle");
-                    bitmap1.setStateUpdated();
-                    //curBitmapBuffer = bitmapBuffer2;
-                    curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2;
-                }
-                else
-                {
-                    Console.WriteLine("double_image: state update bitmap2, curBitmapBuffer <- bitmapBuffer1, target <- image1 @ dataUpdateTargetImageComponentToggle");
-                    bitmap2.setStateUpdated();
-                    //curBitmapBuffer = bitmapBuffer1;
-                    curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1;
-                }
+            else
+            {
+                Console.WriteLine("double_image: rerender canvas, target <- COMPONENT1 @ dataUpdateTargetImageComponentToggle");
+                curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1;
             }
+            Console.WriteLine("double_image: call canvas.InvalidateSurface");
+            canvas.InvalidateSurface();
         }
 
         private void Socket_StartDataRecievedCallback(MetaData metaData)
@@ -507,16 +351,6 @@ namespace RemoteDesktop.Client.Android
                     Console.WriteLine("elapsed for image data transfer communication: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Transfer_Communication").ToString() + " msec");
                     try
                     {
-                        if (!skipImageUpdate)
-                        {
-                            //notify need display update area to bitmap instance
-                            //bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
-                        }
-                        else
-                        {
-                            skipImageUpdate = false;
-                        }
-
                         if (metaData.compressed)
                         {
                             try
@@ -527,30 +361,14 @@ namespace RemoteDesktop.Client.Android
                                 {
                                     var tmpDecompedStream = new MemoryStream();
                                     gzip.CopyTo(tmpDecompedStream);
-                                    byte[] curBitmapBuffer = null;
                                     if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
                                     {
-                                        curBitmapBuffer = bitmapBuffer1;
+                                        skiaBufStreams[0].Write(tmpDecompedStream.ToArray(), 0, metaData.imageDataSize);
                                     }
                                     else
                                     {
-                                        curBitmapBuffer = bitmapBuffer2;
+                                        skiaBufStreams[1].Write(tmpDecompedStream.ToArray(), 0, metaData.imageDataSize);
                                     }
-                                    if (isUseSkia)
-                                    {
-                                        if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                                        {
-                                            skiaBufStreams[0].Write(tmpDecompedStream.ToArray(), 0, metaData.imageDataSize);
-                                        }
-                                        else
-                                        {
-                                            skiaBufStreams[1].Write(tmpDecompedStream.ToArray(), 0, metaData.imageDataSize);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Array.Copy(tmpDecompedStream.GetBuffer(), 0, curBitmapBuffer, Picture.headerSize, metaData.imageDataSize);
-                                    }                                    
 
                                     Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
                                 }
@@ -563,8 +381,6 @@ namespace RemoteDesktop.Client.Android
 
                         // このメソッドの中でImageコンポーネントへの更新通知も行う
                         dataUpdateTargetImageComponentToggle();
-
-                        curBitmapBufOffset = 0;
 
                         Console.WriteLine("new capture image received and update bitmap display!");
                     }
@@ -586,7 +402,6 @@ namespace RemoteDesktop.Client.Android
             //    task.Wait();
             //}
             //catch { }
-            //Console.WriteLine("elapsed for Image Update: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Update").ToString() + " msec");
             Console.WriteLine("image update Invoked at EndDataRecievedCallback!");
         }
 
@@ -596,7 +411,7 @@ namespace RemoteDesktop.Client.Android
             //var tcs = new TaskCompletionSource<bool>();
             byte[] local_buf = new byte[dataSize];
             Array.Copy(data, 0, local_buf, 0, dataSize);
-            Device.BeginInvokeOnMainThread(() => 
+            Device.BeginInvokeOnMainThread(() =>
             {
                 lock (this)
                 {
@@ -611,35 +426,13 @@ namespace RemoteDesktop.Client.Android
                         }
                         else
                         {
-                            if (curBitmapBufOffset == 0)
-                            {
-                                curBitmapBufOffset = Picture.headerSize;
-                            }
-
-                            byte[] curBitmapBuffer = null;
                             if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
                             {
-                                curBitmapBuffer = bitmapBuffer1;
+                                skiaBufStreams[0].Write(local_buf, 0, dataSize);
                             }
                             else
                             {
-                                curBitmapBuffer = bitmapBuffer2;
-                            }
-
-                            if (isUseSkia)
-                            {
-                                if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                                {
-                                    skiaBufStreams[0].Write(local_buf, 0, dataSize);
-                                }
-                                else
-                                {
-                                    skiaBufStreams[1].Write(local_buf, 0, dataSize);
-                                }
-                            }
-                            else
-                            {
-                                Array.Copy(local_buf, 0, curBitmapBuffer, curBitmapBufOffset + offset, dataSize);
+                                skiaBufStreams[1].Write(local_buf, 0, dataSize);
                             }
 
                         }
@@ -665,11 +458,8 @@ namespace RemoteDesktop.Client.Android
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                //lock (this)
-                //{
                 socket.Dispose();
                 socket = null;
-                //}
 
                 SetConnectionUIStates(UIStates.Stopped);
             });
@@ -686,8 +476,6 @@ namespace RemoteDesktop.Client.Android
                 compressed = true,
                 resolutionScale = .5f, //.3f,
                 screenIndex = 0,
-                //format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565,
-                //format = PixelFormatXama.Format24bppRgb,
                 targetFPS = 1.0f,
                 dataSize = -1
             };
@@ -704,11 +492,8 @@ namespace RemoteDesktop.Client.Android
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                //lock (this)
-                //{
                 socket.Dispose();
                 socket = null;
-                //}
                 SetConnectionUIStates(UIStates.Stopped);
             });
         }
