@@ -86,7 +86,7 @@ namespace RemoteDesktop.Android.Core
 		public float resolutionScale;
 		public float targetFPS;
 
-		public short mouseX, mouseY;
+		public short mouseX, mouseY; // mouseX is used as frame number (DEBUG)
 		public sbyte mouseScroll;
 		//public byte mouseButtonPressed, keyCode, specialKeyCode;
 	}
@@ -117,6 +117,7 @@ namespace RemoteDesktop.Android.Core
 		private readonly int metaDataSize;
 		private MetaData metaData;
 		private MemoryStream compressedStream;
+        private int frameNumber = 0;
 
         private const int BUF_SIZE = 2048;
 
@@ -273,6 +274,7 @@ namespace RemoteDesktop.Android.Core
 			{
 				if (isDisposed) return;
 				disconnected = false;
+                frameNumber = 0;
 
 				// start diconnection timer
 				StartDisconnectionTimer();
@@ -618,8 +620,10 @@ namespace RemoteDesktop.Android.Core
 					screenHeight = (short)screenHeight,
 					screenIndex = (short)screenIndex,
 					//format = bitmap.PixelFormat,
-					targetFPS = targetFPS
+					targetFPS = targetFPS,
+                    mouseX = (short) frameNumber
 				};
+                frameNumber++;
 
 				SendMetaDataInternal(metaData);
 

@@ -171,7 +171,23 @@ namespace RemoteDesktop.Client.Android
             //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
             SKBitmap skbitmap = new SKBitmap();
 
-            SKRect destRect = new SKRect(0, 0, metaData.width * 1.85f, metaData.height * 1.85f); // 1.8x is OK
+            float fit_width = metaData.width;
+            float fit_height = metaData.height;
+
+            float x_ratio = info.Height / metaData.height;
+            float y_ratio = info.Width / metaData.width;
+            if(x_ratio < y_ratio)
+            {
+                fit_width *= x_ratio;
+                fit_height *= x_ratio;
+            }
+            else
+            {
+                fit_width *= y_ratio;
+                fit_height *= y_ratio;
+            }
+
+            SKRect destRect = new SKRect(0, 0, fit_width, fit_height);
             //SKRect destRect = new SKRect(0, 0, metaData.width, metaData.height);
             SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
 
@@ -429,6 +445,7 @@ namespace RemoteDesktop.Client.Android
             if (metaData.type != MetaDataTypes.ImageData) throw new Exception("Invalid meta data type: " + metaData.type);
 
             Console.WriteLine("recieved MetaData @ StartDataRecievedCallback");
+            Console.WriteLine("double_image: frameNumber=" + metaData.mouseX.ToString());
 
             // 先に行われたImageコンポーネントへの更新通知によるImageコンポーネントの表示の更新が完了していない
             // 可能性があるので少し待つ
