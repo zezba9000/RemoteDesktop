@@ -1,5 +1,6 @@
 ﻿//using Plugin.ImageResizer;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -91,20 +92,86 @@ namespace RemoteDesktop.Android.Core
             
         }
 
-        public static byte[] convertBitmapBGR24toBGRA32(byte[] bitmap)
-        {
-            int pixels = bitmap.Length / 3;
-            byte[] conved = new byte[pixels * 4];
-            for (int idx = 0; idx < pixels; idx++)
-            {
-                conved[idx * 4] = bitmap[idx * 3];
-                conved[idx * 4 + 1] = bitmap[idx * 3 + 1];
-                conved[idx * 4 + 2] = bitmap[idx * 3 + 2];
-                conved[idx * 4 + 3] = 0xFF;
-            }
+        //// for canvas setting is Argb8888
+        //public static byte[] convertBitmapBGR24toBGRA32(byte[] bitmap)
+        //
+        //    int pixels = bitmap.Length / 3;
+        //    byte[] conved = new byte[pixels * 4];
+        //    for (int idx = 0; idx < pixels; idx++)
+        //    {
+        //        conved[idx * 4] = bitmap[idx * 3];
+        //        conved[idx * 4 + 1] = bitmap[idx * 3 + 1];
+        //        conved[idx * 4 + 2] = bitmap[idx * 3 + 2];
+        //        conved[idx * 4 + 3] = 0xFF;
+        //    }
 
-            return conved;
-        }
+        //    return conved;
+        //}
+
+        //// for canvas setting is Argb8888
+        //public static byte[] convertBitmapAbgr16_1555toBGR32(byte[] bitmap)
+        //{
+        //    //byte[] toCheck = new byte[10];
+        //    //if (bitmap.Length > toCheck.Length)
+        //    //{
+        //    //    Array.Copy(bitmap, 0, toCheck, 0, toCheck.Length);
+        //    //    BitArray ba2 = new BitArray(toCheck);
+        //    //    var cnt2 = 0;
+        //    //    foreach (Boolean bit in ba2)
+        //    //    {
+        //    //        if (cnt2 % 16 == 0)
+        //    //        {
+        //    //            Console.WriteLine("");
+        //    //        }
+        //    //        Console.Write(bit == true ? 1 : 0);
+        //    //        cnt2++;
+        //    //    }
+        //    //}
+
+
+        //    int pixels = bitmap.Length / 2;
+        //    byte[] conved = new byte[pixels * 4];
+        //    for (int idx = 0; idx < pixels; idx++)
+        //    {
+        //        byte[] pixel_buf = new byte[2];
+        //        byte[] rgb_5bit = new byte[3];
+        //        rgb_5bit[0] = 0; //r
+        //        rgb_5bit[1] = 0; //g
+        //        rgb_5bit[2] = 0; //b
+
+        //        Array.Copy(bitmap, idx * 2, pixel_buf, 0, 2);
+        //        var ba = new BitArray(pixel_buf);
+        //        //var enumer = ba.GetEnumerator();
+        //        int cur_color = 0; // 0->R, 1->G, 2->B
+        //        int cnt = -1;
+        //        foreach(Boolean bit in ba)
+        //        {
+        //            //if (cnt == -1)
+        //            //{
+        //            //    cnt = 0;
+        //            //    continue;
+        //            //}
+        //            if (cnt == 15) // アルファ値の1bitが末尾にあることを想定
+        //            {
+        //                break;
+        //            }
+        //            if (cnt != 0 && cnt % 5 == 0) { cur_color++; }
+        //            //int shifts = 7 - (cnt % 5);
+        //            int shifts = (cnt % 5) + 3;
+        //            if (bit) { rgb_5bit[cur_color] += (byte) (1 << shifts); }
+        //            //Console.WriteLine("double_image: idx=" + idx.ToString() + " cnt=" + cnt.ToString() + " bit=" + bit.ToString() + 
+        //            //    " rgb_5bit[" + cur_color.ToString() + "]=" + rgb_5bit[cur_color].ToString() + " 1 << " + shifts.ToString() + 
+        //            //    " -> " + (1 << shifts).ToString());
+        //            cnt++;
+        //        }
+        //        conved[idx * 4] = rgb_5bit[0];
+        //        conved[idx * 4 + 1] = rgb_5bit[1];
+        //        conved[idx * 4 + 2] = rgb_5bit[2];
+        //        conved[idx * 4 + 3] = 0xFF;
+        //    }
+
+        //    return conved;
+        //}
 
         //public static byte[] scaleBitmapDataAsync(byte[] bitmap, int width, int height)
         //{

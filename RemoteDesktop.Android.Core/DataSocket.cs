@@ -12,6 +12,7 @@ using System.Drawing;
 using System.IO.Compression;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Collections;
 
 namespace RemoteDesktop.Android.Core
 {
@@ -566,20 +567,34 @@ namespace RemoteDesktop.Android.Core
 		//public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)
 		public void SendImage(BitmapXama bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, float targetFPS)		
 		{
-			//BitmapData locked = null;
+            //byte[] toCheck = new byte[10];
+            //Array.Copy(bitmap.getInternalBuffer(), 0, toCheck, 0, toCheck.Length);
+            //BitArray ba = new BitArray(toCheck);
+            //var cnt = 0;
+            //foreach(Boolean bit in ba)
+            //{
+            //    if(cnt%16 == 0)
+            //    {
+            //        Console.WriteLine("");
+            //    }
+            //    Console.Write(bit == true ? 1 : 0);
+            //    cnt++;
+            //}
+
+
 			try
 			{
 				// get data length
 				int dataLength, imageDataSize;
-				//switch (bitmap.PixelFormat)
-				//{
-    //                // DEBUG: comment out to avoid error
-    // //               case PixelFormat.Format24bppRgb: imageDataSize = bitmap.Width * bitmap.Height * 3; break;
-				//	//case PixelFormat.Format16bppRgb565: imageDataSize = ((bitmap.Width * bitmap.Height * 16) / 8); break;
+                if (RTPConfiguration.isConvTo16bit)
+                {
+                    imageDataSize = bitmap.Width * bitmap.Height * 2; //PixelFormat.Format16bppArgb1555
+                }
+                else
+                {
+                    imageDataSize = bitmap.Width * bitmap.Height * 3; //PixelFormat.Format24bprRgb
+                }
 
-				//	default: throw new Exception("Unsuported format: " + bitmap.PixelFormat);
-				//}
-                imageDataSize = bitmap.Width * bitmap.Height * 3; //PixelFormat.Format24bprRgb
 				dataLength = imageDataSize;
 
                 // DEBUG: comment out to avoid error

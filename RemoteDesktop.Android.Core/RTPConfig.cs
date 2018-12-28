@@ -45,6 +45,7 @@ namespace RemoteDesktop.Android.Core
             public int localPort = 0;
             public bool Loop = false;
 
+            public static bool isConvTo16bit = true;
             // FormMainとかにあったフィールド
             //private uint m_RecorderFactor = 4;
             //private uint m_JitterBufferCount = 20;

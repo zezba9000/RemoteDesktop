@@ -18,7 +18,6 @@ namespace RemoteDesktop.Server
 	{
 		private bool isDisposed;
 		private NotifyIcon trayIcon;
-		//private NetworkDiscovery networkDiscovery;
 		private DataSocket socket;
 		private Rectangle screenRect;
 		private Bitmap bitmap, scaledBitmap;
@@ -31,7 +30,7 @@ namespace RemoteDesktop.Server
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = true;
         float resolutionScale = 1.0f;
-        float fixedResolutionScale = 0.3f; // if this value is not 1, this value is used at scaling always
+        float fixedResolutionScale = 0.5f; // if this value is not 1, this value is used at scaling always
 		private Timer timer;
 		public static Dispatcher dispatcher;
 
@@ -91,12 +90,6 @@ namespace RemoteDesktop.Server
 					timer.Dispose();
 					timer = null;
 				}
-
-				//if (networkDiscovery != null)
-				//{
-				//	networkDiscovery.Dispose();
-				//	networkDiscovery = null;
-				//}
 
 				if (socket != null)
 				{
@@ -283,15 +276,36 @@ namespace RemoteDesktop.Server
             bmap.RotateFlip(RotateFlipType.Rotate90FlipY);
 
             Rectangle rect = new Rectangle(0, 0, bmap.Width, bmap.Height);
-            BitmapData bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
 
-            long dataLength = bmap.Width * bmap.Height * 3;
+            BitmapData bmpData = null;
+            Bitmap bmap16 = null;
+            long dataLength = -1;
+            if (RTPConfiguration.isConvTo16bit)
+            {                
+                bmap16 = bmap.Clone(new Rectangle(0, 0, bmap.Width, bmap.Height), PixelFormat.Format16bppRgb565);
+                bmpData = bmap16.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap16.PixelFormat);
+                dataLength = bmap.Width * bmap.Height * 2; // Argb1555
+            }
+            else
+            {
+                bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
+                dataLength = bmap.Width * bmap.Height * 3; //RGB32
+            }
+            
             IntPtr ptr = bmpData.Scan0;
             MemoryStream ms = new MemoryStream();
             var bitmapStream = new UnmanagedMemoryStream((byte*)bmpData.Scan0, dataLength);
             bitmapStream.CopyTo(ms);
 
-            bmap.UnlockBits(bmpData);
+            if (RTPConfiguration.isConvTo16bit)
+            {
+                bmap16.UnlockBits(bmpData);
+            }
+            else
+            {
+                bmap.UnlockBits(bmpData);
+            }
+
 
             byte[] buf = ms.GetBuffer();
             var retBmap = new BitmapXama(buf);
