@@ -174,8 +174,8 @@ namespace RemoteDesktop.Client.Android
             float fit_width = metaData.width;
             float fit_height = metaData.height;
 
-            float x_ratio = info.Height / metaData.height;
-            float y_ratio = info.Width / metaData.width;
+            float x_ratio = info.Height / (float) metaData.height;
+            float y_ratio = info.Width / (float) metaData.width;
             if(x_ratio < y_ratio)
             {
                 fit_width *= x_ratio;
@@ -188,7 +188,6 @@ namespace RemoteDesktop.Client.Android
             }
 
             SKRect destRect = new SKRect(0, 0, fit_width, fit_height);
-            //SKRect destRect = new SKRect(0, 0, metaData.width, metaData.height);
             SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
 
             // pin the managed array so that the GC doesn't move it
@@ -229,12 +228,6 @@ namespace RemoteDesktop.Client.Android
                 player.togglePlayingUDP();
             }
         }
-
-        //public void updateImageContentRandom()
-        //{
-        //    Dictionary<(int, int), (byte, byte, byte, byte)> colorInfo = null;
-        //    bitmap.updateContent(colorInfo, width, height);
-        //}
 
         protected override bool OnBackButtonPressed()
         {
@@ -288,17 +281,6 @@ namespace RemoteDesktop.Client.Android
         private void SetConnectionUIStates(UIStates state)
         {
             uiState = state;
-            //if (state == UIStates.Stopped)
-            //{
-            //    while (processingFrame && !isDisposed) Thread.Sleep(1);
-            //    if (bitmap1 != null)
-            //    {
-            //        Utils.fillValueByteArray(bitmapBuffer1, 255, Picture.headerSize);
-            //        Utils.fillValueByteArray(bitmapBuffer2, 255, Picture.headerSize);
-            //        bitmap1.setStateUpdated();
-            //        bitmap2.setStateUpdated();
-            //    }
-            //}
         }
 
         private void connectToImageServer()
@@ -730,201 +712,6 @@ namespace RemoteDesktop.Client.Android
                 SetConnectionUIStates(UIStates.Stopped);
             });
         }
-
-        //private PixelFormat ConvertPixelFormat(System.Drawing.Imaging.PixelFormat format)
-        //{
-        //    switch (format)
-        //    {
-        //        case System.Drawing.Imaging.PixelFormat.Format24bppRgb: return PixelFormats.Bgr24;
-        //        case System.Drawing.Imaging.PixelFormat.Format16bppRgb565: return PixelFormats.Bgr565;
-        //        default: throw new Exception("Unsuported format: " + format);
-        //    }
-        //}
-
-        //private System.Drawing.Imaging.PixelFormat ConvertPixelFormat(PixelFormat format)
-        //{
-        //    if (format == PixelFormats.Bgr24) return System.Drawing.Imaging.PixelFormat.Format24bppRgb;
-        //    else if (format == PixelFormats.Bgr565) return System.Drawing.Imaging.PixelFormat.Format16bppRgb565;
-        //    else throw new Exception("Unsuported format: " + format);
-        //}
-
-
-        //        private void connectButton_Click(object sender, RoutedEventArgs e)
-        //        {
-        //            // handle pause
-        //            if (uiState == UIStates.Streaming || uiState == UIStates.Paused)
-        //            {
-        //                var state = uiState;
-        //                SetConnectionUIStates(state == UIStates.Streaming ? UIStates.Paused : UIStates.Streaming);
-
-        //                var metaData = new MetaData()
-        //                {
-        //                    type = state == UIStates.Streaming ? MetaDataTypes.PauseCapture : MetaDataTypes.ResumeCapture,
-        //                    dataSize = -1
-        //                };
-
-        //                socket.SendMetaData(metaData);
-        //                return;
-        //            }
-
-        //            // handle connect
-        //            SetConnectionUIStates(UIStates.Streaming);
-
-        //            NetworkHost host = null;
-        //            if (settingsOverlay.settings.customSocketAddress.enabled)
-        //            {
-        //                if (string.IsNullOrEmpty(serverTextBox.Text))
-        //                {
-        //#if DEBUG
-        //					connectedToLocalPC = true;
-        //					host = new NetworkHost("localhost")
-        //					{
-        //						endpoints = new List<IPEndPoint>() {new IPEndPoint(IPAddress.Loopback, 8888)}
-        //					};
-        //#else
-        //                    return;
-        //#endif
-        //                }
-        //                else
-        //                {
-        //                    host = new NetworkHost(serverTextBox.Text)
-        //                    {
-        //                        endpoints = new List<IPEndPoint>() { new IPEndPoint(IPAddress.Loopback, 8888) }
-        //                    };
-
-        //                    connectedToLocalPC = host.name == Dns.GetHostName() || host.name.ToLower() == "localhost" || host.name == "127.0.0.1";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                if (serverComboBox.SelectedIndex == -1)
-        //                {
-        //#if DEBUG
-        //					connectedToLocalPC = true;
-        //					host = new NetworkHost("localhost")
-        //					{
-        //						endpoints = new List<IPEndPoint>() {new IPEndPoint(IPAddress.Loopback, 8888)}
-        //					};
-        //#else
-        //                    return;
-        //#endif
-        //                }
-        //                else
-        //                {
-        //                    host = (NetworkHost)serverComboBox.SelectedValue;
-        //                    connectedToLocalPC = host.name == Dns.GetHostName();
-        //                }
-        //            }
-
-        //            socket = new DataSocket(NetworkTypes.Client);
-        //            socket.ConnectedCallback += Socket_ConnectedCallback;
-        //            socket.DisconnectedCallback += Socket_DisconnectedCallback;
-        //            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-        //            socket.DataRecievedCallback += Socket_DataRecievedCallback;
-        //            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-        //            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-        //            socket.Connect(host.endpoints[0]);
-        //        }
-
-        //        private void refreshButton_Click(object sender, RoutedEventArgs e)
-        //        {
-        //            // handle stop
-        //            if (uiState == UIStates.Streaming || uiState == UIStates.Paused)
-        //            {
-        //                SetConnectionUIStates(UIStates.Stopped);
-        //                var metaData = new MetaData()
-        //                {
-        //                    type = MetaDataTypes.PauseCapture,
-        //                    dataSize = -1
-        //                };
-
-        //                socket.SendMetaData(metaData);
-
-        //                Thread.Sleep(1000);
-        //                lock (this)
-        //                {
-        //                    socket.Dispose();
-        //                    socket = null;
-        //                }
-
-        //                return;
-        //            }
-
-        //            // handle refresh
-        //            refreshingGrid.Visibility = Visibility.Visible;
-        //            var thread = new Thread(Refresh);
-        //            thread.Start();
-        //        }
-
-
-        //private void SettingsOverlay_ApplyCallback()
-        //{
-        //    ApplySettings(MetaDataTypes.UpdateSettings);
-        //    SetConnectionUIStates(uiState);
-        //}
-
-        //private void settingsButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    settingsOverlay.Show();
-        //}
-
-        //private void fullscreenButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    WindowStyle = WindowStyle.None;
-        //    WindowState = WindowState.Maximized;
-        //    ResizeMode = ResizeMode.NoResize;
-        //    fullscreenCloseButton.Visibility = Visibility.Visible;
-        //    lastImageThickness = imageBorder.Margin;
-        //    imageBorder.Margin = new Thickness();
-        //    imageBorder.BorderThickness = new Thickness();
-        //    toolGrid.Visibility = Visibility.Hidden;
-        //}
-
-        //private void fullscreenCloseButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    WindowStyle = WindowStyle.SingleBorderWindow;
-        //    WindowState = WindowState.Normal;
-        //    ResizeMode = ResizeMode.CanResize;
-        //    fullscreenCloseButton.Visibility = Visibility.Hidden;
-        //    imageBorder.Margin = lastImageThickness;
-        //    imageBorder.BorderThickness = new Thickness(1);
-        //    toolGrid.Visibility = Visibility.Visible;
-        //}
-
-        //protected override void OnClosing(CancelEventArgs e)
-        //{
-        //    isDisposed = true;
-
-        //    if (networkDiscovery != null)
-        //    {
-        //        networkDiscovery.Dispose();
-        //        networkDiscovery = null;
-        //    }
-
-        //    lock (this)
-        //    {
-        //        if (inputTimer != null)
-        //        {
-        //            inputTimer.Dispose();
-        //            inputTimer = null;
-        //        }
-
-        //        if (socket != null)
-        //        {
-        //            socket.Dispose();
-        //            socket = null;
-        //        }
-        //    }
-
-        //    if (gzipStream != null)
-        //    {
-        //        gzipStream.Dispose();
-        //        gzipStream = null;
-        //    }
-
-        //    //settingsOverlay.SaveSettings();
-        //    base.OnClosing(e);
-        //}
 
         //protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         //{
