@@ -130,6 +130,10 @@ namespace RemoteDesktop.Client.Android
                 dataLength = skiaBufStreams[0].Length;
                 skiaBufStreams[0].Position = 0;
             }
+            if(dataLength == 0)
+            {
+                return;
+            }
             //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
             SKBitmap skbitmap = new SKBitmap();
 
