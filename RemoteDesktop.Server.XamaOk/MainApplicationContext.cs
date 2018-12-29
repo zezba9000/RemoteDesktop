@@ -29,8 +29,8 @@ namespace RemoteDesktop.Server
         bool compress; //, currentCompress;
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = true;
-        float resolutionScale = 1.0f;
-        float fixedResolutionScale = 0.5f; // if this value is not 1, this value is used at scaling always
+        float resolutionScale = 1.0F;
+        float fixedResolutionScale = 0.3F; // if this value is not 1, this value is used at scaling always
 		private Timer timer;
 		public static Dispatcher dispatcher;
 

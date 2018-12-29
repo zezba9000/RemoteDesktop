@@ -302,8 +302,6 @@ namespace RemoteDesktop.Client.Android
             {
                 lock (this)
                 {
-                    Utils.startTimeMeasure("Image_Transfer_Communication");
-
                     if (isAppDisplaySizeGot && (isBitDisplayComponetsAdded == false))
                     {
                         addBitmatDisplayComponentToLayout();
@@ -347,6 +345,7 @@ namespace RemoteDesktop.Client.Android
                         Console.WriteLine(ex);
                         tcs.SetException(ex);
                     }
+                    Utils.startTimeMeasure("Image_Transfer_Communication");
                 }
             });
             var task = tcs.Task;
