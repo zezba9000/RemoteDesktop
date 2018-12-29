@@ -173,7 +173,8 @@ namespace RemoteDesktop.Client.Android
             //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
             var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
 
-            skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
+            //skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
+            skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, delegate { gcHandle.Free(); }, null);
 
             // Display the bitmap
             //canvas.DrawBitmap(skbitmap, sourceRect, destRect);
