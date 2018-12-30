@@ -12,6 +12,7 @@ using Xamarin.Forms.Xaml;
 using SkiaSharp.Views.Forms;
 using SkiaSharp;
 using System.Runtime.InteropServices;
+using SixLabors.ImageSharp;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -35,7 +36,7 @@ namespace RemoteDesktop.Client.Android
     {
         private DataSocket socket;
         private MetaData metaData;
-        private MemoryStream gzipStream;
+        private MemoryStream compressedStream;
         private bool isDisposed;
         private UIStates uiState = UIStates.Stopped;
 
@@ -329,13 +330,13 @@ namespace RemoteDesktop.Client.Android
                         // init compression
                         if (metaData.compressed)
                         {
-                            if (gzipStream == null)
+                            if (compressedStream == null)
                             {
-                                gzipStream = new MemoryStream();
+                                compressedStream = new MemoryStream();
                             }
                             else
                             {
-                                gzipStream.SetLength(0);
+                                compressedStream.SetLength(0);
                             }
                         }
                         tcs.SetResult(true);
@@ -368,13 +369,41 @@ namespace RemoteDesktop.Client.Android
                     Console.WriteLine("elapsed for image data transfer communication: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Transfer_Communication").ToString() + " msec");
                     try
                     {
-                        if (metaData.compressed)
+                        if (RTPConfiguration.isConvJpeg) {
+                            //var tmpBitmapArr = bitmap.getInternalBuffer();
+                            //Array.Resize<Byte>(ref tmpBitmapArr, imageDataSize);
+                            //var img = SixLabors.ImageSharp.Image.LoadPixelData<SixLabors.ImageSharp.PixelFormats.Bgr565>(tmpBitmapArr, bitmap.Width, bitmap.Height);
+                            //var encoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
+                            //encoder.Quality = 75; //default value is 75
+                            //img.Save(compressedStream, encoder);
+                            //compressedStream.Flush();
+                            //dataLength = (int) compressedStream.Length;
+
+                            compressedStream.Position = 0;
+                            var decoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegDecoder();
+                            Image<SixLabors.ImageSharp.PixelFormats.Bgr565> image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Bgr565>(compressedStream, decoder);
+                            var tmpDecompedStream = new MemoryStream();
+                            image.SaveAsBmp<SixLabors.ImageSharp.PixelFormats.Bgr565>(tmpDecompedStream);
+                            byte[] tmpBmp_buf = tmpDecompedStream.ToArray();
+                            int pixexStartPos = (int) tmpDecompedStream.Length - metaData.imageDataSize;
+                            if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
+                            {
+                                skiaBufStreams[0].Write(tmpDecompedStream.ToArray(), pixexStartPos, metaData.imageDataSize);
+                            }
+                            else
+                            {
+                                skiaBufStreams[1].Write(tmpDecompedStream.ToArray(), pixexStartPos, metaData.imageDataSize);
+                            }
+
+                            Console.WriteLine("elapsed for jpeg decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); 
+                        }
+                        else if (metaData.compressed)
                         {
                             try
                             {
                                 Utils.startTimeMeasure("Bitmap_decompress");
-                                gzipStream.Position = 0;
-                                using (var gzip = new GZipStream(gzipStream, CompressionMode.Decompress, true))
+                                compressedStream.Position = 0;
+                                using (var gzip = new GZipStream(compressedStream, CompressionMode.Decompress, true))
                                 {
                                     var tmpDecompedStream = new MemoryStream();
                                     gzip.CopyTo(tmpDecompedStream);
@@ -387,7 +416,7 @@ namespace RemoteDesktop.Client.Android
                                         skiaBufStreams[1].Write(tmpDecompedStream.ToArray(), 0, metaData.imageDataSize);
                                     }
 
-                                    Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); ;
+                                    Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); 
                                 }
                             }
                             catch (Exception e)
@@ -440,7 +469,7 @@ namespace RemoteDesktop.Client.Android
 
                         if (metaData.compressed)
                         {
-                            gzipStream.Write(local_buf, 0, dataSize);
+                            compressedStream.Write(local_buf, 0, dataSize);
                         }
                         else
                         {

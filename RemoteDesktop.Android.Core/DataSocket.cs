@@ -602,7 +602,20 @@ namespace RemoteDesktop.Android.Core
                 //locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
                 //            // compress if needed
-                if (compress)
+                if (RTPConfiguration.isConvJpeg)
+                {
+                    if (compressedStream == null) compressedStream = new MemoryStream();
+                    else compressedStream.SetLength(0);
+
+                    var tmpBitmapArr = bitmap.getInternalBuffer();
+                    Array.Resize<Byte>(ref tmpBitmapArr, imageDataSize);
+                    var img = SixLabors.ImageSharp.Image.LoadPixelData<SixLabors.ImageSharp.PixelFormats.Bgr565>(tmpBitmapArr, bitmap.Width, bitmap.Height);
+                    var encoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
+                    encoder.Quality = 75; //default value is 75
+                    img.Save(compressedStream, encoder);
+                    compressedStream.Flush();
+                    dataLength = (int) compressedStream.Length;
+                }else if(compress)
                 {
                     if (compressedStream == null) compressedStream = new MemoryStream();
                     else compressedStream.SetLength(0);

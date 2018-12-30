@@ -21,4 +21,10 @@
     <None Remove="libs\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SixLabors.Core" Version="1.0.0-beta0006" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.6.0-preview.18571.3" />
+  </ItemGroup>
+
 </Project>

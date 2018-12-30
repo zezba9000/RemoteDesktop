@@ -46,6 +46,7 @@ namespace RemoteDesktop.Android.Core
             public bool Loop = false;
 
             public static bool isConvTo16bit = true;
+            public static bool isConvJpeg = true;
             // FormMainとかにあったフィールド
             //private uint m_RecorderFactor = 4;
             //private uint m_JitterBufferCount = 20;
