@@ -47,6 +47,7 @@ namespace RemoteDesktop.Android.Core
             {
                 sw = new Stopwatch();
                 sw_dic[sw_name] = sw;
+                Console.WriteLine(ex);
             }
 
             sw.Start();

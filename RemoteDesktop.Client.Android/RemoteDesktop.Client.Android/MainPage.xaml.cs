@@ -403,6 +403,7 @@ namespace RemoteDesktop.Client.Android
                     }
                     catch (Exception ex)
                     {
+                        Console.WriteLine(ex);
                         //tcs.SetException(ex);
                     }
 

@@ -34,7 +34,7 @@ namespace RemoteDesktop.Server
 		private Timer timer;
 		public static Dispatcher dispatcher;
 
-		private InputSimulator input;
+		//private InputSimulator input;
         private bool receivedMetaData = false;
 		//private byte inputLastMouseState;
         private CaptureSoundStreamer cap_streamer;
