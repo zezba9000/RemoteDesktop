@@ -567,21 +567,6 @@ namespace RemoteDesktop.Android.Core
 		//public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)
 		public void SendImage(BitmapXama bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, float targetFPS)		
 		{
-            //byte[] toCheck = new byte[10];
-            //Array.Copy(bitmap.getInternalBuffer(), 0, toCheck, 0, toCheck.Length);
-            //BitArray ba = new BitArray(toCheck);
-            //var cnt = 0;
-            //foreach(Boolean bit in ba)
-            //{
-            //    if(cnt%16 == 0)
-            //    {
-            //        Console.WriteLine("");
-            //    }
-            //    Console.Write(bit == true ? 1 : 0);
-            //    cnt++;
-            //}
-
-
 			try
 			{
 				// get data length
@@ -611,7 +596,7 @@ namespace RemoteDesktop.Android.Core
                     Array.Resize<Byte>(ref tmpBitmapArr, imageDataSize);
                     var img = SixLabors.ImageSharp.Image.LoadPixelData<SixLabors.ImageSharp.PixelFormats.Bgr565>(tmpBitmapArr, bitmap.Width, bitmap.Height);
                     var encoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
-                    encoder.Quality = 75; //default value is 75
+                    encoder.Quality = RTPConfiguration.jpegEncodeQuality; //default value is 75
                     img.Save(compressedStream, encoder);
                     compressedStream.Flush();
                     dataLength = (int) compressedStream.Length;
@@ -655,7 +640,7 @@ namespace RemoteDesktop.Android.Core
 
 				SendMetaDataInternal(metaData);
 
-                if (compress)
+                if (compress || RTPConfiguration.isConvJpeg)
                 {
                     //compressedStream.Position = 0;
                     //SendStream(compressedStream);
