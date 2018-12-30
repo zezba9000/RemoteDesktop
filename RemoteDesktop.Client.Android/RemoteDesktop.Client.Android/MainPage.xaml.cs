@@ -12,7 +12,6 @@ using Xamarin.Forms.Xaml;
 using SkiaSharp.Views.Forms;
 using SkiaSharp;
 using System.Runtime.InteropServices;
-using SixLabors.ImageSharp;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -399,24 +398,6 @@ namespace RemoteDesktop.Client.Android
                     {
                         if (RTPConfiguration.isConvJpeg) {
                             Utils.startTimeMeasure("Bitmap_decompress");
-                            //compressedStream.Position = 0;
-
-                            //var decoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegDecoder();
-                            //Image<SixLabors.ImageSharp.PixelFormats.Bgr565> image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Bgr565>(compressedStream, decoder);
-                            // var tmpDecompedStream = new MemoryStream();
-                            //var bmpEncoder = new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder();
-                            //bmpEncoder.Encode<SixLabors.ImageSharp.PixelFormats.Bgr565>(image, tmpDecompedStream);
-                            //image.SaveAsBmp<SixLabors.ImageSharp.PixelFormats.Bgr565>(tmpDecompedStream, );
-                            //byte[] tmpBmp_buf = tmpDecompedStream.ToArray();
-                            //int pixexStartPos = (int) tmpDecompedStream.Length - metaData.imageDataSize;
-                            //if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                            //{
-                            //    skiaBufStreams[0].Write(tmpBmp_buf, pixexStartPos, metaData.imageDataSize);
-                            //}
-                            //else
-                            //{
-                            //    skiaBufStreams[1].Write(tmpBmp_buf, pixexStartPos, metaData.imageDataSize);
-                            //}
 
                             if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
                             {
