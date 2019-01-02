@@ -41,7 +41,7 @@ namespace RemoteDesktop.Server
 		//private byte inputLastMouseState;
         private CaptureSoundStreamer cap_streamer;
         private Process ffmpegProc1 = null;
-        private static Process ffmpegProc2 = null;
+        private Process ffmpegProc2 = null;
 
 		public MainApplicationContext(int cap_image_serv_port)
 		{
@@ -114,19 +114,20 @@ namespace RemoteDesktop.Server
             //startInfo.Arguments = "-i - -f rawvideo -pix_fmt rgb565 -s 540x960 -filter_complex scale=540x960,fps=1 -c:v libx264 -preset ultrafast -b:v 506k -g 1 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\stream_%d.ts -hls_flags delete_segments -loglevel debug F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\test.m3u8";
             //startInfo.Arguments = "-i - -protocol_whitelist file -f rawvideo -pix_fmt rgb565 -s 540x960 -filter_complex scale=540x960,fps=1 -an -c:v libx264 -preset ultrafast -b:v 506k -g 1 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\stream_%d.ts -hls_flags delete_segments -loglevel debug F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\\test.m3u8";
 
-            startInfo1.Arguments = "-i - -f rawvideo -pix_fmt rgb565 -s 540x960 -r 1 -an -c:v libx264 -preset ultrafast -b:v 506k -g 5 -movflags +faststart -loglevel debug -";
+            startInfo1.Arguments = "-f rawvideo -an -pix_fmt rgb565 -s 540x960 -i - -c:v libx264 -pix_fmt rgb565 -an -g 2 -r 1 -b:v 1k -segment_time 1 -movflags +faststart+frag_keyframe+empty_moov -f mp4 -";
+            //startInfo1.Arguments = "-f rawvideo -an -pix_fmt rgb565 -s 540x960 -i - -c:v libx264 -pix_fmt rgb565 -an -g 0 -r 1 -segment_time 1 -movflags +faststart+frag_keyframe+empty_moov -loglevel debug -f mp4 -";
+            //startInfo1.Arguments = "-f image2pipe -an -pix_fmt rgb565 -s 540x960 -i - -vcodec libx264 -pix_fmt rgb565 -an -g 0 -r 1 -movflags +faststart+frag_keyframe+empty_moov -loglevel debug -f mp4 -";
+            //startInfo1.Arguments = "-f image2pipe -an -pix_fmt rgb565 -s 540x960 -i - -c:v libx264 -pix_fmt rgb565 -an -g 0 -r 1 -movflags +faststart+frag_keyframe+empty_moov -loglevel debug -f mp4 -";
+
+
             ffmpegProc1 = new Process();
             ffmpegProc1.StartInfo = startInfo1;
 
             // リダイレクトした標準出力・標準エラーの内容を受信するイベントハンドラを設定する
             ffmpegProc1.OutputDataReceived += PrintFFMPEGOutputData1;
-            ffmpegProc1.ErrorDataReceived  += PrintFFMPEGErrorData2;
+            ffmpegProc1.ErrorDataReceived  += PrintFFMPEGErrorData1;
 
             ffmpegProc1.Start();
-
-            // 標準出力・標準エラーの非同期読み込みを開始する
-            ffmpegProc1.BeginOutputReadLine();
-            ffmpegProc1.BeginErrorReadLine();
 
             //----------------------
 
@@ -140,53 +141,64 @@ namespace RemoteDesktop.Server
             startInfo2.RedirectStandardError = true;
             startInfo2.RedirectStandardInput = true;
             startInfo2.CreateNoWindow = true;
+            startInfo2.FileName = ffmpegPath;
+            //startInfo2.Arguments = "-i - -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments -loglevel debug " + outPathBase + "test.m3u8";
+            //startInfo2.Arguments = "-y -i - -loglevel debug -codec copy -map 0 -flags +cgop+global_header -f segment -vbsf h264_mp4toannexb -segment_format mpegts -segment_time 1 -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%03d.ts";
+            startInfo2.Arguments = "-i - -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
-            var ffmpegProc2 = new Process();
+            ffmpegProc2 = new Process();
+            ffmpegProc2.StartInfo = startInfo2;
             // リダイレクトした標準出力・標準エラーの内容を受信するイベントハンドラを設定する
             ffmpegProc2.OutputDataReceived += PrintFFMPEGOutputData2;
             ffmpegProc2.ErrorDataReceived  += PrintFFMPEGErrorData2;
-            ffmpegProc2.StandardInput.AutoFlush = true;
-
-            startInfo2.FileName = ffmpegPath;
-            //startInfo2.Arguments = "-i - -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments -loglevel debug " + outPathBase + "test.m3u8";
-            startInfo2.Arguments = "-i - -loglevel debug -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f segment -vbsf h264_mp4toannexb -segment_format mpegts -segment_time 1 -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%03d.ts" ;
-
-            ffmpegProc2.StartInfo = startInfo2;
 
             ffmpegProc2.Start();
+            ffmpegProc2.StandardInput.AutoFlush = true;
+
+            // ffmpegが確実に起動状態になるまで待つ
+            Thread.Sleep(3000);
 
             // 標準出力・標準エラーの非同期読み込みを開始する
             ffmpegProc2.BeginOutputReadLine();
             ffmpegProc2.BeginErrorReadLine();
 
-            //type .\rgb565-540x960.raw | ffmpeg.exe -f rawvideo -an -pix_fmt rgb565 -s 540x960 -an -i - -c:v libx264 -pix_fmt rgb565 -an -g 0 -r 1 -movflags +faststart -loglevel debug - | ffmpeg.exe -i - -loglevel debug -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f segment -vbsf h264_mp4toannexb -segment_format mpegts -segment_time 1 -segment_list .\test.m3u8 .\stream_%03d.ts
-
-
-            // ffmpegが確実に起動状態になるまで待つ
-            Thread.Sleep(3000);
+            // 標準出力・標準エラーの非同期読み込みを開始する
+            // あえてこの位置でやる
+            ffmpegProc1.BeginOutputReadLine();
+            ffmpegProc1.BeginErrorReadLine();
         }
 
-          private static void PrintFFMPEGOutputData1(object sender, DataReceivedEventArgs e)
+          private void PrintFFMPEGOutputData1(object sender, DataReceivedEventArgs e)
           {
             // 1段目のffmpegプロセスの標準出力から受信した内容を後続のffmpegプロセスの標準入力に書き込む
             Process p = (Process)sender;
 
-            if (!string.IsNullOrEmpty(e.Data))
+            
+            //if (!string.IsNullOrEmpty(e.Data))
+            if (!(e.Data == null || e.Data.Length == 0))
             {
-                MainApplicationContext.ffmpegProc2.StandardInput.Write(e.Data);
+                Console.WriteLine("PrintFFMPEGOutputData1: pass h264 data to second ffmpeg process e.Data.Length=" + e.Data.Length.ToString());
+                //var bs = new BinaryWriter(ffmpegProc2.StandardInput.BaseStream);
+                //bs.Write(e.Data.ToCharArray());
+                //bs.Flush();
+                ffmpegProc2.StandardInput.Write(e.Data);
+                ffmpegProc2.StandardInput.Flush();
+            }
+            else
+            {
+                Console.WriteLine("PrintFFMPEGOutputData1: (e.Data == null || e.Data.Length == 0) == true");
             }
           }
 
-          private static void PrintFFMPEGOutputData2(object sender, DataReceivedEventArgs e)
+          private void PrintFFMPEGOutputData2(object sender, DataReceivedEventArgs e)
           {
-            // 子プロセスの標準出力から受信した内容を後続のffmpegプロセスの標準入力に書き込む
             Process p = (Process)sender;
 
             if (!string.IsNullOrEmpty(e.Data))
               Console.WriteLine("[{0}2;stdout] {1}", p.ProcessName, e.Data);
           }
 
-          private static void PrintFFMPEGErrorData1(object sender, DataReceivedEventArgs e)
+          private void PrintFFMPEGErrorData1(object sender, DataReceivedEventArgs e)
           {
             // 子プロセスの標準エラーから受信した内容を自プロセスの標準エラーに書き込む
             Process p = (Process)sender;
@@ -195,7 +207,7 @@ namespace RemoteDesktop.Server
               Console.Error.WriteLine("[{0}1;stderr] {1}", p.ProcessName, e.Data);
           }
 
-          private static void PrintFFMPEGErrorData2(object sender, DataReceivedEventArgs e)
+          private void PrintFFMPEGErrorData2(object sender, DataReceivedEventArgs e)
           {
             // 子プロセスの標準エラーから受信した内容を自プロセスの標準エラーに書き込む
             Process p = (Process)sender;
@@ -470,9 +482,23 @@ namespace RemoteDesktop.Server
                 //while ((line = input.ReadLine()) != null) { Console.WriteLine(line); }
                 //input.Dispose();
 
-                ffmpegProc1.StandardInput.WriteLine("hoge");
-                //ffmpegProc.StandardInput.Write(tmp_buf);
-                ffmpegProc1.StandardInput.Flush();
+                //ffmpegProc1.StandardInput.WriteLine("hoge");
+
+                //ffmpegProc1.StandardInput.Write(tmp_buf);
+                //ffmpegProc1.StandardInput.Flush();
+
+                //ffmpegProc1.StandardInput.Write(tmp_buf.ToString());
+                //ffmpegProc1.StandardInput.Flush();
+                //var bs = new BinaryWriter(ffmpegProc1.StandardInput.BaseStream);
+                //bs.Write(tmp_buf);
+                //bs.Flush();
+
+                //var str = System.Text.Encoding.GetEncoding(932).GetString(tmp_buf);
+                //ffmpegProc1.StandardInput.Write(str);
+                //ffmpegProc1.StandardInput.Flush();
+
+                ffmpegProc1.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
+                ffmpegProc1.StandardInput.BaseStream.Flush();
             }
 		}
 
