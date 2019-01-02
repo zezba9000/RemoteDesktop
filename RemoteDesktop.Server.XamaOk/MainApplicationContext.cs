@@ -1,11 +1,13 @@
 ﻿using RemoteDesktop.Android.Core;
 using RemoteDesktop.Server.XamaOK;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -22,22 +24,24 @@ namespace RemoteDesktop.Server
 		private Rectangle screenRect;
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
-        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565; // System.Drawing.Imaging.PixelFormat.Format24bppRgb;
         int screenIndex, currentScreenIndex;
         float targetFPS = 1f;
         float fixedTargetFPS = 20f;
         bool compress; //, currentCompress;
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = true;
-        float resolutionScale = 1.0F;
-        float fixedResolutionScale = 0.3F; // if this value is not 1, this value is used at scaling always
-		private Timer timer;
+        float resolutionScale = 1.0F; // DEBUG INFO: current jpeg encoding implementation is not work with not value 1.0
+        float fixedResolutionScale = 0.5F; // if this value is not 1, this value is used at scaling always
+		private System.Windows.Forms.Timer timer;
 		public static Dispatcher dispatcher;
 
 		//private InputSimulator input;
         private bool receivedMetaData = false;
 		//private byte inputLastMouseState;
         private CaptureSoundStreamer cap_streamer;
+        private Process ffmpegProc1 = null;
+        private static Process ffmpegProc2 = null;
 
 		public MainApplicationContext(int cap_image_serv_port)
 		{
@@ -63,18 +67,142 @@ namespace RemoteDesktop.Server
             //// init input simulation
             //input = new InputSimulator();
 
-            //// star socket
-            dispatcher = Dispatcher.CurrentDispatcher;
-            socket = new DataSocket(NetworkTypes.Server);
-            socket.ConnectedCallback += Socket_ConnectedCallback;
-            socket.DisconnectedCallback += Socket_DisconnectedCallback;
-            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-            socket.DataRecievedCallback += Socket_DataRecievedCallback;
-            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            //// 余計なデータがstdinにあったらクリアする
+            //TextReader input;
+            //input = Console.In;
+            //string line;
+            //while ((line = input.ReadLine()) != null) { }
+            //input.Dispose();
+
+            // set ffmpegProc field
+            kickFFMPEG();
+		    timer = new System.Windows.Forms.Timer();
+            timer.Interval = 1000;
+			timer.Tick += Timer_Tick_for_ffmpeg_hls_test;
+            timer.Start();
+
+            // HLS using ffmpegのテストのためにコメントアウト
+            //// start TCP socket listen for image server
             //socket.Listen(IPAddress.Any, cap_image_serv_port);
-            socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), cap_image_serv_port);
+            //socket = new DataSocket(NetworkTypes.Server);
+            //socket.ConnectedCallback += Socket_ConnectedCallback;
+            //socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            //socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            //socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            //socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), cap_image_serv_port);
         }
+
+        // set ffmpegProc field
+        private void kickFFMPEG()
+        {
+            ProcessStartInfo startInfo1 = new ProcessStartInfo();
+            startInfo1.UseShellExecute = false; //required to redirect standart input/output
+
+            var ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
+            var outPathBase = "F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
+
+            // redirects on your choice
+            startInfo1.RedirectStandardOutput = true;
+            startInfo1.RedirectStandardError = true;
+            startInfo1.RedirectStandardInput = true;
+            startInfo1.CreateNoWindow = true;
+
+            startInfo1.FileName = ffmpegPath;
+            //startInfo.Arguments = "-i pipe:0 -protocol_whitelist file -f rawvideo -pix_fmt rgb565 -s 540x960 -filter_complex scale=540x960,fps=1 -c:v libx264 -preset ultrafast -b:v 506k -g 1 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\stream_%d.ts -hls_flags delete_segments -loglevel debug F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\test.m3u8";
+            //startInfo.Arguments = "-i - -f rawvideo -pix_fmt rgb565 -s 540x960 -filter_complex scale=540x960,fps=1 -c:v libx264 -preset ultrafast -b:v 506k -g 1 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\stream_%d.ts -hls_flags delete_segments -loglevel debug F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\test.m3u8";
+            //startInfo.Arguments = "-i - -protocol_whitelist file -f rawvideo -pix_fmt rgb565 -s 540x960 -filter_complex scale=540x960,fps=1 -an -c:v libx264 -preset ultrafast -b:v 506k -g 1 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\stream_%d.ts -hls_flags delete_segments -loglevel debug F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\\test.m3u8";
+
+            startInfo1.Arguments = "-i - -f rawvideo -pix_fmt rgb565 -s 540x960 -r 1 -an -c:v libx264 -preset ultrafast -b:v 506k -g 5 -movflags +faststart -loglevel debug -";
+            ffmpegProc1 = new Process();
+            ffmpegProc1.StartInfo = startInfo1;
+
+            // リダイレクトした標準出力・標準エラーの内容を受信するイベントハンドラを設定する
+            ffmpegProc1.OutputDataReceived += PrintFFMPEGOutputData1;
+            ffmpegProc1.ErrorDataReceived  += PrintFFMPEGErrorData2;
+
+            ffmpegProc1.Start();
+
+            // 標準出力・標準エラーの非同期読み込みを開始する
+            ffmpegProc1.BeginOutputReadLine();
+            ffmpegProc1.BeginErrorReadLine();
+
+            //----------------------
+
+
+
+            ProcessStartInfo startInfo2 = new ProcessStartInfo();
+            startInfo2.UseShellExecute = false; //required to redirect standart input/output
+
+            // redirects on your choice
+            startInfo2.RedirectStandardOutput = true;
+            startInfo2.RedirectStandardError = true;
+            startInfo2.RedirectStandardInput = true;
+            startInfo2.CreateNoWindow = true;
+
+            var ffmpegProc2 = new Process();
+            // リダイレクトした標準出力・標準エラーの内容を受信するイベントハンドラを設定する
+            ffmpegProc2.OutputDataReceived += PrintFFMPEGOutputData2;
+            ffmpegProc2.ErrorDataReceived  += PrintFFMPEGErrorData2;
+            ffmpegProc2.StandardInput.AutoFlush = true;
+
+            startInfo2.FileName = ffmpegPath;
+            //startInfo2.Arguments = "-i - -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments -loglevel debug " + outPathBase + "test.m3u8";
+            startInfo2.Arguments = "-i - -loglevel debug -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f segment -vbsf h264_mp4toannexb -segment_format mpegts -segment_time 1 -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%03d.ts" ;
+
+            ffmpegProc2.StartInfo = startInfo2;
+
+            ffmpegProc2.Start();
+
+            // 標準出力・標準エラーの非同期読み込みを開始する
+            ffmpegProc2.BeginOutputReadLine();
+            ffmpegProc2.BeginErrorReadLine();
+
+            //type .\rgb565-540x960.raw | ffmpeg.exe -f rawvideo -an -pix_fmt rgb565 -s 540x960 -an -i - -c:v libx264 -pix_fmt rgb565 -an -g 0 -r 1 -movflags +faststart -loglevel debug - | ffmpeg.exe -i - -loglevel debug -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f segment -vbsf h264_mp4toannexb -segment_format mpegts -segment_time 1 -segment_list .\test.m3u8 .\stream_%03d.ts
+
+
+            // ffmpegが確実に起動状態になるまで待つ
+            Thread.Sleep(3000);
+        }
+
+          private static void PrintFFMPEGOutputData1(object sender, DataReceivedEventArgs e)
+          {
+            // 1段目のffmpegプロセスの標準出力から受信した内容を後続のffmpegプロセスの標準入力に書き込む
+            Process p = (Process)sender;
+
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                MainApplicationContext.ffmpegProc2.StandardInput.Write(e.Data);
+            }
+          }
+
+          private static void PrintFFMPEGOutputData2(object sender, DataReceivedEventArgs e)
+          {
+            // 子プロセスの標準出力から受信した内容を後続のffmpegプロセスの標準入力に書き込む
+            Process p = (Process)sender;
+
+            if (!string.IsNullOrEmpty(e.Data))
+              Console.WriteLine("[{0}2;stdout] {1}", p.ProcessName, e.Data);
+          }
+
+          private static void PrintFFMPEGErrorData1(object sender, DataReceivedEventArgs e)
+          {
+            // 子プロセスの標準エラーから受信した内容を自プロセスの標準エラーに書き込む
+            Process p = (Process)sender;
+
+            if (!string.IsNullOrEmpty(e.Data))
+              Console.Error.WriteLine("[{0}1;stderr] {1}", p.ProcessName, e.Data);
+          }
+
+          private static void PrintFFMPEGErrorData2(object sender, DataReceivedEventArgs e)
+          {
+            // 子プロセスの標準エラーから受信した内容を自プロセスの標準エラーに書き込む
+            Process p = (Process)sender;
+
+            if (!string.IsNullOrEmpty(e.Data))
+              Console.Error.WriteLine("[{0}2;stderr] {1}", p.ProcessName, e.Data);
+          }
 
 		void Exit(object sender, EventArgs e)
 		{
@@ -132,7 +260,7 @@ namespace RemoteDesktop.Server
 
 					if (timer == null)
 					{
-						timer = new Timer();
+						timer = new System.Windows.Forms.Timer();
                         timer.Interval = (int) (1000f / fps); // targetFPSは呼び出し時には適切に更新が行われていることを想定
 						timer.Tick += Timer_Tick;
 					}
@@ -284,7 +412,7 @@ namespace RemoteDesktop.Server
             {                
                 bmap16 = bmap.Clone(new Rectangle(0, 0, bmap.Width, bmap.Height), PixelFormat.Format16bppRgb565);
                 bmpData = bmap16.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap16.PixelFormat);
-                dataLength = bmap.Width * bmap.Height * 2; // Argb1555
+                dataLength = bmap.Width * bmap.Height * 2; // RGB565
             }
             else
             {
@@ -314,6 +442,39 @@ namespace RemoteDesktop.Server
 
             return retBmap;
         }
+
+		private void Timer_Tick_for_ffmpeg_hls_test(object sender, EventArgs e)
+		{
+			lock (this)
+			{
+				CaptureScreen();
+                BitmapXama convedXBmap = null;
+                convedXBmap = convertToBitmapXamaAndRotate(scaledBitmap);
+                byte[] tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 2];
+                if(convedXBmap.getInternalBuffer().Length == 0)
+                {
+                    return;
+                }
+                Array.Copy(convedXBmap.getInternalBuffer(), 0, tmp_buf, 0, tmp_buf.Length);
+                //var fss = new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\rgb565-540x960.raw", FileMode.Create);
+                //BinaryWriter bw = new BinaryWriter(fss);
+                //bw.Write(tmp_buf);
+                //bw.Close();
+                //fss.Close();
+                //Application.Exit();
+
+                //// 余計なデータがstdinにあったらクリアする
+                //TextReader input;
+                //input = Console.In;
+                //string line;
+                //while ((line = input.ReadLine()) != null) { Console.WriteLine(line); }
+                //input.Dispose();
+
+                ffmpegProc1.StandardInput.WriteLine("hoge");
+                //ffmpegProc.StandardInput.Write(tmp_buf);
+                ffmpegProc1.StandardInput.Flush();
+            }
+		}
 
 		private void Timer_Tick(object sender, EventArgs e)
 		{
@@ -369,7 +530,7 @@ namespace RemoteDesktop.Server
                 graphics = Graphics.FromImage(bitmap);
 
                 float localScale = 1;
-                if (resolutionScale != 1)
+                if (resolutionScale != 1 || fixedResolutionScale != 1)
                 {
                     if (scaledBitmap != null)
                     {
