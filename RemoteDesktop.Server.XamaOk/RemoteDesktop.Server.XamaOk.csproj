@@ -82,6 +82,7 @@
     <Compile Include="AudioOutputWriter.cs" />
     <Compile Include="AudioService.cs" />
     <Compile Include="CaptureSoundStreamer.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IAudioService.cs" />
     <Compile Include="MainApplicationContext.cs" />
     <Compile Include="MainForm.cs">
@@ -125,6 +126,10 @@
     <ProjectReference Include="..\inputsimulator\WindowsInput\WindowsInput.csproj">
       <Project>{3549cd6f-80f8-450f-b99e-cf0a736b1f2a}</Project>
       <Name>WindowsInput</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenH264Lib\OpenH264Sample.csproj">
+      <Project>{055c6f93-f112-4368-bf35-dfc3767669fc}</Project>
+      <Name>OpenH264Sample</Name>
     </ProjectReference>
     <ProjectReference Include="..\RemoteDesktop.Android.Core\RemoteDesktop.Android.Core.csproj">
       <Project>{4ecbdb10-8923-46eb-b3a9-33016ddfb774}</Project>
