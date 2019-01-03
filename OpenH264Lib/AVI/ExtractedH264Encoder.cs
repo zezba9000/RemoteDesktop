@@ -32,9 +32,12 @@ namespace OpenH264.Encoder
                 writer.Close();
 
                 byte[] ms_buf = ms.ToArray();
-                Array.Resize<byte>(ref ms_buf, (int)ms.Length);
+                //Array.Resize<byte>(ref ms_buf, (int)ms.Length);
 
-                aviDataGenerated(ms_buf);
+                byte[] tmp_buf = new byte[ms.Length];
+                Array.Copy(ms_buf, 0, tmp_buf, 0, ms.Length);
+                aviDataGenerated(tmp_buf);
+                ms.Close();
 
                 Console.WriteLine("Encord {0} bytes, KeyFrame:{1}", length, keyFrame);
             };

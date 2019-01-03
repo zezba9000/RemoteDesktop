@@ -79,7 +79,8 @@ namespace RemoteDesktop.Server
             //input.Dispose();
 
             // set ffmpegProc field
-            encoder = new ExtractedH264Encoder(540, 960, 5000000, 1.0f, 10.0f);
+            //encoder = new ExtractedH264Encoder(540, 960, 5000000, 1.0f, 10.0f);
+            encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 10.0f);
             encoder.aviDataGenerated += h264AVIDataHandler;
             kickFFMPEG();
 		    timer = new System.Windows.Forms.Timer();
@@ -462,8 +463,8 @@ namespace RemoteDesktop.Server
 
         private void h264AVIDataHandler(byte[] data)
         {
-            ffmpegProc1.StandardInput.BaseStream.Write(data, 0, data.Length);
-            ffmpegProc1.StandardInput.BaseStream.Flush();
+            ffmpegProc2.StandardInput.BaseStream.Write(data, 0, data.Length);
+            ffmpegProc2.StandardInput.BaseStream.Flush();
         }
 
 		private void Timer_Tick_for_ffmpeg_hls_test(object sender, EventArgs e)
