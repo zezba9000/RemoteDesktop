@@ -17,6 +17,7 @@ namespace OpenH264.Encoder
         private OpenH264Lib.Encoder encoder;
         public event H264AVIDataHandler aviDataGenerated;
         private int timestamp = 0; // equal frame number
+        private H264Writer writer = null;
 
         public ExtractedH264Encoder(int width, int height, int bps, float fps, float keyFrameInterval)
         {
@@ -28,19 +29,26 @@ namespace OpenH264.Encoder
             {
                 var keyFrame = (frameType == OpenH264Lib.Encoder.FrameType.IDR) || (frameType == OpenH264Lib.Encoder.FrameType.I);
                 var ms = new MemoryStream();
-                var writer = new H264Writer(ms, width, height, fps);
-                //var writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + timestamp.ToString() + ".avi" , FileMode.Create), width, height, fps);
-                timestamp++;
+                //var writer = new H264Writer(ms, width, height, fps); 
+                if(timestamp == 0)
+                {
+                    writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp / 2)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                }
+                if(timestamp % 2 == 0 && timestamp != 0)
+                {
+                    writer.Close();
+                    //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
+                    writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                }
                 writer.AddImage(data, keyFrame);
-                writer.Close();
+                timestamp++;
 
-                byte[] ms_buf = ms.ToArray();
-                //Array.Resize<byte>(ref ms_buf, (int)ms.Length);
-
-                byte[] tmp_buf = new byte[ms.Length];
-                Array.Copy(ms_buf, 0, tmp_buf, 0, ms.Length);
-                aviDataGenerated(tmp_buf);
-                ms.Close();
+                //byte[] ms_buf = ms.ToArray();
+                ////Array.Resize<byte>(ref ms_buf, (int)ms.Length);
+                //byte[] tmp_buf = new byte[ms.Length];
+                //Array.Copy(ms_buf, 0, tmp_buf, 0, ms.Length);
+                //aviDataGenerated(tmp_buf);
+                //ms.Close();
 
                 Console.WriteLine("Encord {0} bytes, KeyFrame:{1}", length, keyFrame);
             };

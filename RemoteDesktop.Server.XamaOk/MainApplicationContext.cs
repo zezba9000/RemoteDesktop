@@ -81,7 +81,10 @@ namespace RemoteDesktop.Server
 
             // set ffmpegProc field
             //encoder = new ExtractedH264Encoder(540, 960, 5000000, 1.0f, 10.0f);
-            encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 10.0f);
+            //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 10.0f);
+
+            // 全フレームをIフレームにしてみる？
+            encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 1.0f);
             encoder.aviDataGenerated += h264AVIDataHandler;
             kickFFMPEG();
 		    timer = new System.Windows.Forms.Timer();
@@ -510,6 +513,7 @@ namespace RemoteDesktop.Server
                 //ffmpegProc1.StandardInput.Write(str);
                 //ffmpegProc1.StandardInput.Flush();
 
+                Console.WriteLine("write data to encoder " + tmp_buf.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
                 encoder.addBitmapFrame(tmp_buf, timestamp++);
 
                 //ffmpegProc1.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
