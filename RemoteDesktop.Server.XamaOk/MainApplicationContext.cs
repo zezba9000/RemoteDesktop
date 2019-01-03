@@ -131,8 +131,6 @@ namespace RemoteDesktop.Server
 
             //----------------------
 
-
-
             ProcessStartInfo startInfo2 = new ProcessStartInfo();
             startInfo2.UseShellExecute = false; //required to redirect standart input/output
 
