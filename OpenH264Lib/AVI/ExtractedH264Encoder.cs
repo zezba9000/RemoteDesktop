@@ -16,6 +16,7 @@ namespace OpenH264.Encoder
     {
         private OpenH264Lib.Encoder encoder;
         public event H264AVIDataHandler aviDataGenerated;
+        private int timestamp = 0; // equal frame number
 
         public ExtractedH264Encoder(int width, int height, int bps, float fps, float keyFrameInterval)
         {
@@ -26,18 +27,20 @@ namespace OpenH264.Encoder
             OpenH264Lib.Encoder.OnEncodeCallback onEncode = (data, length, frameType) =>
             {
                 var keyFrame = (frameType == OpenH264Lib.Encoder.FrameType.IDR) || (frameType == OpenH264Lib.Encoder.FrameType.I);
-                var ms = new MemoryStream();
-                var writer = new H264Writer(ms, width, height, fps);
+                //var ms = new MemoryStream();
+                //var writer = new H264Writer(ms, width, height, fps);
+                var writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + timestamp.ToString() + ".avi" , FileMode.Create), width, height, fps);
+                timestamp++;
                 writer.AddImage(data, keyFrame);
                 writer.Close();
 
-                byte[] ms_buf = ms.ToArray();
-                //Array.Resize<byte>(ref ms_buf, (int)ms.Length);
+                //byte[] ms_buf = ms.ToArray();
+                ////Array.Resize<byte>(ref ms_buf, (int)ms.Length);
 
-                byte[] tmp_buf = new byte[ms.Length];
-                Array.Copy(ms_buf, 0, tmp_buf, 0, ms.Length);
-                aviDataGenerated(tmp_buf);
-                ms.Close();
+                //byte[] tmp_buf = new byte[ms.Length];
+                //Array.Copy(ms_buf, 0, tmp_buf, 0, ms.Length);
+                //aviDataGenerated(tmp_buf);
+                //ms.Close();
 
                 Console.WriteLine("Encord {0} bytes, KeyFrame:{1}", length, keyFrame);
             };
