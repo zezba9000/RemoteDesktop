@@ -43,6 +43,7 @@ namespace RemoteDesktop.Server
         private CaptureSoundStreamer cap_streamer;
         private Process ffmpegProc1 = null;
         private Process ffmpegProc2 = null;
+        byte[] tmp_buf = new byte[540 * 960 * 2];
 
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
