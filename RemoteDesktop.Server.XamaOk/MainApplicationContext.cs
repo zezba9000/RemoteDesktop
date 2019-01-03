@@ -150,7 +150,7 @@ namespace RemoteDesktop.Server
             //startInfo2.Arguments = "-i - -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments -loglevel debug " + outPathBase + "test.m3u8";
             //startInfo2.Arguments = "-y -i - -loglevel debug -codec copy -map 0 -flags +cgop+global_header -f segment -vbsf h264_mp4toannexb -segment_format mpegts -segment_time 1 -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%03d.ts";
             //startInfo2.Arguments = "-i - -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
-            startInfo2.Arguments = "-y -f rawvideo -an -pix_fmt rgb565 -s 540x960 -an -i - -c:v libx264 -pix_fmt yuv420p -profile:v baseline -an -g 0 -r 1 -movflags +faststart+frag_keyframe+empty_moov -f mp4 - | ffmpeg.exe -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments" + outPathBase + "test.m3u8";
+            startInfo2.Arguments = "-y -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments" + outPathBase + "test.m3u8";
 
             ffmpegProc2 = new Process();
             ffmpegProc2.StartInfo = startInfo2;
