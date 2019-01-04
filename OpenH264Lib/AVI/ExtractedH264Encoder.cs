@@ -49,14 +49,14 @@ namespace OpenH264.Encoder
 
                 if(timestamp == 0)
                 {
-                    writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp / 60)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                    writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp / 10)).ToString() + ".avi", FileMode.Create), width, height, fps);
                 }
-                if(timestamp % 60 == 0 && timestamp != 0)
+                if(timestamp % 10 == 0 && timestamp != 0)
                 {
                     writer.Close();
                     Console.WriteLine("a avi file stream closed");
                     //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
-                    writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp/60)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                    writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp/10)).ToString() + ".avi", FileMode.Create), width, height, fps);
                 }
                 writer.AddImage(data, keyFrame);
                 timestamp++;
