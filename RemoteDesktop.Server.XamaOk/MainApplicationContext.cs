@@ -86,7 +86,7 @@ namespace RemoteDesktop.Server
             // 全フレームをIフレームにしてみる？(最後の引数を1.0fにするとなる)
             //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 1.0f);
 
-            encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 1.0f);
+            encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 2.0f);
 
             encoder.aviDataGenerated += h264AVIDataHandler;
             kickFFMPEG();
