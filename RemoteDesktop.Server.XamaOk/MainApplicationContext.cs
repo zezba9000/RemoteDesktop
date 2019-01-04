@@ -490,7 +490,7 @@ namespace RemoteDesktop.Server
 				CaptureScreen();
                 BitmapXama convedXBmap = null;
                 convedXBmap = convertToBitmapXamaAndRotate(scaledBitmap);
-                var tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 2];
+                var tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 3];
                 if(convedXBmap.getInternalBuffer().Length == 0)
                 {
                     return;
