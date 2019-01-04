@@ -101,8 +101,8 @@ namespace RemoteDesktop.Android.Core
             //buffer作成
             var numPixels = width * height; 
             //var numPixelBytes = 2 * numPixels; // RGB565
-            //var numPixelBytes = 3 * numPixels; // RGB24
-            var numPixelBytes = 4 * numPixels; // RGB32
+            var numPixelBytes = 3 * numPixels; // RGB24
+            //var numPixelBytes = 4 * numPixels; // RGB32
             var headerSize = 54;
             var filesize = headerSize + numPixelBytes;
 
@@ -121,8 +121,8 @@ namespace RemoteDesktop.Android.Core
             writer.Write(height);
             writer.Write((short)1);
             //writer.Write((short)16); //RGB565 = 16bit
-            //writer.Write((short)24); //RGB24
-            writer.Write((short)32); //RGB32
+            writer.Write((short)24); //RGB24
+            //writer.Write((short)32); //RGB32
             writer.Write(0);
             writer.Write(numPixelBytes);
             writer.Write(0);

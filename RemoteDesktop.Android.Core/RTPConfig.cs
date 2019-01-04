@@ -46,8 +46,8 @@ namespace RemoteDesktop.Android.Core
             public int localPort = 0;
             public bool Loop = false;
 
-            public static bool isConvTo24bit = false; //こちらの方が16bit指定より優先される
-            public static bool isConvTo16bit = false;
+            public static bool isConvTo24bit = false; //こちらの方が16bit指定より優先される. falseだが最初から24bitなので問題ない
+            public static bool isConvTo16bit = false; 
             public static bool isConvJpeg = true;
             public static int jpegEncodeQuality = 50;
             // FormMainとかにあったフィールド

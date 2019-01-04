@@ -26,8 +26,8 @@ namespace RemoteDesktop.Server
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
         //System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565;
-        //System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
-        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
+        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+        //System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
         int screenIndex, currentScreenIndex;
         float targetFPS = 1f;
         float fixedTargetFPS = 20f;
@@ -95,7 +95,7 @@ namespace RemoteDesktop.Server
             //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 2.0f);
 
             //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 10.0f);
-            encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 4 * 8 /* original bitmap size... */, 1.0f, 10.0f);
+            encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 3 * 8 /* original bitmap size... */, 1.0f, 10.0f);
             //encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 4 * 8 /* original bitmap size... */, 1.0f, 2.0f);
 
             encoder.aviDataGenerated += h264AVIDataHandler;
@@ -455,7 +455,7 @@ namespace RemoteDesktop.Server
             else
             {
                 bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
-                dataLength = bmap.Width * bmap.Height * 4; //RGB32
+                dataLength = bmap.Width * bmap.Height * 3; //RGB24
             }
             
             IntPtr ptr = bmpData.Scan0;
@@ -498,7 +498,7 @@ namespace RemoteDesktop.Server
 				CaptureScreen();
                 BitmapXama convedXBmap = null;
                 convedXBmap = convertToBitmapXamaAndRotate(scaledBitmap);
-                var tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 4];
+                var tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 3];
                 if(convedXBmap.getInternalBuffer().Length == 0)
                 {
                     return;
