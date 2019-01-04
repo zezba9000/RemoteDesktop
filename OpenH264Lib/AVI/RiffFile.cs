@@ -57,7 +57,7 @@ namespace OpenH264Sample
         public override void Close()
         {
             base.Close();
-            //BaseStream.Close();
+            BaseStream.Close();
         }
     }
 

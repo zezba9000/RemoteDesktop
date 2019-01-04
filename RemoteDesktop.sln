@@ -31,6 +31,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MulticastStreamerXama", "SoundRTPMulticasting\MulticastStreamerXama\MulticastStreamerXama\MulticastStreamerXama.csproj", "{C46CB47E-7DC2-4BA0-B15A-009618628CA2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenH264Sample", "OpenH264Lib\OpenH264Sample.csproj", "{055C6F93-F112-4368-BF35-DFC3767669FC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4ECBDB10-8923-46EB-B3A9-33016DDFB774} = {4ECBDB10-8923-46EB-B3A9-33016DDFB774}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

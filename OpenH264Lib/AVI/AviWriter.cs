@@ -62,7 +62,7 @@ namespace OpenH264Sample
 
                 // ファイルをクローズ
                 riffFile.Close();
-                //outputAvi.Dispose();
+                outputAvi.Dispose();
             };
         }
 

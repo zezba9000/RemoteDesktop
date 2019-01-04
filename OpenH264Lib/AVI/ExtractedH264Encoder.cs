@@ -21,9 +21,8 @@ namespace OpenH264.Encoder
         private H264Writer writer = null;
         private int width;
         private int height;
-        //private GCHandle toCheck = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
+        private string hlsBasePath = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
         //private GCHandle pinnedArray = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
-        //private bool isProcessing = false;
         //private byte[] bufForEncoder = null;
         //IntPtr pointerOfEncoderInternalBuf = IntPtr.Zero;
 
@@ -36,7 +35,7 @@ namespace OpenH264.Encoder
             encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
 
             //// この領域は意図的にFreeしない
-            //bufForEncoder = new byte[54 + width * height * 3];
+            //bufForEncoder = new byte[54 + width * height * 4];
             //pinnedArray = GCHandle.Alloc(bufForEncoder, GCHandleType.Pinned);
             //pointerOfEncoderInternalBuf = pinnedArray.AddrOfPinnedObject();
 
@@ -44,19 +43,19 @@ namespace OpenH264.Encoder
             OpenH264Lib.Encoder.OnEncodeCallback onEncode = (data, length, frameType) =>
             {
                 var keyFrame = (frameType == OpenH264Lib.Encoder.FrameType.IDR) || (frameType == OpenH264Lib.Encoder.FrameType.I);
-                var ms = new MemoryStream();
+                //var ms = new MemoryStream();
                 //var writer = new H264Writer(ms, width, height, fps); 
 
                 if(timestamp == 0)
                 {
-                    writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp / 20)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                    writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp / 60)).ToString() + ".avi", FileMode.Create), width, height, fps);
                 }
-                if(timestamp % 20 == 0 && timestamp != 0)
+                if(timestamp % 60 == 0 && timestamp != 0)
                 {
                     writer.Close();
                     Console.WriteLine("a avi file stream closed");
                     //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
-                    writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/20)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                    writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp/60)).ToString() + ".avi", FileMode.Create), width, height, fps);
                 }
                 writer.AddImage(data, keyFrame);
                 timestamp++;
@@ -80,11 +79,16 @@ namespace OpenH264.Encoder
         {
             //var bmp = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format16bppRgb565);
 
-            //Marshal.Copy(data, 0, pointerOfEncoderInternalBuf, 54 + width * height * 3);
-            //var bmp = new System.Drawing.Bitmap(width, height, 3, System.Drawing.Imaging.PixelFormat.Format24bppRgb, pointerOfEncoderInternalBuf);
+            //Marshal.Copy(data, 0, pointerOfEncoderInternalBuf, 54 + width * height * 4);
+            //var bmp = new System.Drawing.Bitmap(width, height, 4, System.Drawing.Imaging.PixelFormat.Format32bppRgb, pointerOfEncoderInternalBuf);
             //encoder.Encode(bmp, frameNumber);
-            encoder.Encode(data, frameNumber);
+            //bmp.Dispose();
+            //RemoteDesktop.Android.Core.Utils.saveByteArrayToFile(data, hlsBasePath + "homobrewBmpFile" + frameNumber.ToString() + ".bmp");
+            //encoder.Encode(data, frameNumber);
 
+            byte[] copy_buf = new byte[data.Length];
+            Array.Copy(data, 0, copy_buf, 0, data.Length);
+            encoder.Encode(copy_buf, frameNumber);
 
             //pinnedArray.Free();            
         }

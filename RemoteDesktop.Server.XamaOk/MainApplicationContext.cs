@@ -26,7 +26,8 @@ namespace RemoteDesktop.Server
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
         //System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565;
-        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+        //System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
         int screenIndex, currentScreenIndex;
         float targetFPS = 1f;
         float fixedTargetFPS = 20f;
@@ -48,6 +49,9 @@ namespace RemoteDesktop.Server
 
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
+
+        private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
+        private string outPathBase = "F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
 
 		public MainApplicationContext(int cap_image_serv_port)
 		{
@@ -87,10 +91,15 @@ namespace RemoteDesktop.Server
             // 全フレームをIフレームにしてみる？(最後の引数を1.0fにするとなる)
             //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 1.0f);
 
-            encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 2.0f);
+            // OpenH264のデモコードと同じようにkeyframeIntervalを2にする
+            //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 2.0f);
+
+            //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 10.0f);
+            //encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 4 * 8 /* original bitmap size... */, 1.0f, 10.0f);
+            encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 4 * 8 /* original bitmap size... */, 1.0f, 2.0f);
 
             encoder.aviDataGenerated += h264AVIDataHandler;
-            kickFFMPEG();
+            //kickFFMPEG();
 		    timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
 			timer.Tick += Timer_Tick_for_ffmpeg_hls_test;
@@ -114,9 +123,6 @@ namespace RemoteDesktop.Server
         {
             //ProcessStartInfo startInfo1 = new ProcessStartInfo();
             //startInfo1.UseShellExecute = false; //required to redirect standart input/output
-
-            var ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
-            var outPathBase = "F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
 
             //// redirects on your choice
             //startInfo1.RedirectStandardOutput = true;
@@ -449,7 +455,7 @@ namespace RemoteDesktop.Server
             else
             {
                 bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
-                dataLength = bmap.Width * bmap.Height * 3; //RGB32
+                dataLength = bmap.Width * bmap.Height * 4; //RGB32
             }
             
             IntPtr ptr = bmpData.Scan0;
@@ -492,17 +498,13 @@ namespace RemoteDesktop.Server
 				CaptureScreen();
                 BitmapXama convedXBmap = null;
                 convedXBmap = convertToBitmapXamaAndRotate(scaledBitmap);
-                var tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 3];
+                var tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 4];
                 if(convedXBmap.getInternalBuffer().Length == 0)
                 {
                     return;
                 }
                 Array.Copy(convedXBmap.getInternalBuffer(), 0, tmp_buf, 0, tmp_buf.Length);
-                //var fss = new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\rgb565-540x960.raw", FileMode.Create);
-                //BinaryWriter bw = new BinaryWriter(fss);
-                //bw.Write(tmp_buf);
-                //bw.Close();
-                //fss.Close();
+                //Utils.saveByteArrayToFile(tmp_buf, outPathBase + "rgb565-540x960.raw");
                 //Application.Exit();
 
                 //// 余計なデータがstdinにあったらクリアする
@@ -531,7 +533,7 @@ namespace RemoteDesktop.Server
                 var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
                 Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
                 byte[] bmpfFile_buf = bitmap_ms.ToArray();
-                Array.Resize<byte>(ref bmpfFile_buf, 54 + convedXBmap.Width * convedXBmap.Height * 3);
+                //Array.Resize<byte>(ref bmpfFile_buf, 54 + convedXBmap.Width * convedXBmap.Height * 3);
                 encoder.addBitmapFrame(bmpfFile_buf, timestamp++);
 
                 //ffmpegProc1.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
