@@ -83,8 +83,11 @@ namespace RemoteDesktop.Server
             //encoder = new ExtractedH264Encoder(540, 960, 5000000, 1.0f, 10.0f);
             //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 10.0f);
 
-            // 全フレームをIフレームにしてみる？
+            // 全フレームをIフレームにしてみる？(最後の引数を1.0fにするとなる)
+            //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 1.0f);
+
             encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 1.0f);
+
             encoder.aviDataGenerated += h264AVIDataHandler;
             kickFFMPEG();
 		    timer = new System.Windows.Forms.Timer();

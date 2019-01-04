@@ -32,15 +32,19 @@ namespace OpenH264.Encoder
                 //var writer = new H264Writer(ms, width, height, fps); 
                 if(timestamp == 0)
                 {
-                    writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp / 2)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                    writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp / 20)).ToString() + ".avi", FileMode.Create), width, height, fps);
                 }
-                if(timestamp % 2 == 0 && timestamp != 0)
+                if(timestamp % 20 == 0 && timestamp != 0)
                 {
                     writer.Close();
+                    Console.WriteLine("a avi file stream closed");
                     //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
-                    writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                    writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/20)).ToString() + ".avi", FileMode.Create), width, height, fps);
                 }
-                writer.AddImage(data, keyFrame);
+                //if(timestamp % 2 == 1)
+                //{
+                    writer.AddImage(data, keyFrame);
+                //}
                 timestamp++;
 
                 //byte[] ms_buf = ms.ToArray();
@@ -50,7 +54,7 @@ namespace OpenH264.Encoder
                 //aviDataGenerated(tmp_buf);
                 //ms.Close();
 
-                Console.WriteLine("Encord {0} bytes, KeyFrame:{1}", length, keyFrame);
+                Console.WriteLine("Encord {0} bytes, KeyFrame:{1} timestamp:{2}", length, keyFrame, timestamp);
             };
 
             // H264エンコーダーの設定
