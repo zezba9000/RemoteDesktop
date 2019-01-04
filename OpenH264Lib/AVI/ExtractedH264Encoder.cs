@@ -1,6 +1,7 @@
 ﻿using OpenH264Sample;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -88,7 +89,9 @@ namespace OpenH264.Encoder
 
             byte[] copy_buf = new byte[data.Length];
             Array.Copy(data, 0, copy_buf, 0, data.Length);
-            encoder.Encode(copy_buf, frameNumber);
+            var bmp = new Bitmap(new MemoryStream(copy_buf));
+            encoder.Encode(bmp, frameNumber);
+            bmp.Dispose();
 
             //pinnedArray.Free();            
         }
