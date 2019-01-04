@@ -3,9 +3,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Text;
 using System.Threading.Tasks;
 //using DevKit.Xamarin.ImageKit;
 //using DevKit.Xamarin.ImageKit.Abstractions;
@@ -91,6 +93,45 @@ namespace RemoteDesktop.Android.Core
             }
             return null;
             
+        }
+
+        // 渡したバイト配列はバッファとして内包していない
+        public static MemoryStream getAddHeaderdBitmapStreamByPixcels(byte[] pixels, int width, int height)
+        {
+            //buffer作成
+            var numPixels = width * height; 
+            var numPixelBytes = 2 * numPixels; // RGB565
+            var headerSize = 54;
+            var filesize = headerSize + numPixelBytes;
+
+
+            //bufferにheader情報を書き込む
+            var memoryStream = new MemoryStream(filesize);
+            var writer = new BinaryWriter(memoryStream, Encoding.UTF8);
+            writer.Write(new char[] { 'B', 'M' });
+            writer.Write(filesize);
+            writer.Write((short)0);
+            writer.Write((short)0);
+            writer.Write(headerSize);
+
+            writer.Write(40);
+            writer.Write(width);
+            writer.Write(height);
+            writer.Write((short)1);
+            //writer.Write((short)16); //RGB565 = 16bit
+            writer.Write((short)24); //RGB24
+            writer.Write(0);
+            writer.Write(numPixelBytes);
+            writer.Write(0);
+            writer.Write(0);
+            writer.Write(0);
+            writer.Write(0);
+
+            writer.Write(pixels);
+
+            writer.Flush();
+
+            return memoryStream;
         }
 
         //// for canvas setting is Argb8888

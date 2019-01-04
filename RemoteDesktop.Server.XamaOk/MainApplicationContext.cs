@@ -43,7 +43,7 @@ namespace RemoteDesktop.Server
         private CaptureSoundStreamer cap_streamer;
         private Process ffmpegProc1 = null;
         private Process ffmpegProc2 = null;
-        byte[] tmp_buf = new byte[540 * 960 * 2];
+        //byte[] tmp_buf = new byte[540 * 960 * 2];
 
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
@@ -433,7 +433,13 @@ namespace RemoteDesktop.Server
             BitmapData bmpData = null;
             Bitmap bmap16 = null;
             long dataLength = -1;
-            if (RTPConfiguration.isConvTo16bit)
+            if (RTPConfiguration.isConvTo24bit)
+            {
+                bmap16 = bmap.Clone(new Rectangle(0, 0, bmap.Width, bmap.Height), PixelFormat.Format24bppRgb);
+                bmpData = bmap16.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap16.PixelFormat);
+                dataLength = bmap.Width * bmap.Height * 3; // RGB24                
+            }
+            else if (RTPConfiguration.isConvTo16bit)
             {                
                 bmap16 = bmap.Clone(new Rectangle(0, 0, bmap.Width, bmap.Height), PixelFormat.Format16bppRgb565);
                 bmpData = bmap16.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap16.PixelFormat);
@@ -449,8 +455,11 @@ namespace RemoteDesktop.Server
             MemoryStream ms = new MemoryStream();
             var bitmapStream = new UnmanagedMemoryStream((byte*)bmpData.Scan0, dataLength);
             bitmapStream.CopyTo(ms);
-
-            if (RTPConfiguration.isConvTo16bit)
+            if (RTPConfiguration.isConvTo24bit)
+            {
+                bmap16.UnlockBits(bmpData);
+            }
+            else if (RTPConfiguration.isConvTo16bit)
             {
                 bmap16.UnlockBits(bmpData);
             }
@@ -481,7 +490,7 @@ namespace RemoteDesktop.Server
 				CaptureScreen();
                 BitmapXama convedXBmap = null;
                 convedXBmap = convertToBitmapXamaAndRotate(scaledBitmap);
-                byte[] tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 2];
+                var tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 2];
                 if(convedXBmap.getInternalBuffer().Length == 0)
                 {
                     return;
@@ -516,8 +525,10 @@ namespace RemoteDesktop.Server
                 //ffmpegProc1.StandardInput.Write(str);
                 //ffmpegProc1.StandardInput.Flush();
 
-                Console.WriteLine("write data to encoder " + tmp_buf.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
-                encoder.addBitmapFrame(tmp_buf, timestamp++);
+
+                var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
+                Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
+                encoder.addBitmapFrame(bitmap_ms.ToArray(),timestamp++);
 
                 //ffmpegProc1.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
                 //ffmpegProc1.StandardInput.BaseStream.Flush();
