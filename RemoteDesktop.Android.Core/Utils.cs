@@ -101,7 +101,7 @@ namespace RemoteDesktop.Android.Core
             //buffer作成
             var numPixels = width * height; 
             //var numPixelBytes = 2 * numPixels; // RGB565
-            var numPixelBytes = 3 * numPixels; // RGB565
+            var numPixelBytes = 3 * numPixels; // RGB24
             var headerSize = 54;
             var filesize = headerSize + numPixelBytes;
 

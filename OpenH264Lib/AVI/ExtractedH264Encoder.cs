@@ -22,10 +22,10 @@ namespace OpenH264.Encoder
         private int width;
         private int height;
         //private GCHandle toCheck = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
-        private GCHandle pinnedArray = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
-        private bool isProcessing = false;
-        private byte[] bufForEncoder = null;
-        IntPtr pointerOfEncoderInternalBuf = IntPtr.Zero;
+        //private GCHandle pinnedArray = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
+        //private bool isProcessing = false;
+        //private byte[] bufForEncoder = null;
+        //IntPtr pointerOfEncoderInternalBuf = IntPtr.Zero;
 
         public ExtractedH264Encoder(int width, int height, int bps, float fps, float keyFrameInterval)
         {
@@ -35,10 +35,10 @@ namespace OpenH264.Encoder
             // H264エンコーダーを作成
             encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
 
-            // この領域は意図的にFreeしない
-            bufForEncoder = new byte[width * height * 3];
-            pinnedArray = GCHandle.Alloc(bufForEncoder, GCHandleType.Pinned);
-            pointerOfEncoderInternalBuf = pinnedArray.AddrOfPinnedObject();
+            //// この領域は意図的にFreeしない
+            //bufForEncoder = new byte[54 + width * height * 3];
+            //pinnedArray = GCHandle.Alloc(bufForEncoder, GCHandleType.Pinned);
+            //pointerOfEncoderInternalBuf = pinnedArray.AddrOfPinnedObject();
 
             // 1フレームエンコードするごとにライターに書き込み
             OpenH264Lib.Encoder.OnEncodeCallback onEncode = (data, length, frameType) =>
@@ -68,7 +68,7 @@ namespace OpenH264.Encoder
                 //aviDataGenerated(tmp_buf);
                 //ms.Close();
 
-                Console.WriteLine("Encord {0} bytes, KeyFrame:{1} timestamp:{2} " + frameType.ToString(), length, keyFrame, timestamp);
+                Console.WriteLine("Encord {0} bytes, data.Length: {1} bytes, KeyFrame:{2} timestamp:{3} " + frameType.ToString(), length, data.Length, keyFrame, timestamp);
             };
 
             // H264エンコーダーの設定
@@ -80,9 +80,10 @@ namespace OpenH264.Encoder
         {
             //var bmp = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format16bppRgb565);
 
-            Marshal.Copy(data, 0, pointerOfEncoderInternalBuf, width * height * 3);
-            var bmp = new System.Drawing.Bitmap(width, height, 4, System.Drawing.Imaging.PixelFormat.Format24bppRgb, pointerOfEncoderInternalBuf);
-            encoder.Encode(bmp, frameNumber);
+            //Marshal.Copy(data, 0, pointerOfEncoderInternalBuf, 54 + width * height * 3);
+            //var bmp = new System.Drawing.Bitmap(width, height, 3, System.Drawing.Imaging.PixelFormat.Format24bppRgb, pointerOfEncoderInternalBuf);
+            //encoder.Encode(bmp, frameNumber);
+            encoder.Encode(data, frameNumber);
 
 
             //pinnedArray.Free();            

@@ -25,7 +25,8 @@ namespace RemoteDesktop.Server
 		private Rectangle screenRect;
 		private Bitmap bitmap, scaledBitmap;
 		private Graphics graphics, scaledGraphics;
-        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565; // System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+        //System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565;
+        System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
         int screenIndex, currentScreenIndex;
         float targetFPS = 1f;
         float fixedTargetFPS = 20f;
@@ -469,7 +470,8 @@ namespace RemoteDesktop.Server
             }
 
 
-            byte[] buf = ms.GetBuffer();
+            //byte[] buf = ms.GetBuffer();
+            byte[] buf = ms.ToArray();
             var retBmap = new BitmapXama(buf);
             retBmap.Height = bmap.Height;
             retBmap.Width = bmap.Width;
@@ -528,7 +530,9 @@ namespace RemoteDesktop.Server
 
                 var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
                 Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
-                encoder.addBitmapFrame(bitmap_ms.ToArray(),timestamp++);
+                byte[] bmpfFile_buf = bitmap_ms.ToArray();
+                Array.Resize<byte>(ref bmpfFile_buf, 54 + convedXBmap.Width * convedXBmap.Height * 3);
+                encoder.addBitmapFrame(bmpfFile_buf, timestamp++);
 
                 //ffmpegProc1.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
                 //ffmpegProc1.StandardInput.BaseStream.Flush();

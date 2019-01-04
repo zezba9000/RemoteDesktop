@@ -20,7 +20,8 @@ namespace RemoteDesktop.Android.Core
                 TCP
             }
 
-            //Attribute
+        //Attribute
+            public static int bmpFileHeaderBytes = 54;
             public static String ServerAddress = "192.168.0.11";
 			public String SoundDeviceName = "";
 			public int ServerPort = 10000; //Sound Server
@@ -45,8 +46,8 @@ namespace RemoteDesktop.Android.Core
             public int localPort = 0;
             public bool Loop = false;
 
-            public static bool isConvTo24bit = true; //こちらの方が16bit指定より優先される
-            public static bool isConvTo16bit = true;
+            public static bool isConvTo24bit = false; //こちらの方が16bit指定より優先される
+            public static bool isConvTo16bit = false;
             public static bool isConvJpeg = true;
             public static int jpegEncodeQuality = 50;
             // FormMainとかにあったフィールド
