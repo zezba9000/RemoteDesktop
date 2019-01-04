@@ -80,7 +80,7 @@ namespace OpenH264.Encoder
         {
             //var bmp = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format16bppRgb565);
 
-            Marshal.Copy(data, 0, pointerOfEncoderInternalBuf, data.Length);
+            Marshal.Copy(data, 0, pointerOfEncoderInternalBuf, width * height * 3);
             var bmp = new System.Drawing.Bitmap(width, height, 4, System.Drawing.Imaging.PixelFormat.Format24bppRgb, pointerOfEncoderInternalBuf);
             encoder.Encode(bmp, frameNumber);
 
