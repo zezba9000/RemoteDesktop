@@ -53,7 +53,9 @@ namespace RemoteDesktop.Server
         private static string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
         //private string ffmpegForHLSArgs = "-y -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
         //private string ffmpegForHLSArgs = "-y -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
-        private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 10 -hls_time 10 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+        //private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 10 -hls_time 10 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+        //private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 10 -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_single.ts -hls_flags delete_segments -hls_flags single_file " + outPathBase + "test.m3u8";
+        private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 1 -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
         public MainApplicationContext(int cap_image_serv_port)
 		{
