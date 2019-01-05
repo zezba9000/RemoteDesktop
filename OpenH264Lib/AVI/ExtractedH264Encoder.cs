@@ -23,6 +23,8 @@ namespace OpenH264.Encoder
         private int width;
         private int height;
         private string hlsBasePath = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
+        private int IDRFrameCnt = 0;
+        private int PFrameCnt = 0;
         //private GCHandle pinnedArray = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
         //private byte[] bufForEncoder = null;
         //IntPtr pointerOfEncoderInternalBuf = IntPtr.Zero;
@@ -52,6 +54,14 @@ namespace OpenH264.Encoder
             onEncode = (data, length, frameType) =>
             {
                 var keyFrame = (frameType == OpenH264Lib.Encoder.FrameType.IDR) || (frameType == OpenH264Lib.Encoder.FrameType.I);
+                if (keyFrame)
+                {
+                    IDRFrameCnt++;
+                }
+                else
+                {
+                    PFrameCnt++;
+                }
                 //var ms = new MemoryStream();
                 //var writer = new H264Writer(ms, width, height, fps); 
 
@@ -59,20 +69,37 @@ namespace OpenH264.Encoder
                 {
                     writer = new H264Writer(new MemoryStream(), width, height, fps);
                 }
-                if(timestamp % 10 == 0 && timestamp != 0)
+                //if(timestamp % 10 == 0 && timestamp != 0)
+                //{
+                //    writer.Close();
+                //    aviDataGenerated(writer.getEncodedAviFileData());
+                //    Console.WriteLine("a avi file stream closed");
+                //    //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
+                //    //writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp/10)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                //    writer = new H264Writer(new MemoryStream(), width, height, fps);
+                //    encoder.Dispose();
+                //    encoder = null;
+                //    encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
+                //    encoder.Setup(width, height, bps, fps, keyFrameInterval, onEncodeProxy);
+                //}
+
+
+                writer.AddImage(data, keyFrame);
+
+                if(PFrameCnt > 0)
                 {
                     writer.Close();
                     aviDataGenerated(writer.getEncodedAviFileData());
                     Console.WriteLine("a avi file stream closed");
-                    //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
-                    //writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp/10)).ToString() + ".avi", FileMode.Create), width, height, fps);
                     writer = new H264Writer(new MemoryStream(), width, height, fps);
                     encoder.Dispose();
+                    PFrameCnt = 0;
+                    IDRFrameCnt = 0;
                     encoder = null;
                     encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
                     encoder.Setup(width, height, bps, fps, keyFrameInterval, onEncodeProxy);
                 }
-                writer.AddImage(data, keyFrame);
+
                 timestamp++;
 
                 //byte[] ms_buf = ms.ToArray();
