@@ -53,62 +53,67 @@ namespace OpenH264.Encoder
 
             onEncode = (data, length, frameType) =>
             {
-                var keyFrame = (frameType == OpenH264Lib.Encoder.FrameType.IDR) || (frameType == OpenH264Lib.Encoder.FrameType.I);
-                if (keyFrame)
+                lock (this)
                 {
-                    IDRFrameCnt++;
+                    var keyFrame = (frameType == OpenH264Lib.Encoder.FrameType.IDR) || (frameType == OpenH264Lib.Encoder.FrameType.I);
+                    if (keyFrame)
+                    {
+                        IDRFrameCnt++;
+                    }
+                    else
+                    {
+                        PFrameCnt++;
+                    }
+                    //var ms = new MemoryStream();
+                    //var writer = new H264Writer(ms, width, height, fps); 
+
+                    if (timestamp == 0)
+                    {
+                        writer = new H264Writer(new MemoryStream(), width, height, fps);
+                    }
+                    if (timestamp % 10 == 0 && timestamp != 0)
+                    {
+                        writer.Close();
+                        aviDataGenerated(writer.getEncodedAviFileData());
+                        Console.WriteLine("a avi file stream closed");
+                        //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
+                        //writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp/10)).ToString() + ".avi", FileMode.Create), width, height, fps);
+                        PFrameCnt = 0;
+                        IDRFrameCnt = 0;
+                        writer = new H264Writer(new MemoryStream(), width, height, fps);
+                        encoder.Dispose();
+                        encoder = null;
+                        encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
+                        encoder.Setup(width, height, bps, fps, keyFrameInterval, onEncodeProxy);
+                    }
+
+
+                    writer.AddImage(data, keyFrame);
+
+                    //if(PFrameCnt > 0)
+                    //{
+                    //    writer.Close();
+                    //    aviDataGenerated(writer.getEncodedAviFileData());
+                    //    Console.WriteLine("a avi file stream closed");
+                    //    writer = new H264Writer(new MemoryStream(), width, height, fps);
+                    //    encoder.Dispose();
+                    //    PFrameCnt = 0;
+                    //    IDRFrameCnt = 0;
+                    //    encoder = null;
+                    //    encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
+                    //    encoder.Setup(width, height, bps, fps, keyFrameInterval, onEncodeProxy);
+                    //}
+
+                    timestamp++;
+
+                    //byte[] ms_buf = ms.ToArray();
+                    //byte[] tmp_buf = new byte[ms.Length];
+                    //Array.Copy(ms_buf, 0, tmp_buf, 0, ms.Length);
+                    //aviDataGenerated(tmp_buf);
+                    //ms.Close();
+
+                    Console.WriteLine("Encord {0} bytes, data.Length: {1} bytes, KeyFrame:{2} timestamp:{3} " + frameType.ToString(), length, data.Length, keyFrame, timestamp);
                 }
-                else
-                {
-                    PFrameCnt++;
-                }
-                //var ms = new MemoryStream();
-                //var writer = new H264Writer(ms, width, height, fps); 
-
-                if(timestamp == 0)
-                {
-                    writer = new H264Writer(new MemoryStream(), width, height, fps);
-                }
-                //if(timestamp % 10 == 0 && timestamp != 0)
-                //{
-                //    writer.Close();
-                //    aviDataGenerated(writer.getEncodedAviFileData());
-                //    Console.WriteLine("a avi file stream closed");
-                //    //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
-                //    //writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp/10)).ToString() + ".avi", FileMode.Create), width, height, fps);
-                //    writer = new H264Writer(new MemoryStream(), width, height, fps);
-                //    encoder.Dispose();
-                //    encoder = null;
-                //    encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
-                //    encoder.Setup(width, height, bps, fps, keyFrameInterval, onEncodeProxy);
-                //}
-
-
-                writer.AddImage(data, keyFrame);
-
-                if(PFrameCnt > 0)
-                {
-                    writer.Close();
-                    aviDataGenerated(writer.getEncodedAviFileData());
-                    Console.WriteLine("a avi file stream closed");
-                    writer = new H264Writer(new MemoryStream(), width, height, fps);
-                    encoder.Dispose();
-                    PFrameCnt = 0;
-                    IDRFrameCnt = 0;
-                    encoder = null;
-                    encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
-                    encoder.Setup(width, height, bps, fps, keyFrameInterval, onEncodeProxy);
-                }
-
-                timestamp++;
-
-                //byte[] ms_buf = ms.ToArray();
-                //byte[] tmp_buf = new byte[ms.Length];
-                //Array.Copy(ms_buf, 0, tmp_buf, 0, ms.Length);
-                //aviDataGenerated(tmp_buf);
-                //ms.Close();
-
-                Console.WriteLine("Encord {0} bytes, data.Length: {1} bytes, KeyFrame:{2} timestamp:{3} " + frameType.ToString(), length, data.Length, keyFrame, timestamp);
             };
 
             // H264エンコーダーの設定
@@ -118,22 +123,25 @@ namespace OpenH264.Encoder
 
         public void addBitmapFrame(byte[] data, int frameNumber)
         {
-            //var bmp = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format16bppRgb565);
+            lock (this)
+            {
+                //var bmp = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format16bppRgb565);
 
-            //Marshal.Copy(data, 0, pointerOfEncoderInternalBuf, 54 + width * height * 4);
-            //var bmp = new System.Drawing.Bitmap(width, height, 4, System.Drawing.Imaging.PixelFormat.Format32bppRgb, pointerOfEncoderInternalBuf);
-            //encoder.Encode(bmp, frameNumber);
-            //bmp.Dispose();
-            //RemoteDesktop.Android.Core.Utils.saveByteArrayToFile(data, hlsBasePath + "homobrewBmpFile" + frameNumber.ToString() + ".bmp");
-            //encoder.Encode(data, frameNumber);
+                //Marshal.Copy(data, 0, pointerOfEncoderInternalBuf, 54 + width * height * 4);
+                //var bmp = new System.Drawing.Bitmap(width, height, 4, System.Drawing.Imaging.PixelFormat.Format32bppRgb, pointerOfEncoderInternalBuf);
+                //encoder.Encode(bmp, frameNumber);
+                //bmp.Dispose();
+                //RemoteDesktop.Android.Core.Utils.saveByteArrayToFile(data, hlsBasePath + "homobrewBmpFile" + frameNumber.ToString() + ".bmp");
+                //encoder.Encode(data, frameNumber);
 
-            byte[] copy_buf = new byte[data.Length];
-            Array.Copy(data, 0, copy_buf, 0, data.Length);
-            var bmp = new Bitmap(new MemoryStream(copy_buf));
-            encoder.Encode(bmp, frameNumber);
-            bmp.Dispose();
+                byte[] copy_buf = new byte[data.Length];
+                Array.Copy(data, 0, copy_buf, 0, data.Length);
+                var bmp = new Bitmap(new MemoryStream(copy_buf));
+                encoder.Encode(bmp, frameNumber);
+                bmp.Dispose();
 
-            //pinnedArray.Free();            
+                //pinnedArray.Free();
+            }
         }
     }
 }

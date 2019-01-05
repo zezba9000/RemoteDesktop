@@ -101,7 +101,7 @@ namespace RemoteDesktop.Server
             //encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 3 * 8 /* original bitmap size... */, 1.0f, 10.0f);
 
             // 500Bps was not worked...
-            encoder = new ExtractedH264Encoder(540, 960, 1024 * 8 , 1.0f, 10.0f);
+            encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 10.0f);
 
 
             encoder.aviDataGenerated += h264AVIDataHandler;
