@@ -41,7 +41,15 @@ namespace OpenH264.Encoder
             //pointerOfEncoderInternalBuf = pinnedArray.AddrOfPinnedObject();
 
             // 1フレームエンコードするごとにライターに書き込み
-            OpenH264Lib.Encoder.OnEncodeCallback onEncode = (data, length, frameType) =>
+            OpenH264Lib.Encoder.OnEncodeCallback onEncode = (data, length, frameType) => { };
+
+            OpenH264Lib.Encoder.OnEncodeCallback onEncodeProxy = (data, length, frameType) =>
+            {
+                onEncode(data, length, frameType);
+            };
+
+
+            onEncode = (data, length, frameType) =>
             {
                 var keyFrame = (frameType == OpenH264Lib.Encoder.FrameType.IDR) || (frameType == OpenH264Lib.Encoder.FrameType.I);
                 //var ms = new MemoryStream();
@@ -59,6 +67,10 @@ namespace OpenH264.Encoder
                     //writer = new H264Writer(new FileStream("F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\avi-" + ((int)(timestamp/2)).ToString() + "-" + ((frameType == OpenH264Lib.Encoder.FrameType.I) ? "I" : "IDR") + ".avi", FileMode.Create), width, height, fps);
                     //writer = new H264Writer(new FileStream(hlsBasePath + "avi-" + ((int)(timestamp/10)).ToString() + ".avi", FileMode.Create), width, height, fps);
                     writer = new H264Writer(new MemoryStream(), width, height, fps);
+                    encoder.Dispose();
+                    encoder = null;
+                    encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
+                    encoder.Setup(width, height, bps, fps, keyFrameInterval, onEncodeProxy);
                 }
                 writer.AddImage(data, keyFrame);
                 timestamp++;
