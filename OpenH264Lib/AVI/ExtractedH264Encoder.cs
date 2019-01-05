@@ -71,7 +71,7 @@ namespace OpenH264.Encoder
                     {
                         writer = new H264Writer(new MemoryStream(), width, height, fps);
                     }
-                    if (timestamp % 10 == 0 && timestamp != 0)
+                    if (timestamp % 60 == 0 && timestamp != 0)
                     {
                         writer.Close();
                         aviDataGenerated(writer.getEncodedAviFileData());
@@ -86,7 +86,6 @@ namespace OpenH264.Encoder
                         encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
                         encoder.Setup(width, height, bps, fps, keyFrameInterval, onEncodeProxy);
                     }
-
 
                     writer.AddImage(data, keyFrame);
 

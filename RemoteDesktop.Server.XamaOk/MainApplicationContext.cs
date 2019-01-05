@@ -101,7 +101,7 @@ namespace RemoteDesktop.Server
             //encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 3 * 8 /* original bitmap size... */, 1.0f, 10.0f);
 
             // 500Bps was not worked...
-            encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 10.0f);
+            encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 20.0f);
 
 
             encoder.aviDataGenerated += h264AVIDataHandler;
@@ -173,7 +173,9 @@ namespace RemoteDesktop.Server
             //startInfo2.Arguments = "-y -loglevel debug -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
             //startInfo2.Arguments = "-y -loglevel debug -i - -filter_complex scale=540x960,fps=1 -c:v libx264 -b:v 8k -g 20 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
             //startInfo2.Arguments = "-y -loglevel debug -i - -filter_complex scale=540x960,fps=1 -c:v libx264 -b:v 8k -g 20 -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
-            startInfo2.Arguments = "-y -loglevel debug -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+
+            // デバッグ出力が邪魔だから切った
+            startInfo2.Arguments = "-y -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
             ffmpegProc2 = new Process();
             ffmpegProc2.StartInfo = startInfo2;
