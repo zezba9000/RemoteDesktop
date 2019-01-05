@@ -51,7 +51,7 @@ namespace RemoteDesktop.Server
         private int timestamp = 0; // equal frame number
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
-        private string outPathBase = "F:\\work\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
+        private string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
 
 		public MainApplicationContext(int cap_image_serv_port)
 		{
@@ -84,6 +84,8 @@ namespace RemoteDesktop.Server
             //while ((line = input.ReadLine()) != null) { }
             //input.Dispose();
 
+            kickFFMPEG();
+
             // set ffmpegProc field
             //encoder = new ExtractedH264Encoder(540, 960, 5000000, 1.0f, 10.0f);
             //encoder = new ExtractedH264Encoder(540, 960, 800 * 8 /* 800Byte/s */, 1.0f, 10.0f);
@@ -99,7 +101,7 @@ namespace RemoteDesktop.Server
             //encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 4 * 8 /* original bitmap size... */, 1.0f, 2.0f);
 
             encoder.aviDataGenerated += h264AVIDataHandler;
-            //kickFFMPEG();
+
 		    timer = new System.Windows.Forms.Timer();
             timer.Interval = 1000;
 			timer.Tick += Timer_Tick_for_ffmpeg_hls_test;
@@ -164,7 +166,10 @@ namespace RemoteDesktop.Server
             //startInfo2.Arguments = "-i - -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments -loglevel debug " + outPathBase + "test.m3u8";
             //startInfo2.Arguments = "-y -i - -loglevel debug -codec copy -map 0 -flags +cgop+global_header -f segment -vbsf h264_mp4toannexb -segment_format mpegts -segment_time 1 -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%03d.ts";
             //startInfo2.Arguments = "-i - -filter_complex scale=540x960,fps=1 -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
-            startInfo2.Arguments = "-y -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments" + outPathBase + "test.m3u8";
+            //startInfo2.Arguments = "-y -loglevel debug -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+            //startInfo2.Arguments = "-y -loglevel debug -i - -filter_complex scale=540x960,fps=1 -c:v libx264 -b:v 8k -g 20 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+            //startInfo2.Arguments = "-y -loglevel debug -i - -filter_complex scale=540x960,fps=1 -c:v libx264 -b:v 8k -g 20 -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+            startInfo2.Arguments = "-y -loglevel debug -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
             ffmpegProc2 = new Process();
             ffmpegProc2.StartInfo = startInfo2;

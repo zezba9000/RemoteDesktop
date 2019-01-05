@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Runtime.InteropServices; // for StructLayout
+using System.IO;
 
 namespace OpenH264Sample
 {
@@ -17,6 +18,8 @@ namespace OpenH264Sample
 
         private event Action OnClose;
         public void Close() { OnClose(); }
+
+        public byte[] finishedData;
 
         public AviWriter(System.IO.Stream outputAvi, string fourCC, int width, int height, float fps)
         {
@@ -62,6 +65,10 @@ namespace OpenH264Sample
 
                 // ファイルをクローズ
                 riffFile.Close();
+                if(outputAvi.GetType() == typeof(MemoryStream))
+                {
+                    finishedData = ((MemoryStream)outputAvi).ToArray();
+                }
                 outputAvi.Dispose();
             };
         }

@@ -23,5 +23,11 @@ namespace OpenH264Sample
         {
             aviWriter.Close();
         }
+
+        // should call after Close func
+        public byte[] getEncodedAviFileData()
+        {
+            return aviWriter.finishedData;
+        }
     }
 }
