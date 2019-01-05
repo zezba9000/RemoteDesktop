@@ -51,9 +51,11 @@ namespace RemoteDesktop.Server
         private int timestamp = 0; // equal frame number
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
-        private string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
+        private static string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
+        //private string ffmpegForHLSArgs = "-y -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+        private string ffmpegForHLSArgs = "-y -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
-		public MainApplicationContext(int cap_image_serv_port)
+        public MainApplicationContext(int cap_image_serv_port)
 		{
 			// init tray icon
 			var menuItems = new MenuItem[]
@@ -101,8 +103,8 @@ namespace RemoteDesktop.Server
             //encoder = new ExtractedH264Encoder(540, 960, 540 * 960 * 3 * 8 /* original bitmap size... */, 1.0f, 10.0f);
 
             // 500Bps was not worked...
-            encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 20.0f);
-
+            //encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 20.0f);
+            encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 10.0f);
 
             encoder.aviDataGenerated += h264AVIDataHandler;
 
@@ -175,7 +177,7 @@ namespace RemoteDesktop.Server
             //startInfo2.Arguments = "-y -loglevel debug -i - -filter_complex scale=540x960,fps=1 -c:v libx264 -b:v 8k -g 20 -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
             // デバッグ出力が邪魔だから切った
-            startInfo2.Arguments = "-y -i - -codec copy -map 0 -flags +cgop+global_header -f hls -hls_time 1 -hls_list_size 3 -hls_allow_cache 1 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+            startInfo2.Arguments = ffmpegForHLSArgs;
 
             ffmpegProc2 = new Process();
             ffmpegProc2.StartInfo = startInfo2;
@@ -539,7 +541,6 @@ namespace RemoteDesktop.Server
                 //var str = System.Text.Encoding.GetEncoding(932).GetString(tmp_buf);
                 //ffmpegProc1.StandardInput.Write(str);
                 //ffmpegProc1.StandardInput.Flush();
-
 
                 var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
                 Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
