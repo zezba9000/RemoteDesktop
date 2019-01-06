@@ -60,7 +60,7 @@ namespace RemoteDesktop.Server
 
         //private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -g 1 -vf format=yuv420p -maxrate 8192 -f mpegts tcp://192.168.1.8:8888?listen";
         // -crf (0-51)でクオリティ設定
-        private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 1 -vf format=yuv420p -f mpegts tcp://192.168.0.11:8888?listen";
+        private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://192.168.0.11:8888?listen";
         //private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=rgb8 -f mpegts tcp://192.168.0.11:8888?listen";
 
         public MainApplicationContext()
