@@ -47,8 +47,8 @@ namespace RemoteDesktop.Android.Core
             public int localPort = 0;
             public bool Loop = false;
 
-            public static bool isUseFFMPEG = false;
-            public static bool isStreamRawH264Data = true;
+            public static bool isUseFFMPEG = true;
+            public static bool isStreamRawH264Data = false;
             public static bool isConvTo24bit = false; //こちらの方が16bit指定より優先される. falseだが最初から24bitなので問題ない
             public static bool isConvTo16bit = false; 
             public static bool isConvJpeg = true;

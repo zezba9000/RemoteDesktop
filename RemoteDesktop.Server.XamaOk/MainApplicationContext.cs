@@ -56,6 +56,7 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 10 -hls_time 10 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
         //private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 10 -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_single.ts -hls_flags delete_segments -hls_flags single_file " + outPathBase + "test.m3u8";
         private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 1 -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+        private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f mpegts tcp://192.168.1.8:8888?listen";
 
         public MainApplicationContext()
 		{
@@ -102,16 +103,16 @@ namespace RemoteDesktop.Server
             }
 
 
-            // HLS using ffmpegのテストのためにコメントアウト(今はしてない)
-            // start TCP socket listen for image server
-            socket = new DataSocket(NetworkTypes.Server);
-            socket.ConnectedCallback += Socket_ConnectedCallback;
-            socket.DisconnectedCallback += Socket_DisconnectedCallback;
-            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-            socket.DataRecievedCallback += Socket_DataRecievedCallback;
-            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-            socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
+            //// HLS using ffmpegのテストのためにコメントアウト(今はしてない)
+            //// start TCP socket listen for image server
+            //socket = new DataSocket(NetworkTypes.Server);
+            //socket.ConnectedCallback += Socket_ConnectedCallback;
+            //socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            //socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            //socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            //socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
         }
 
         // set ffmpegProc field
@@ -127,8 +128,8 @@ namespace RemoteDesktop.Server
             startInfo.CreateNoWindow = true;
             startInfo.FileName = ffmpegPath;
 
-            // デバッグ出力が邪魔だから切った
-            startInfo.Arguments = ffmpegForHLSArgs;
+            //startInfo.Arguments = ffmpegForHLSArgs;
+            startInfo.Arguments = ffmpegForDirectStreamingArgs;
 
             ffmpegProc = new Process();
             ffmpegProc.StartInfo = startInfo;
