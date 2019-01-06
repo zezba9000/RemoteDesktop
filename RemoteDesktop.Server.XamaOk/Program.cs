@@ -10,7 +10,7 @@ namespace RemoteDesktop.Server
 		{
 			// parse args
 			bool isDebugMode = false;
-			int port = 8888;
+			//int port = 8888;
 			//foreach (var arg in args)
 			//{
 			//	if (arg == "debug") isDebugMode = true;
@@ -21,7 +21,7 @@ namespace RemoteDesktop.Server
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			if (isDebugMode) Application.Run(new MainForm());
-			else Application.Run(new MainApplicationContext(port));
+			else Application.Run(new MainApplicationContext());
 		}
 	}
 }

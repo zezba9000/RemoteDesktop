@@ -525,7 +525,7 @@ namespace RemoteDesktop.Android.Core
 		//}
 
 		//private unsafe void SendBinary(byte* data, int dataLength)
-		private void SendBinary(byte[] data, int dataLength)
+		public void SendBinary(byte[] data, int dataLength)
 		{
             try
             {
@@ -534,9 +534,6 @@ namespace RemoteDesktop.Android.Core
                 int size = dataLength, offset = 0;
                 do
                 {
-                    //int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
-                    //Marshal.Copy(new IntPtr(data) + offset, sendBuffer, 0, writeSize);
-                    //Array.Copy(data, offset, sendBuffer, 0, writeSize);
                     int dataWrite = socket.Send(data, offset, size, SocketFlags.None);
                     if (dataWrite == 0) break;
                     offset += dataWrite;

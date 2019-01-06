@@ -29,14 +29,14 @@ namespace RemoteDesktop.Server
         System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
         //System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
         int screenIndex, currentScreenIndex;
-        float targetFPS = 1f;
+        float targetFPS = 1.0f;
         float fixedTargetFPS = 20f;
         bool compress; //, currentCompress;
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = true;
         float resolutionScale = 1.0F; // DEBUG INFO: current jpeg encoding implementation is not work with not value 1.0
         float fixedResolutionScale = 0.5F; // if this value is not 1, this value is used at scaling always
-		private System.Windows.Forms.Timer timer;
+		private System.Windows.Forms.Timer timer = null;
 		public static Dispatcher dispatcher;
 
 		//private InputSimulator input;
@@ -46,7 +46,7 @@ namespace RemoteDesktop.Server
         private Process ffmpegProc = null;
         //byte[] tmp_buf = new byte[540 * 960 * 2];
 
-        //private ExtractedH264Encoder encoder;
+        private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
@@ -57,7 +57,7 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 10 -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_single.ts -hls_flags delete_segments -hls_flags single_file " + outPathBase + "test.m3u8";
         private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 1 -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
-        public MainApplicationContext(int cap_image_serv_port)
+        public MainApplicationContext()
 		{
 			// init tray icon
 			var menuItems = new MenuItem[]
@@ -88,27 +88,30 @@ namespace RemoteDesktop.Server
             //while ((line = input.ReadLine()) != null) { }
             //input.Dispose();
 
-            kickFFMPEG();
 
-            //encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 10.0f);
-            //encoder.aviDataGenerated += h264AVIDataHandler;
+            if (RTPConfiguration.isUseFFMPEG)
+            {
 
-		    timer = new System.Windows.Forms.Timer();
-            timer.Interval = 1000;
-			timer.Tick += Timer_Tick_for_ffmpeg_hls_test;
-            timer.Start();
+                kickFFMPEG();
+                timer = new System.Windows.Forms.Timer();
+                timer.Interval = (int) (1000 * (1.0f / (float)targetFPS));
+                timer.Tick += Timer_Tick_for_ffmpeg_hls_test;
+                timer.Start();
+                encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 10.0f);
+                encoder.aviDataGenerated += h264AVIDataHandlerHlsFFMPEG;
+            }
 
-            // HLS using ffmpegのテストのためにコメントアウト
-            //// start TCP socket listen for image server
-            //socket.Listen(IPAddress.Any, cap_image_serv_port);
-            //socket = new DataSocket(NetworkTypes.Server);
-            //socket.ConnectedCallback += Socket_ConnectedCallback;
-            //socket.DisconnectedCallback += Socket_DisconnectedCallback;
-            //socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-            //socket.DataRecievedCallback += Socket_DataRecievedCallback;
-            //socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-            //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-            //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), cap_image_serv_port);
+
+            // HLS using ffmpegのテストのためにコメントアウト(今はしてない)
+            // start TCP socket listen for image server
+            socket = new DataSocket(NetworkTypes.Server);
+            socket.ConnectedCallback += Socket_ConnectedCallback;
+            socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
         }
 
         // set ffmpegProc field
@@ -337,6 +340,42 @@ namespace RemoteDesktop.Server
 		private void Socket_ConnectedCallback()
 		{
 			DebugLog.Log("Connected to client");
+
+            if (RTPConfiguration.isStreamRawH264Data)
+            {
+                lock (this)
+                {
+                    if (isDisposed) return;
+
+                    encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 10.0f);
+                    encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
+
+                    void CreateTimer(bool recreate, int fps)
+                    {
+                        //if (recreate && timer != null)
+                        //{
+                        //    timer.Tick -= Timer_Tick;
+                        //    timer.Dispose();
+                        //    timer = null;
+                        //}
+
+                        if (timer == null)
+                        {
+                            timer = new System.Windows.Forms.Timer();
+                            timer.Interval = (int)(1000f / fps); // targetFPSは呼び出し時には適切に更新が行われていることを想定
+                            timer.Tick += Timer_Tick_bitmap_to_openH264_Encoder;
+                        }
+
+                        timer.Start();
+                    }
+
+					dispatcher.InvokeAsync(delegate()
+					{
+						CreateTimer(false, (int)targetFPS);
+					});
+                    
+                }
+            }
 		}
 
 		private void Socket_DisconnectedCallback()
@@ -409,11 +448,17 @@ namespace RemoteDesktop.Server
             return retBmap;
         }
 
-        private void h264AVIDataHandler(byte[] data)
+        private void h264AVIDataHandlerHlsFFMPEG(byte[] data)
         {
             ffmpegProc.StandardInput.BaseStream.Write(data, 0, data.Length);
             ffmpegProc.StandardInput.BaseStream.Flush();
         }
+
+        private void h264RawDataHandlerSendTCP(byte[] data)
+        {
+            socket.SendBinary(data, data.Length);
+        }
+
 
 		private void Timer_Tick_for_ffmpeg_hls_test(object sender, EventArgs e)
 		{
@@ -429,39 +474,55 @@ namespace RemoteDesktop.Server
                 }
                 Array.Copy(convedXBmap.getInternalBuffer(), 0, tmp_buf, 0, tmp_buf.Length);
                 //Utils.saveByteArrayToFile(tmp_buf, outPathBase + "rgb565-540x960.raw");
-                //Application.Exit();
-
-                //// 余計なデータがstdinにあったらクリアする
-                //TextReader input;
-                //input = Console.In;
-                //string line;
-                //while ((line = input.ReadLine()) != null) { Console.WriteLine(line); }
-                //input.Dispose();
-
-                //ffmpegProc1.StandardInput.WriteLine("hoge");
-
-                //ffmpegProc1.StandardInput.Write(tmp_buf);
-                //ffmpegProc1.StandardInput.Flush();
-
-                //ffmpegProc1.StandardInput.Write(tmp_buf.ToString());
-                //ffmpegProc1.StandardInput.Flush();
-                //var bs = new BinaryWriter(ffmpegProc1.StandardInput.BaseStream);
-                //bs.Write(tmp_buf);
-                //bs.Flush();
-
-                //var str = System.Text.Encoding.GetEncoding(932).GetString(tmp_buf);
-                //ffmpegProc1.StandardInput.Write(str);
-                //ffmpegProc1.StandardInput.Flush();
 
                 var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
+
                 //Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
                 //byte[] bmpfFile_buf = bitmap_ms.ToArray();
-                ////Array.Resize<byte>(ref bmpfFile_buf, 54 + convedXBmap.Width * convedXBmap.Height * 3);
                 //encoder.addBitmapFrame(bmpfFile_buf, timestamp++);
 
                 var br = bitmap_ms.ToArray();
                 ffmpegProc.StandardInput.BaseStream.Write(br, 0, br.Length);
                 ffmpegProc.StandardInput.BaseStream.Flush();
+            }
+		}
+
+		private void Timer_Tick_bitmap_to_openH264_Encoder(object sender, EventArgs e)
+		{
+			lock (this)
+			{
+                if (isFixedParamUse)
+                {
+                    resolutionScale = fixedResolutionScale;
+                }
+
+                CaptureScreen();
+                BitmapXama convedXBmap = null;
+                byte[] tmp_buf = new byte[scaledBitmap.Width * scaledBitmap.Height * 3];
+                if (resolutionScale == 1)
+                {
+                    convedXBmap = convertToBitmapXamaAndRotate(bitmap);
+
+                }
+                else
+                {
+                    convedXBmap = convertToBitmapXamaAndRotate(scaledBitmap);
+
+                }
+
+                if (convedXBmap.getInternalBuffer().Length == 0)
+                {
+                    return;
+                }
+                Array.Copy(convedXBmap.getInternalBuffer(), 0, tmp_buf, 0, tmp_buf.Length);
+                var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
+
+                Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
+                encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp++);
+
+                //var br = bitmap_ms.ToArray();
+                //ffmpegProc.StandardInput.BaseStream.Write(br, 0, br.Length);
+                //ffmpegProc.StandardInput.BaseStream.Flush();
             }
 		}
 

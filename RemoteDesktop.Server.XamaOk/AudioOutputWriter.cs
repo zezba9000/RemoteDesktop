@@ -81,7 +81,7 @@ namespace RemoteDesktop.Server.XamaOK
                 sdsock.DataRecievedCallback += Socket_DataRecievedCallback;
                 sdsock.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
                 sdsock.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-                sdsock.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), rtp_config.ServerPort);
+                sdsock.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), rtp_config.SoundServerPort);
             }
 
             Start(); // start capture and send stream
