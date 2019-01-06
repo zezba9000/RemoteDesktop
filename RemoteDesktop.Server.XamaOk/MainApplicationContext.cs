@@ -56,7 +56,9 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 10 -hls_time 10 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
         //private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 10 -hls_time 1 -hls_list_size 3 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_single.ts -hls_flags delete_segments -hls_flags single_file " + outPathBase + "test.m3u8";
         private string ffmpegForHLSArgs = "-y -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -vf format=yuv420p -f hls -r 1 -g 1 -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
-        private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -g 5 -vf format=yuv420p -f mpegts tcp://192.168.1.8:8888?listen";
+        //private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -g 1 -vf format=yuv420p -maxrate 8192 -f mpegts tcp://192.168.1.8:8888?listen";
+        // -crf (0-51)でクオリティ設定
+        private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://192.168.1.8:8888?listen";
 
         public MainApplicationContext()
 		{
