@@ -53,13 +53,13 @@ namespace RemoteDesktop.Server
         private static string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
 
         // using -f hls
-        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -tune zerolatency -r 1 -g 5 -vf format=yuv420p -f hls -r 1 -g 5  -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
+        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -tune zerolatency -r 1 -g 5 -vf format=yuv420p -f hls -r 1 -g 5  -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
         // using -f hls (2) -> not work
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -movflags +faststart -bsf:v h264_mp4toannexb -map 0 -flags +cgop+global_header -f hls -r 1 -g 60  -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -segment_list_flags +live -break_non_keyframes 1 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
 
         // using -f ssegment
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60  -bsf:v h264_mp4toannexb -map 0 -f ssegment -segment_format mpegts -segment_list_type hls -segment_time 1 -segment_list_size 4 -segment_list_flags +live -break_non_keyframes 1 -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%d.ts";
+        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60  -bsf:v h264_mp4toannexb -map 0 -f ssegment -segment_format mpegts -segment_list_type hls -segment_time 1 -segment_list_size 4 -segment_list_flags +live -break_non_keyframes 1 -segment_list_flags -cache -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%d.ts";
 
         // -crf (0-51)でクオリティ設定
         //private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://192.168.0.11:8888?listen";
