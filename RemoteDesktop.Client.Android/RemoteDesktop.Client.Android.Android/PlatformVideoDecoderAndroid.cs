@@ -14,12 +14,13 @@ using Xamarin.Forms;
 
 using Android.Views;
 using Android.Graphics;
+using Java.Nio;
 
-//[assembly: Dependency(typeof(PlatformSoundPlayerAndroid))]
+[assembly: Dependency(typeof(PlatformVideoDecoderAndroid))]
 
 namespace RemoteDesktop.Client.Android.Droid
 {
-    public class VideoDecoder// : IPlatformSoundPlayer
+    public class PlatformVideoDecoderAndroid : IPlatformVideoDecoder
     {
         private static String MIME = "video/avc";
         private static String TAG = "VideoDecoder";
@@ -30,7 +31,7 @@ namespace RemoteDesktop.Client.Android.Droid
         private Java.Nio.ByteBuffer[] inputBuffers = null;
 
 
-        private bool isInput = true;
+        //private bool isInput = true;
         private bool first = false;
         private long startWhen = 0;
         private MediaCodec.BufferInfo info = null;
@@ -173,90 +174,75 @@ namespace RemoteDesktop.Client.Android.Droid
         //}
 
         // if eosReceived == false, return false
-        public bool addEncodedFrame()
+        public void addEncodedFrame(byte[] frame_data)
         {
-
-            //ByteBuffer[] inputBuffers = mDecoder.getInputBuffers();
-            //mDecoder.getOutputBuffers();
-
-            //boolean isInput = true;
-            //boolean first = false;
-            //long startWhen = 0;
-
-            if (isInput)
+            Java.Nio.ByteBuffer inputBuffer = inputBuffers[inputIndex];
+            sbyte[] sbyte_frame = ((frame_data as Array) as sbyte[]);
+            foreach (sbyte sb in sbyte_frame)
             {
-                inputIndex = mDecoder.DequeueInputBuffer(10000);
-                if (inputIndex >= 0)
+                inputBuffer.Put(sb);
+            }
+            mDecoder.QueueInputBuffer(inputIndex, 0, frame_data.Length, 1000 /* 1sec */, 0);
+            //mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+        }
+
+        public byte[] getDecodedFrame() { 
+            int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
+            while (true)
+            {
+                switch (outIndex)
                 {
-                    // fill inputBuffers[inputBufferIndex] with valid data
-                    Java.Nio.ByteBuffer inputBuffer = inputBuffers[inputIndex];
+                    case (int)MediaCodec.InfoOutputBuffersChanged:
+                        Console.WriteLine("OutputBufferChanged");
+                        return mDecoder.GetOutputBuffer(outIndex).ToArray<byte>();
+                    //break;
 
-                    int sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
+                    case (int)MediaCodec.InfoOutputFormatChanged:
+                        Console.WriteLine("OutputFormatChanged");
+                        break;
 
-                    if (mExtractor.Advance() && sampleSize > 0)
-                    {
-                        mDecoder.QueueInputBuffer(inputIndex, 0, sampleSize, mExtractor.getSampleTime(), 0);
+                    case (int)MediaCodec.InfoTryAgainLater:
+                        Console.WriteLine("TryAgainLater");
+                        break;
 
-                    }
-                    else
-                    {
-                        mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
-                        isInput = false;
-                    }
+                    default:
+                        if (!first)
+                        {
+                            startWhen = CurrentTimeMillisSharp();
+                            first = true;
+                        }
+                        try
+                        {
+                            int sleepTime = (int)((info.PresentationTimeUs / 1000) - (CurrentTimeMillisSharp() - startWhen));
+
+                            if (sleepTime > 0)
+                            {
+                                Thread.Sleep(sleepTime);
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+
+                        mDecoder.ReleaseOutputBuffer(outIndex, true /* Surface init */);
+                        break;
+                        //return false;
                 }
             }
+
+            //// All decoded frames have been rendered, we can stop playing now
+            //if ((info.Flags & MediaCodec.BufferFlagEndOfStream) != 0)
+            //{
+            //    //break;
+            //    return false;
+            //}
+
+            //return eosReceived == true;
         }
 
-        public void getDecodedFrame() { 
-            int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
-            switch (outIndex)
-            {
-                case (int)MediaCodec.InfoOutputBuffersChanged:
-                    mDecoder.GetOutputBuffers();
-                    break;
-
-                case (int)MediaCodec.InfoOutputFormatChanged:
-                    break;
-
-                case (int)MediaCodec.InfoTryAgainLater:
-                    //				Log.d(TAG, "INFO_TRY_AGAIN_LATER");
-                    break;
-
-                default:
-                    if (!first)
-                    {
-                        startWhen = CurrentTimeMillisSharp();
-                        first = true;
-                    }
-                    try
-                    {
-                        int sleepTime = (int)((info.PresentationTimeUs / 1000) - (CurrentTimeMillisSharp() - startWhen);
-
-                        if (sleepTime > 0)
-                            Thread.Sleep(sleepTime);
-                    }
-                    catch (Exception ex)
-                    {
-                        // TODO Auto-generated catch block
-                        Console.WriteLine(ex);
-                    }
-
-                    mDecoder.ReleaseOutputBuffer(outIndex, true /* Surface init */);
-                    //break;
-                    return false;
-            }
-
-            // All decoded frames have been rendered, we can stop playing now
-            if ((info.Flags & MediaCodec.BufferFlagEndOfStream) != 0)
-            {
-                //break;
-                return false;
-            }
-
-            return eosReceived == true;
-        }
-
-        public void close()
+        public void Close()
         {
             mDecoder.Stop();
             mDecoder.Release();
