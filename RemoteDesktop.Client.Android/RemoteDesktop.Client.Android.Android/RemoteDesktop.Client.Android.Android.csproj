@@ -37,8 +37,7 @@
     <EmbedAssembliesIntoApk>false</EmbedAssembliesIntoApk>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AndroidCreatePackagePerAbi>false</AndroidCreatePackagePerAbi>
-    <AndroidSupportedAbis>
-    </AndroidSupportedAbis>
+    <AndroidSupportedAbis>armeabi-v7a;x86</AndroidSupportedAbis>
     <EnableProguard>false</EnableProguard>
     <AndroidEnableMultiDex>false</AndroidEnableMultiDex>
   </PropertyGroup>
@@ -122,9 +121,9 @@
   <ItemGroup>
     <Compile Include="MainActivity.cs" />
     <Compile Include="PlatformSoundPlayerAndroid.cs" />
+    <Compile Include="PlatformVideoDecoderAndroid.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VideoDecoder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
