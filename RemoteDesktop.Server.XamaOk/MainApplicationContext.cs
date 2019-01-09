@@ -31,9 +31,9 @@ namespace RemoteDesktop.Server
         int screenIndex, currentScreenIndex;
         float targetFPS = 1.0f;
         float fixedTargetFPS = 20f;
-        bool compress; //, currentCompress;
+        bool compress = false; //, currentCompress;
         bool isFixedParamUse = true; // use server side hard coded parameter on running
-        bool fixedCompress = true;
+        bool fixedCompress = false;
         float resolutionScale = 1.0F; // DEBUG INFO: current jpeg encoding implementation is not work with not value 1.0
         float fixedResolutionScale = 0.5F; // if this value is not 1, this value is used at scaling always
 		private System.Windows.Forms.Timer timer = null;
@@ -119,16 +119,15 @@ namespace RemoteDesktop.Server
             }
 
 
-            //// HLS using ffmpegのテストのためにコメントアウト(今はしてない)
-            //// start TCP socket listen for image server
-            //socket = new DataSocket(NetworkTypes.Server);
-            //socket.ConnectedCallback += Socket_ConnectedCallback;
-            //socket.DisconnectedCallback += Socket_DisconnectedCallback;
-            //socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-            //socket.DataRecievedCallback += Socket_DataRecievedCallback;
-            //socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-            //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-            //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
+            // start TCP socket listen for image server
+            socket = new DataSocket(NetworkTypes.Server);
+            socket.ConnectedCallback += Socket_ConnectedCallback;
+            socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
         }
 
         // set ffmpegProc field
@@ -473,7 +472,11 @@ namespace RemoteDesktop.Server
 
         private void h264RawDataHandlerSendTCP(byte[] data)
         {
-            socket.SendBinary(data, data.Length);
+            BitmapXama bmpXama = new BitmapXama(data);
+            bmpXama.Width = 540;
+            bmpXama.Height = 960;
+
+            socket.SendImage(bmpXama, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
         }
 
 

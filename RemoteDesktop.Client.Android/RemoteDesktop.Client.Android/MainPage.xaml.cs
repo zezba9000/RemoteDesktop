@@ -61,6 +61,8 @@ namespace RemoteDesktop.Client.Android
         private SKCanvasView canvas = null;
         private MemoryStream[] skiaBufStreams;
 
+        private VideoDecoderManager vdecoder = null;
+
         public MainPage()
         {
             //InitializeComponent();
@@ -101,6 +103,11 @@ namespace RemoteDesktop.Client.Android
 
             //Utils.getLocalIP();
             //connectToSoundServer(); // start recieve sound data which playing on remote PC
+
+            // setup decoder for H264
+            vdecoder = new VideoDecoderManager();
+            vdecoder.setup();
+
             connectToImageServer(); // staart recieve captured bitmap image data 
         }
 
@@ -309,6 +316,7 @@ namespace RemoteDesktop.Client.Android
                 curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1;
             }
             Console.WriteLine("double_image: call canvas.InvalidateSurface");
+
             canvas.InvalidateSurface();
         }
 
@@ -355,7 +363,7 @@ namespace RemoteDesktop.Client.Android
                         }
 
                         // init compression
-                        if (metaData.compressed)
+                        if (metaData.compressed || RTPConfiguration.isStreamRawH264Data)
                         {
                             if (compressedStream == null)
                             {
@@ -396,7 +404,24 @@ namespace RemoteDesktop.Client.Android
                     Console.WriteLine("elapsed for image data transfer communication: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Transfer_Communication").ToString() + " msec");
                     try
                     {
-                        if (RTPConfiguration.isConvJpeg) {
+                        if (RTPConfiguration.isStreamRawH264Data)
+                        {
+                            Utils.startTimeMeasure("H264_a_frame_decompress");
+
+                            vdecoder.addEncodedFrame(compressedStream.ToArray());
+                            // block until get decoded frame
+                            byte[] decoded_bitmap = vdecoder.getDecodedFrame();
+                            if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
+                            {
+                                skiaBufStreams[0].Write(decoded_bitmap, 0, metaData.imageDataSize);
+                            }
+                            else
+                            {
+                                skiaBufStreams[1].Write(decoded_bitmap, 0, metaData.imageDataSize);
+                            }
+
+                            Console.WriteLine("elapsed for h264 one frame decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_a_frame_decompress").ToString() + " msec"); 
+                        } else if (RTPConfiguration.isConvJpeg) {
                             Utils.startTimeMeasure("Bitmap_decompress");
 
                             if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
@@ -480,7 +505,7 @@ namespace RemoteDesktop.Client.Android
                         //while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
                         //if (uiState != UIStates.Streaming || isDisposed) return;
 
-                        if (metaData.compressed || RTPConfiguration.isConvJpeg)
+                        if (metaData.compressed || RTPConfiguration.isConvJpeg || RTPConfiguration.isStreamRawH264Data)
                         {
                             compressedStream.Write(local_buf, 0, dataSize);
                         }

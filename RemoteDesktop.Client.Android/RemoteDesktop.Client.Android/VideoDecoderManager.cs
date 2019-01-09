@@ -36,7 +36,7 @@ namespace RemoteDesktop.Client.Android
             return pdecoder.getDecodedFrame();
         }
 
-        void addEncodedFrame(byte[] frame_data)
+        public void addEncodedFrame(byte[] frame_data)
         {
             pdecoder.addEncodedFrame(frame_data);
         }

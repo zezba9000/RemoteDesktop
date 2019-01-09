@@ -176,6 +176,7 @@ namespace RemoteDesktop.Client.Android.Droid
         // if eosReceived == false, return false
         public void addEncodedFrame(byte[] frame_data)
         {
+            int inputIndex = mDecoder.DequeueInputBuffer(10000);
             Java.Nio.ByteBuffer inputBuffer = inputBuffers[inputIndex];
             sbyte[] sbyte_frame = ((frame_data as Array) as sbyte[]);
             foreach (sbyte sb in sbyte_frame)
