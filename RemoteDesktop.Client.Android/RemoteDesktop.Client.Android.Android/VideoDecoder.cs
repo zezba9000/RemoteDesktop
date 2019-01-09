@@ -23,21 +23,22 @@ namespace RemoteDesktop.Client.Android.Droid
     {
         private static String MIME = "video/avc";
         private static String TAG = "VideoDecoder";
-//	    private MediaExtractor mExtractor;
+        //	    private MediaExtractor mExtractor;
         private MediaCodec mDecoder;
 
         private bool eosReceived;
         private Java.Nio.ByteBuffer[] inputBuffers = null;
-        
-		
+
+
         private bool isInput = true;
         private bool first = false;
         private long startWhen = 0;
         private MediaCodec.BufferInfo info = null;
+        int inputIndex = -1;
 
         private long CurrentTimeMillisSharp()
         {
-            return (long) (new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
+            return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
         //public boolean init(Surface surface, String filePath)
@@ -57,21 +58,21 @@ namespace RemoteDesktop.Client.Android.Droid
                 //    if (mime.startsWith(VIDEO))
                 //    {
                 //        mExtractor.selectTrack(i);
-                        mDecoder = MediaCodec.CreateDecoderByType(MIME);
-                        try
-                        {
+                mDecoder = MediaCodec.CreateDecoderByType(MIME);
+                try
+                {
                     //mDecoder.configure(format, surface, null, 0 /* Decoder */);
                     MediaFormat format = new MediaFormat();
                     format.SetString(MediaFormat.KeyMime, MIME);
                     mDecoder.Configure(format, new Surface(new SurfaceTexture(true)), null, 0);
 
                 }
-                        catch (Exception ex)
-                        {
-                            return false;
-                        }
+                catch (Exception ex)
+                {
+                    return false;
+                }
 
-                        mDecoder.Start();
+                mDecoder.Start();
                 //        break;
                 //    }
                 //}
@@ -89,8 +90,90 @@ namespace RemoteDesktop.Client.Android.Droid
             return true;
         }
 
+        //// if eosReceived == false, return false
+        //public bool checkStatus()
+        //{
+
+        //    //ByteBuffer[] inputBuffers = mDecoder.getInputBuffers();
+        //    //mDecoder.getOutputBuffers();
+
+        //    //boolean isInput = true;
+        //    //boolean first = false;
+        //    //long startWhen = 0;
+
+        //    if (isInput)
+        //    {
+        //        inputIndex = mDecoder.DequeueInputBuffer(10000);
+        //        if (inputIndex >= 0)
+        //        {
+        //            // fill inputBuffers[inputBufferIndex] with valid data
+        //            Java.Nio.ByteBuffer inputBuffer = inputBuffers[inputIndex];
+
+        //            int sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
+
+        //            if (mExtractor.Advance() && sampleSize > 0)
+        //            {
+        //                mDecoder.QueueInputBuffer(inputIndex, 0, sampleSize, mExtractor.getSampleTime(), 0);
+
+        //            }
+        //            else
+        //            {
+        //                mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+        //                isInput = false;
+        //            }
+        //        }
+        //    }
+
+        //    int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
+        //    switch (outIndex)
+        //    {
+        //        case (int)MediaCodec.InfoOutputBuffersChanged:
+        //            mDecoder.GetOutputBuffers();
+        //            break;
+
+        //        case (int)MediaCodec.InfoOutputFormatChanged:
+        //            break;
+
+        //        case (int)MediaCodec.InfoTryAgainLater:
+        //            //				Log.d(TAG, "INFO_TRY_AGAIN_LATER");
+        //            break;
+
+        //        default:
+        //            if (!first)
+        //            {
+        //                startWhen = CurrentTimeMillisSharp();
+        //                first = true;
+        //            }
+        //            try
+        //            {
+        //                int sleepTime = (int)((info.PresentationTimeUs / 1000) - (CurrentTimeMillisSharp() - startWhen);
+
+        //                if (sleepTime > 0)
+        //                    Thread.Sleep(sleepTime);
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                // TODO Auto-generated catch block
+        //                Console.WriteLine(ex);
+        //            }
+
+        //            mDecoder.ReleaseOutputBuffer(outIndex, true /* Surface init */);
+        //            //break;
+        //            return false;
+        //    }
+
+        //    // All decoded frames have been rendered, we can stop playing now
+        //    if ((info.Flags & MediaCodec.BufferFlagEndOfStream) != 0)
+        //    {
+        //        //break;
+        //        return false;
+        //    }
+
+        //    return eosReceived == true;
+        //}
+
         // if eosReceived == false, return false
-        public bool checkStatus()
+        public bool addEncodedFrame()
         {
 
             //ByteBuffer[] inputBuffers = mDecoder.getInputBuffers();
@@ -102,7 +185,7 @@ namespace RemoteDesktop.Client.Android.Droid
 
             if (isInput)
             {
-                int inputIndex = mDecoder.DequeueInputBuffer(10000);
+                inputIndex = mDecoder.DequeueInputBuffer(10000);
                 if (inputIndex >= 0)
                 {
                     // fill inputBuffers[inputBufferIndex] with valid data
@@ -117,23 +200,25 @@ namespace RemoteDesktop.Client.Android.Droid
                     }
                     else
                     {
-                        mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                        mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
                         isInput = false;
                     }
                 }
             }
+        }
 
+        public void getDecodedFrame() { 
             int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
             switch (outIndex)
             {
-                case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
+                case (int)MediaCodec.InfoOutputBuffersChanged:
                     mDecoder.GetOutputBuffers();
                     break;
 
-                case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+                case (int)MediaCodec.InfoOutputFormatChanged:
                     break;
 
-                case MediaCodec.INFO_TRY_AGAIN_LATER:
+                case (int)MediaCodec.InfoTryAgainLater:
                     //				Log.d(TAG, "INFO_TRY_AGAIN_LATER");
                     break;
 
@@ -162,7 +247,7 @@ namespace RemoteDesktop.Client.Android.Droid
             }
 
             // All decoded frames have been rendered, we can stop playing now
-            if ((info.Flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
+            if ((info.Flags & MediaCodec.BufferFlagEndOfStream) != 0)
             {
                 //break;
                 return false;
@@ -175,7 +260,7 @@ namespace RemoteDesktop.Client.Android.Droid
         {
             mDecoder.Stop();
             mDecoder.Release();
-//            mExtractor.Release();
+            //            mExtractor.Release();
             eosReceived = true;
         }
     }
