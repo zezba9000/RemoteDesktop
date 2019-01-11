@@ -250,7 +250,7 @@ namespace RemoteDesktop.Server
                     //format = metaData.format;
                     //format = System.Drawing.Imaging.PixelFormat.Format
 
-                    format = System.Drawing.Imaging.PixelFormat.Format16bppRgb565;
+                    format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
                     screenIndex = metaData.screenIndex;
 					compress = metaData.compressed;
 					resolutionScale = metaData.resolutionScale;
