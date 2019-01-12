@@ -105,8 +105,15 @@ namespace RemoteDesktop.Client.Android
             //connectToSoundServer(); // start recieve sound data which playing on remote PC
 
             // setup decoder for H264
-            vdecoder = new VideoDecoderManager();
-            vdecoder.setup();
+            if (RTPConfiguration.isSendAnAviContent)
+            {
+                // do nothing hire
+            }
+            else
+            {
+                vdecoder = new VideoDecoderManager();
+                vdecoder.setup(null);
+            }
 
             connectToImageServer(); // staart recieve captured bitmap image data 
         }
@@ -404,7 +411,14 @@ namespace RemoteDesktop.Client.Android
                     Console.WriteLine("elapsed for image data transfer communication: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Transfer_Communication").ToString() + " msec");
                     try
                     {
-                        if (RTPConfiguration.isStreamRawH264Data)
+                        if (RTPConfiguration.isSendAnAviContent){
+                            Utils.startTimeMeasure("H264_avi_file_decompress");
+
+                            vdecoder = new VideoDecoderManager();
+                            vdecoder.setup(compressedStream.ToArray());
+                            Console.WriteLine("elapsed for h264 avi file decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_avi_file_decompress").ToString() + " msec");
+
+                        } else if (RTPConfiguration.isStreamRawH264Data)
                         {
                             Utils.startTimeMeasure("H264_a_frame_decompress");
 
@@ -420,7 +434,7 @@ namespace RemoteDesktop.Client.Android
                                 skiaBufStreams[1].Write(decoded_bitmap, 0, metaData.imageDataSize);
                             }
 
-                            Console.WriteLine("elapsed for h264 one frame decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_a_frame_decompress").ToString() + " msec"); 
+                            Console.WriteLine("elapsed for h264 one frame decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_a_frame_decompress").ToString() + " msec");
                         } else if (RTPConfiguration.isConvJpeg) {
                             Utils.startTimeMeasure("Bitmap_decompress");
 
@@ -433,7 +447,7 @@ namespace RemoteDesktop.Client.Android
                                 skiaBufStreams[1].Write(compressedStream.ToArray(), 0, metaData.dataSize);
                             }
 
-                            Console.WriteLine("elapsed for jpeg decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); 
+                            Console.WriteLine("elapsed for jpeg decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec");
                         }
                         else if (metaData.compressed)
                         {
@@ -454,7 +468,7 @@ namespace RemoteDesktop.Client.Android
                                         skiaBufStreams[1].Write(tmpDecompedStream.ToArray(), 0, metaData.imageDataSize);
                                     }
 
-                                    Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec"); 
+                                    Console.WriteLine("elapsed for bitmap decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Bitmap_decompress").ToString() + " msec");
                                 }
                             }
                             catch (Exception e)
@@ -505,7 +519,7 @@ namespace RemoteDesktop.Client.Android
                         //while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
                         //if (uiState != UIStates.Streaming || isDisposed) return;
 
-                        if (metaData.compressed || RTPConfiguration.isConvJpeg || RTPConfiguration.isStreamRawH264Data)
+                        if (metaData.compressed || RTPConfiguration.isConvJpeg || RTPConfiguration.isStreamRawH264Data || RTPConfiguration.isSendAnAviContent)
                         {
                             compressedStream.Write(local_buf, 0, dataSize);
                         }

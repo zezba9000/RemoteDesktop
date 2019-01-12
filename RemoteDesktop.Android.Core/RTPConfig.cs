@@ -22,8 +22,9 @@ namespace RemoteDesktop.Android.Core
 
         //Attribute
             public static int bmpFileHeaderBytes = 54;
-            public static String ServerAddress = "192.168.0.11";
-			public String SoundDeviceName = "";
+            //public static String ServerAddress = "192.168.0.11";
+            public static String ServerAddress = "192.168.137.1";
+            public String SoundDeviceName = "";
 			public int SoundServerPort = 10000;
             public static int ImageServerPort = 8888;
             public int SamplesPerSecond = 8000;
@@ -53,6 +54,7 @@ namespace RemoteDesktop.Android.Core
             public static bool isConvTo16bit = false; 
             public static bool isConvJpeg = true; // 今は関係ない
             public static int jpegEncodeQuality = 50;
+            public static bool isSendAnAviContent = true;
             // FormMainとかにあったフィールド
             //private uint m_RecorderFactor = 4;
             //private uint m_JitterBufferCount = 20;

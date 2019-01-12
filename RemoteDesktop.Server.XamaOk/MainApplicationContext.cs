@@ -51,6 +51,7 @@ namespace RemoteDesktop.Server
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
         private static string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
+        private string testAviFilePath = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\test.avi";
 
         // using -f hls
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -tune zerolatency -r 1 -g 5 -vf format=yuv420p -f hls -r 1 -g 5  -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
@@ -363,36 +364,54 @@ namespace RemoteDesktop.Server
                 {
                     if (isDisposed) return;
 
-                    encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 10.0f);
-                    encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
-
-                    void CreateTimer(bool recreate, int fps)
+                    if (RTPConfiguration.isSendAnAviContent)
                     {
-                        //if (recreate && timer != null)
-                        //{
-                        //    timer.Tick -= Timer_Tick;
-                        //    timer.Dispose();
-                        //    timer = null;
-                        //}
+                        sendAnAviContent();
+                    }
+                    else
+                    {
+                        encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 10.0f);
+                        encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
 
-                        if (timer == null)
+                        void CreateTimer(bool recreate, int fps)
                         {
-                            timer = new System.Windows.Forms.Timer();
-                            timer.Interval = (int)(1000f / fps); // targetFPSは呼び出し時には適切に更新が行われていることを想定
-                            timer.Tick += Timer_Tick_bitmap_to_openH264_Encoder;
+                            if (timer == null)
+                            {
+                                timer = new System.Windows.Forms.Timer();
+                                timer.Interval = (int)(1000f / fps); // targetFPSは呼び出し時には適切に更新が行われていることを想定
+                                timer.Tick += Timer_Tick_bitmap_to_openH264_Encoder;
+                            }
+
+                            timer.Start();
                         }
 
-                        timer.Start();
+					    dispatcher.InvokeAsync(delegate()
+					    {
+						    CreateTimer(false, (int)targetFPS);
+					    });
                     }
-
-					dispatcher.InvokeAsync(delegate()
-					{
-						CreateTimer(false, (int)targetFPS);
-					});
-                    
                 }
             }
 		}
+
+        private void sendAnAviContent()
+        {
+            MemoryStream ms = new MemoryStream();
+            FileStream fs = new FileStream(testAviFilePath, FileMode.Open);
+            byte[] buf = new byte[1024];
+            int offset = 0;
+            int readBytes = -1;
+            while((readBytes = fs.Read(buf, offset, buf.Length)) > 0){
+                ms.Write(buf, 0, readBytes);
+            }
+            fs.Close();
+            byte[] content_data = ms.ToArray();
+            MetaData md = new MetaData();
+            md.dataSize = content_data.Length;
+            md.compressed = false;
+            socket.SendMetaData(md);
+            socket.SendBinary(content_data, content_data.Length);
+        }
 
 		private void Socket_DisconnectedCallback()
 		{
