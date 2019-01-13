@@ -30,6 +30,7 @@ namespace RemoteDesktop.Client.Android.Droid
         public AviFileContentDataSource(byte[] content_buf)
         {
             content_ms = new MemoryStream(content_buf);
+            content_ms.Position = 0;
         }
 
         public override long Size {
@@ -104,7 +105,9 @@ namespace RemoteDesktop.Client.Android.Droid
                                 throw ex;
                             }
 
+                            Console.WriteLine("before mDecoder.Start()");
                             mDecoder.Start();
+                            Console.WriteLine("after mDecoder.Start()");
                             break;
                         }
                     }
@@ -137,6 +140,7 @@ namespace RemoteDesktop.Client.Android.Droid
 
                             if (mExtractor.Advance() && sampleSize > 0)
                             {
+                                Console.WriteLine("QueueInputBuffer inputIndex=" + inputIndex.ToString());
                                 mDecoder.QueueInputBuffer(inputIndex, 0, sampleSize, mExtractor.SampleTime, 0);
 
                             }
@@ -149,6 +153,7 @@ namespace RemoteDesktop.Client.Android.Droid
                     }
 
                     int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
+                    Console.WriteLine("DequeueOutputBuffer outputIndex=" + outIndex.ToString());
                     switch (outIndex)
                     {
                         case (int)MediaCodec.InfoOutputBuffersChanged:

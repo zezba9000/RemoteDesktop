@@ -51,7 +51,9 @@ namespace RemoteDesktop.Server
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
         private static string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
-        private string testAviFilePath = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\test.avi";
+        //private string testAviFilePath = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\test.avi";
+        private string testAviFilePath = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\fileSequence0.ts";
+
 
         // using -f hls
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -tune zerolatency -r 1 -g 5 -vf format=yuv420p -f hls -r 1 -g 5  -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
@@ -409,6 +411,7 @@ namespace RemoteDesktop.Server
             MetaData md = new MetaData();
             md.dataSize = content_data.Length;
             md.compressed = false;
+            md.type = MetaDataTypes.ImageData;
             socket.SendMetaData(md);
             socket.SendBinary(content_data, content_data.Length);
         }

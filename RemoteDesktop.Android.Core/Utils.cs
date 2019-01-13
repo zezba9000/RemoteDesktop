@@ -64,7 +64,9 @@ namespace RemoteDesktop.Android.Core
             }
             catch (KeyNotFoundException ex)
             {
-                throw new Exception("specified Stopwatch not found!");
+                //throw new Exception("specified Stopwatch not found!");
+                Console.WriteLine("ERROR: specified Stopwatch not found. But running keeps (DEBUG)");
+                return -1;
             }
             sw.Stop();
             var ret = sw.ElapsedMilliseconds;
