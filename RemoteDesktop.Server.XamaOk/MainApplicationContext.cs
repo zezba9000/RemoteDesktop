@@ -68,8 +68,10 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 2  -bsf:v h264_mp4toannexb -map 0 -f ssegment -segment_format mpegts -segment_list_type hls -segment_time 1 -segment_list_size 4 -segment_list_flags +live -break_non_keyframes 0 -segment_list_flags -cache -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%d.ts";
 
         // RTP
-        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 2  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase +  "saved_sdp_file.sdp rtp://192.168.0.11:8888";
+        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 2  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase +  "saved_sdp_file.sdp rtp://192.168.0.11:8888";
 
+        // RTSP
+        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp  -rtsp_flags listen rtsp://192.168.0.11:8888/live.sdp";
 
         // -crf (0-51)でクオリティ設定
         //private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://192.168.0.11:8888?listen";
@@ -122,15 +124,15 @@ namespace RemoteDesktop.Server
             }
 
 
-            // start TCP socket listen for image server
-            socket = new DataSocket(NetworkTypes.Server);
-            socket.ConnectedCallback += Socket_ConnectedCallback;
-            socket.DisconnectedCallback += Socket_DisconnectedCallback;
-            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-            socket.DataRecievedCallback += Socket_DataRecievedCallback;
-            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-            socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
+            //// start TCP socket listen for image server
+            //socket = new DataSocket(NetworkTypes.Server);
+            //socket.ConnectedCallback += Socket_ConnectedCallback;
+            //socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            //socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            //socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            //socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
         }
 
         // set ffmpegProc field
