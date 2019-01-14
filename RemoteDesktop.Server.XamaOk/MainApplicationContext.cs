@@ -72,10 +72,10 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 2  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase +  "saved_sdp_file.sdp rtp://192.168.0.11:8888";
 
         // RTP (2)
-        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase + "sdp_file.sdp rtp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() +   "/?listen";
+        ///private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase + "sdp_file.sdp rtp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() +   "/?listen";
 
         // RTSP
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp  -rtsp_flags listen rtsp://" + RTPConfiguration.ServerAddress + ":8889/live.sdp";
+        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp  -rtsp_flags listen rtsp://" + RTPConfiguration.ServerAddress + ":8889/live.sdp";
 
         // RTSP send to my C# server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp rtsp://" + RTPConfiguration.ServerAddress + ":" + (RTPConfiguration.ImageServerPort + 1).ToString() + "/";
@@ -83,7 +83,7 @@ namespace RemoteDesktop.Server
         // -crf (0-51)でクオリティ設定
         //private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://192.168.0.11:8888?listen";
 
-        private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=rgb8 -f mpegts tcp://192.168.0.11:8888?listen";
+        private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yub420p -f mpegts tcp://192.168.0.11:8889?listen";
 
 
         public MainApplicationContext()
@@ -136,12 +136,12 @@ namespace RemoteDesktop.Server
                 };
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.SourceMedia()
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource() // ffmpegに接続？ffmpegからこっちに流させる？
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp"));
+                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp", RtspClient.ClientProtocolType.Tcp));
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4"));
 
-                rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov", RtspClient.ClientProtocolType.Tcp));
+                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov", RtspClient.ClientProtocolType.Tcp));
 
-                //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540,960,"test");
+                //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540,960,"h264");
                 //h264_src.Source = new System.Uri("file://work/tmp/gen_HLS_files_from_h264_avi_file_try/capturedDatax2.mp4");
                 //rtsp_serv.TryAddMedia(h264_src);
 
@@ -149,6 +149,11 @@ namespace RemoteDesktop.Server
                 //    (new StreamReader(new FileStream(outPathBase + "sdp_file.sdp", FileMode.Open), System.Text.Encoding.ASCII)).ReadToEnd()
                 //)));
                 // can be accessed rtsp://sever_addr:port/test
+
+                var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540,960,"h264");
+                h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString());
+                h264_src.ForceTCP = true;
+                rtsp_serv.TryAddMedia(h264_src);
                 rtsp_serv.Start();
 
                 //var streams = rtsp_serv.MediaStreams;
@@ -190,8 +195,8 @@ namespace RemoteDesktop.Server
             startInfo.CreateNoWindow = true;
             startInfo.FileName = ffmpegPath;
 
-            startInfo.Arguments = ffmpegForHLSArgs;
-            //startInfo.Arguments = ffmpegForDirectStreamingArgs;
+            //startInfo.Arguments = ffmpegForHLSArgs;
+            startInfo.Arguments = ffmpegForDirectStreamingArgs;
 
             ffmpegProc = new Process();
             ffmpegProc.StartInfo = startInfo;
