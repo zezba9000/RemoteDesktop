@@ -151,7 +151,7 @@ namespace RemoteDesktop.Server
                 // can be accessed rtsp://sever_addr:port/test
 
                 var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540,960,"h264");
-                h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString());
+                h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/");
                 h264_src.ForceTCP = true;
                 rtsp_serv.TryAddMedia(h264_src);
                 rtsp_serv.Start();
