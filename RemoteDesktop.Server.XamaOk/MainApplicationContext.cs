@@ -14,6 +14,7 @@ using System.Windows.Threading;
 using WindowsInput;
 using WindowsInput.Native;
 using OpenH264.Encoder;
+using Media.Rtsp;
 
 namespace RemoteDesktop.Server
 {
@@ -125,16 +126,24 @@ namespace RemoteDesktop.Server
 
             if (RTPConfiguration.isUseRTSPLib)
             {
-                var rtsp_serv = new Media.Rtsp.RtspServer(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort + 1);
+                var rtsp_serv = new Media.Rtsp.RtspServer(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort + 1)
+                {
+                    Logger = new Media.Rtsp.Server.RtspServerConsoleLogger()
+                };
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.SourceMedia()
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource() // ffmpegに接続？ffmpegからこっちに流させる？
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp"));
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4"));
                 rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov"));
-                
 
                 // can be accessed rtsp://sever_addr:port/test
                 rtsp_serv.Start();
+
+                var streams = rtsp_serv.MediaStreams;
+                //Media.Rtsp.RtspServer.RtspRequestHandler = rtspReuestHandlerTest;
+                //Media.Rtsp.RtspServer.RtspRequestHandler handler = new Media.Rtsp.RtspServer.RtspRequestHandler(rtspReuestHandlerTest);
+                rtsp_serv.TryAddRequestHandler(Media.Rtsp.RtspMethod.DESCRIBE, rtspReuestHandlerTest);
+                Console.WriteLine(streams);
             }
 
             
@@ -151,6 +160,14 @@ namespace RemoteDesktop.Server
             //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
         }
+
+        private bool rtspReuestHandlerTest(RtspMessage request, out RtspMessage response)
+        {
+            Console.WriteLine(request);
+            response = request;
+            return true;
+        }
+
 
         // set ffmpegProc field
         private void kickFFMPEG()
