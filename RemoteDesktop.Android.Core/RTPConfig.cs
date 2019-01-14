@@ -26,7 +26,7 @@ namespace RemoteDesktop.Android.Core
             public static String ServerAddress = "192.168.137.1";
             public String SoundDeviceName = "";
 			public int SoundServerPort = 10000;
-            public static int ImageServerPort = 8888;
+            public static int ImageServerPort = 8889;
             public int SamplesPerSecond = 8000;
             //public int SamplesPerSecond = 48000; // sound card native
             public short BitsPerSample = 8;
@@ -48,8 +48,9 @@ namespace RemoteDesktop.Android.Core
             public int localPort = 0;
             public bool Loop = false;
 
-            public static bool isUseFFMPEG = false;
-            public static bool isStreamRawH264Data = true;
+            public static bool isUseRTSPLib = true;
+            public static bool isUseFFMPEG = true;
+            public static bool isStreamRawH264Data = false;
             public static bool isConvTo24bit = false; //こちらの方が16bit指定より優先される. falseだが最初から24bitなので問題ない
             public static bool isConvTo16bit = false; 
             public static bool isConvJpeg = true; // 今は関係ない

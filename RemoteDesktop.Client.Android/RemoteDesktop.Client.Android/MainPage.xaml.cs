@@ -47,7 +47,7 @@ namespace RemoteDesktop.Client.Android
 
         private int width = 432; // dp based app display area size is set
         private int height = 708; // dp based app display area size is set
-        private const int IMAGE_SERVER_PORT = 8888;
+        private const int IMAGE_SERVER_PORT = 8889;
 
         private RTPSoundStreamPlayer player = null;
         private AbsoluteLayout layout;

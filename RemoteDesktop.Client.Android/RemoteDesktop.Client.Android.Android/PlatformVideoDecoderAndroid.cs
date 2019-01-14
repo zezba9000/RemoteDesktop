@@ -159,6 +159,7 @@ namespace RemoteDesktop.Client.Android.Droid
                         case (int)MediaCodec.InfoOutputBuffersChanged:
                             Console.WriteLine("OutputBufferChanged");
                             ByteBuffer decoded_bbuf = mDecoder.GetOutputBuffer(outIndex);
+                            Console.WriteLine(decoded_bbuf);
                             break;
 
                         case (int)MediaCodec.InfoOutputFormatChanged:
@@ -197,10 +198,12 @@ namespace RemoteDesktop.Client.Android.Droid
                     // All decoded frames have been rendered, we can stop playing now
                     if ((info.Flags & MediaCodec.BufferFlagEndOfStream) != 0)
                     {
+                        Console.WriteLine("all input decoded!");
                         break;
                     }
                 }
 
+                Console.WriteLine("finalize decoder and extractor.");
                 mDecoder.Stop();
                 mDecoder.Release();
                 mExtractor.Release();

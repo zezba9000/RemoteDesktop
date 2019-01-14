@@ -71,7 +71,7 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 2  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase +  "saved_sdp_file.sdp rtp://192.168.0.11:8888";
 
         // RTSP
-        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp  -rtsp_flags listen rtsp://192.168.0.11:8888/live.sdp";
+        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp  -rtsp_flags listen rtsp://" + RTPConfiguration.ServerAddress + ":8889/live.sdp";
 
         // -crf (0-51)でクオリティ設定
         //private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://192.168.0.11:8888?listen";
@@ -123,6 +123,20 @@ namespace RemoteDesktop.Server
                 //encoder.aviDataGenerated += h264AVIDataHandlerHlsFFMPEG;
             }
 
+            if (RTPConfiguration.isUseRTSPLib)
+            {
+                var rtsp_serv = new Media.Rtsp.RtspServer(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort + 1);
+                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.SourceMedia()
+                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource() // ffmpegに接続？ffmpegからこっちに流させる？
+                rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp"));
+
+                // can be accessed rtsp://sever_addr:port/test
+                rtsp_serv.Start();
+            }
+
+            
+
+            //var rtspsrc = new Media.Rtsp.Server. RtspSource();
 
             //// start TCP socket listen for image server
             //socket = new DataSocket(NetworkTypes.Server);
