@@ -128,7 +128,10 @@ namespace RemoteDesktop.Server
                 var rtsp_serv = new Media.Rtsp.RtspServer(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort + 1);
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.SourceMedia()
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource() // ffmpegに接続？ffmpegからこっちに流させる？
-                rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp"));
+                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp"));
+                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4"));
+                rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov"));
+                
 
                 // can be accessed rtsp://sever_addr:port/test
                 rtsp_serv.Start();
