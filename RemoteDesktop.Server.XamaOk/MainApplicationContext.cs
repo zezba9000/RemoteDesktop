@@ -139,7 +139,7 @@ namespace RemoteDesktop.Server
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp", RtspClient.ClientProtocolType.Tcp));
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4"));
 
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("test", "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov", RtspClient.ClientProtocolType.Tcp));
+                rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov", RtspClient.ClientProtocolType.Tcp));
 
                 //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540,960,"h264");
                 //h264_src.Source = new System.Uri("file://work/tmp/gen_HLS_files_from_h264_avi_file_try/capturedDatax2.mp4");
@@ -150,10 +150,10 @@ namespace RemoteDesktop.Server
                 //)));
                 // can be accessed rtsp://sever_addr:port/test
 
-                var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540,960,"h264");
-                h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/");
-                h264_src.ForceTCP = true;
-                rtsp_serv.TryAddMedia(h264_src);
+                //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540,960,"h264");
+                //h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/");
+                //h264_src.ForceTCP = true;
+                //rtsp_serv.TryAddMedia(h264_src);
                 rtsp_serv.Start();
 
                 //var streams = rtsp_serv.MediaStreams;
