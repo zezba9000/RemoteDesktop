@@ -75,7 +75,10 @@ namespace RemoteDesktop.Server
         ///private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase + "sdp_file.sdp rtp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() +   "/?listen";
 
         // RTSP
-        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp  -rtsp_flags listen rtsp://" + RTPConfiguration.ServerAddress + ":8889/live.sdp";
+        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp  -rtsp_flags listen rtsp://" + RTPConfiguration.ServerAddress + ":8889/live.sdp";
+
+        // rtsp over HTTP
+        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -listen 1 -f rtsp http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/";
 
         // RTSP send to my C# server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp rtsp://" + RTPConfiguration.ServerAddress + ":" + (RTPConfiguration.ImageServerPort + 1).ToString() + "/";
@@ -138,6 +141,7 @@ namespace RemoteDesktop.Server
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource() // ffmpegに接続？ffmpegからこっちに流させる？
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp", RtspClient.ClientProtocolType.Tcp));
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4"));
+                rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/", RtspClient.ClientProtocolType.Http));
 
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov", RtspClient.ClientProtocolType.Tcp));
 
@@ -150,10 +154,10 @@ namespace RemoteDesktop.Server
                 //)));
                 // can be accessed rtsp://sever_addr:port/test
 
-                var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540, 960, "h264");
-                h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/");
-                h264_src.ForceTCP = true;
-                rtsp_serv.TryAddMedia(h264_src);
+                //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540, 960, "h264");
+                //h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/");
+                //h264_src.ForceTCP = true;
+                //rtsp_serv.TryAddMedia(h264_src);
                 rtsp_serv.Start();
 
                 //var streams = rtsp_serv.MediaStreams;
@@ -195,8 +199,8 @@ namespace RemoteDesktop.Server
             startInfo.CreateNoWindow = true;
             startInfo.FileName = ffmpegPath;
 
-            //startInfo.Arguments = ffmpegForHLSArgs;
-            startInfo.Arguments = ffmpegForDirectStreamingArgs;
+            startInfo.Arguments = ffmpegForHLSArgs;
+            //startInfo.Arguments = ffmpegForDirectStreamingArgs;
 
             ffmpegProc = new Process();
             ffmpegProc.StartInfo = startInfo;
