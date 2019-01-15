@@ -22,8 +22,8 @@ namespace RemoteDesktop.Android.Core
 
         //Attribute
             public static int bmpFileHeaderBytes = 54;
-            //public static String ServerAddress = "192.168.0.11";
-            public static String ServerAddress = "192.168.137.1";
+            public static String ServerAddress = "192.168.0.11";
+            //public static String ServerAddress = "192.168.137.1";
             public String SoundDeviceName = "";
 			public int SoundServerPort = 10000;
             public static int ImageServerPort = 8889;

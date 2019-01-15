@@ -69,7 +69,7 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 2  -bsf:v h264_mp4toannexb -map 0 -f ssegment -segment_format mpegts -segment_list_type hls -segment_time 1 -segment_list_size 4 -segment_list_flags +live -break_non_keyframes 0 -segment_list_flags -cache -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%d.ts";
 
         // RTP
-        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase +  "sdp_file.sdp rtp://192.168.137.1:8889";
+        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase +  "sdp_file.sdp rtp://192.168.137.1:8889";
 
         // RTP (2)
         ///private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase + "sdp_file.sdp rtp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() +   "/?listen";
@@ -81,7 +81,8 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -listen 1 -f rtsp http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/";
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30 -movflags +faststart -vf format=yuv420p -map 0 -flags +cgop+global_header -listen 1 -f mp4 -movflags +faststart http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg.mp4";
 
-
+        // tcp:// for VLC as server
+        private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://" + RTPConfiguration.ServerAddress.ToString() + ":" + RTPConfiguration.ImageServerPort.ToString() + "?listen";
 
         // RTSP send to my C# server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp rtsp://" + RTPConfiguration.ServerAddress + ":" + (RTPConfiguration.ImageServerPort + 1).ToString() + "/";
