@@ -79,7 +79,7 @@ namespace RemoteDesktop.Server
 
         // rtsp over HTTP
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -listen 1 -f rtsp http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/";
-        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30 -movflags +faststart -vf format=yuv420p -bsf:v h264_mp4toannexb -map 0 -flags +cgop+global_header -listen 1 -f mp4 -movflags +faststart http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg";
+        private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30 -movflags +faststart -vf format=yuv420p -map 0 -flags +cgop+global_header -listen 1 -f mp4 -movflags +faststart http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg.mp4";
 
 
 
@@ -153,7 +153,7 @@ namespace RemoteDesktop.Server
                 //rtsp_serv.TryAddMedia(h264_src);
 
                 var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540, 960, "h264");
-                h264_src.Source = new System.Uri("http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg");
+                h264_src.Source = new System.Uri("http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg.mp4");
                 rtsp_serv.TryAddMedia(h264_src);
 
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtpSource("h264", new Media.Sdp.SessionDescription(
