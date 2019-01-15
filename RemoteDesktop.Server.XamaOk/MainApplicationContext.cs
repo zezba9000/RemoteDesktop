@@ -153,8 +153,13 @@ namespace RemoteDesktop.Server
                 //h264_src.Source = new System.Uri("file://work/tmp/gen_HLS_files_from_h264_avi_file_try/capturedDatax2.mp4");
                 //rtsp_serv.TryAddMedia(h264_src);
 
+                //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540, 960, "h264");
+                //h264_src.Source = new System.Uri("http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg.mp4");
+                //rtsp_serv.TryAddMedia(h264_src);
+
                 var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540, 960, "h264");
-                h264_src.Source = new System.Uri("http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg.mp4");
+                h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString());
+                h264_src.ForceTCP = true;
                 rtsp_serv.TryAddMedia(h264_src);
 
                 //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtpSource("h264", new Media.Sdp.SessionDescription(
