@@ -82,9 +82,10 @@ namespace RemoteDesktop.Server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30 -movflags +faststart -vf format=yuv420p -map 0 -flags +cgop+global_header -listen 1 -f mp4 -movflags +faststart http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg.mp4";
 
         // tcp:// for VLC as server (VLC could relay and play but demo player could not play)
-        private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://" + RTPConfiguration.ServerAddress.ToString() + ":" + RTPConfiguration.ImageServerPort.ToString() + "?listen";
-
         //private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://" + RTPConfiguration.ServerAddress.ToString() + ":" + RTPConfiguration.ImageServerPort.ToString() + "?listen";
+
+            // tcp:// for VLC as server (2)
+        private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -g 1 -vf format=yuv420p -f mpegts tcp://" + RTPConfiguration.ServerAddress.ToString() + ":" + RTPConfiguration.ImageServerPort.ToString() + "?listen";
 
         // RTSP send to my C# server
         //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp rtsp://" + RTPConfiguration.ServerAddress + ":" + (RTPConfiguration.ImageServerPort + 1).ToString() + "/";
