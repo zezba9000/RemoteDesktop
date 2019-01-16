@@ -112,10 +112,10 @@ namespace RemoteDesktop.Client.Android
             else
             {
                 vdecoder = new VideoDecoderManager();
-                vdecoder.setup(null);
+                vdecoder.setup(new byte[1]);
             }
 
-            connectToImageServer(); // staart recieve captured bitmap image data 
+            //connectToImageServer(); // staart recieve captured bitmap image data 
         }
 
         void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs args)

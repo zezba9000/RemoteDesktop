@@ -55,7 +55,7 @@ namespace RemoteDesktop.Android.Core
             public static bool isConvTo16bit = false; 
             public static bool isConvJpeg = true; // 今は関係ない
             public static int jpegEncodeQuality = 50;
-            public static bool isSendAnAviContent = true;
+            public static bool isSendAnAviContent = false;
             // FormMainとかにあったフィールド
             //private uint m_RecorderFactor = 4;
             //private uint m_JitterBufferCount = 20;

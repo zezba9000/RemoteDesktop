@@ -83,7 +83,8 @@ namespace RemoteDesktop.Client.Android.Droid
                 try
                 {
                     mExtractor = new MediaExtractor();
-                    mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
+                    //mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
+                    mExtractor.SetDataSource("http://192.168.0.11/~ryo/hls/genFromBMPFilesWithFFMPEG.mp4");
 
                     for (int i = 0; i < mExtractor.TrackCount; i++)
                     {
@@ -158,8 +159,8 @@ namespace RemoteDesktop.Client.Android.Droid
                     {
                         case (int)MediaCodec.InfoOutputBuffersChanged:
                             Console.WriteLine("OutputBufferChanged");
-                            ByteBuffer decoded_bbuf = mDecoder.GetOutputBuffer(outIndex);
-                            Console.WriteLine(decoded_bbuf);
+                            var decoded_data = mDecoder.GetOutputBuffers();
+                            Console.WriteLine(decoded_data);
                             break;
 
                         case (int)MediaCodec.InfoOutputFormatChanged:
