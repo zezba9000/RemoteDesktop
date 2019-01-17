@@ -134,13 +134,18 @@ namespace RemoteDesktop.Server
 
             if (RTPConfiguration.isUseFFMPEG)
             {
-                kickFFMPEG();
+                //kickFFMPEG();
+                //timer = new System.Windows.Forms.Timer();
+                //timer.Interval = (int) (1000 * (1.0f / (float)targetFPS));
+                //timer.Tick += Timer_Tick_for_ffmpeg_hls_test;
+                //timer.Start();
+
                 timer = new System.Windows.Forms.Timer();
-                timer.Interval = (int) (1000 * (1.0f / (float)targetFPS));
-                timer.Tick += Timer_Tick_for_ffmpeg_hls_test;
+                timer.Interval = (int)(1000 * (1.0f / (float)targetFPS));
                 timer.Start();
-                //encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8 , 1.0f, 10.0f);
-                //encoder.aviDataGenerated += h264AVIDataHandlerHlsFFMPEG;
+                timer.Tick += Timer_Tick_bitmap_to_openH264_Encoder;
+                encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 10.0f);
+                encoder.aviDataGenerated += h264AVIDataHandlerHlsFFMPEG;
             } 
 
             if (RTPConfiguration.isUseRTSPLib)
@@ -634,6 +639,7 @@ namespace RemoteDesktop.Server
                 var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
 
                 Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
+                //encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp++);
                 encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp++);
 
                 //var br = bitmap_ms.ToArray();
