@@ -85,7 +85,7 @@ namespace RemoteDesktop.Client.Android.Droid
                     mExtractor = new MediaExtractor();
                     //mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
                     //mExtractor.SetDataSource("http://192.168.0.11/~ryo/hls/genFromBMPFilesWithFFMPEG.mp4");
-                    mExtractor.SetDataSource("http://192.168.0.11:8890/rdp.flv");
+                    mExtractor.SetDataSource("http://192.168.0.11:8890/rdp.mp4");
 
                     for (int i = 0; i < mExtractor.TrackCount; i++)
                     {
