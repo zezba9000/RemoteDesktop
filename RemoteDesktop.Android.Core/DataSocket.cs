@@ -584,7 +584,11 @@ namespace RemoteDesktop.Android.Core
                 //locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
                 //            // compress if needed
-                if (RTPConfiguration.isConvJpeg)
+                if (RTPConfiguration.isStreamRawH264Data)
+                {
+                    dataLength = bitmap.getInternalBuffer().Length;
+                }
+                else if (RTPConfiguration.isConvJpeg)
                 {
                     if (compressedStream == null) compressedStream = new MemoryStream();
                     else compressedStream.SetLength(0);

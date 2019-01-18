@@ -17,6 +17,7 @@ using Android.Graphics;
 using Java.Nio;
 using static Android.Media.MediaCodec;
 using System.IO;
+using Android.OS;
 
 [assembly: Dependency(typeof(PlatformVideoDecoderAndroid))]
 
@@ -59,18 +60,16 @@ namespace RemoteDesktop.Client.Android.Droid
     public class MyCallback : MediaCodec.Callback
     {
         MediaCodec mDecoder;
-        MediaExtractor mExtractor;
         MediaFormat mOutputFormat;
         DecoderCallback mCallbackObj;
         int frameCounter = 0;
 
         public event DecodedBitmapHandler encodedDataGenerated;
 
-        public MyCallback(MediaCodec decoder, MediaExtractor extractor, DecoderCallback callback_obj)
+        public MyCallback(MediaCodec decoder, DecoderCallback callback_obj)
         {
             mCallbackObj = callback_obj;
             mDecoder = decoder;
-            mExtractor = extractor;
         }
         public override void OnError(MediaCodec codec, CodecException e)
         {
@@ -79,26 +78,29 @@ namespace RemoteDesktop.Client.Android.Droid
 
         override public void OnInputBufferAvailable(MediaCodec mc, int inputBufferId)
         {
-            byte[] encoded_data = mCallbackObj.getEncodedFrameData(); // Length=0 byte array notify end of stream
-            if(encoded_data != null)
+            byte[] encoded_data; // = mCallbackObj.getEncodedFrameData();
+            while ((encoded_data = mCallbackObj.getEncodedFrameData()) == null)
+            {
+                Thread.Sleep(1000);
+            }
+            if (encoded_data != null)
             {
                 //int sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
                 int sampleSize = encoded_data.Length;
                 if (sampleSize > 0)
                 {
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
-
                     inputBuffer.Put(encoded_data);
 
                     //if (mExtractor.Advance() && sampleSize > 0)
-                    if (frameCounter++ == 0)
+                    if (frameCounter == 0)
                     {
                         Console.WriteLine("feed a frame contains SSP and PSP");
                         mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
                     }else
                     {
                         Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, mExtractor.SampleTime, 0);
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, frameCounter * 1000 /* 1FPS */, 0);
                     }
                 }
                 else
@@ -106,6 +108,7 @@ namespace RemoteDesktop.Client.Android.Droid
                     Console.WriteLine("QueueInputBuffer set MediaCodec.BufferFlagEndOfStream");
                     mDecoder.QueueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
                 }
+                frameCounter++;
             }
         }
 
@@ -113,17 +116,29 @@ namespace RemoteDesktop.Client.Android.Droid
         {
             ByteBuffer outputBuffer = mDecoder.GetOutputBuffer(outputBufferId);
             MediaFormat bufferFormat = mDecoder.GetOutputFormat(outputBufferId); // option A
+            Console.WriteLine("decoded buffer format:" + bufferFormat.ToString());
 
             // bufferFormat is equivalent to mOutputFormat
             // outputBuffer is ready to be processed or rendered.
 
             Console.WriteLine("OnOutputBufferAvailable: outputBufferId = " + outputBufferId.ToString());
-            byte[] decoded_data = outputBuffer.ToArray<byte>();
-            byte[] copied_data = new byte[decoded_data.Length];
-            Array.Copy(decoded_data, 0, copied_data, 0, decoded_data.Length);
-            mCallbackObj.OnDecodeFrame(copied_data);
-
+            byte[] decoded_data = new byte[info.Size];
+            outputBuffer.Position(info.Offset);
+            outputBuffer.Get(decoded_data, 0, info.Size);
             mDecoder.ReleaseOutputBuffer(outputBufferId, false);
+            Console.WriteLine("call OnDecodeFrame from decoder!");
+
+            //using (Bitmap newBmp = Bitmap.CreateBitmap(960, 544, Bitmap.Config.)
+            //{
+            //    using (Bitmap targetBmp = newBmp.Clone(new Rectangle(0, 0, newBmp.Width, newBmp.Height), PixelFormat.Format32bppArgb))
+            //    {
+            //        // targetBmp is now in the desired format.
+            //    }
+            //}
+
+
+
+            mCallbackObj.OnDecodeFrame(decoded_data);
         }
 
         override public void OnOutputFormatChanged(MediaCodec mc, MediaFormat format)
@@ -143,7 +158,7 @@ namespace RemoteDesktop.Client.Android.Droid
         private static String VIDEO = "video/";
         private static String MIME = "video/avc";
         private static String TAG = "VideoDecoder";
-        private MediaExtractor mExtractor;
+        //private MediaExtractor mExtractor;
         private MediaCodec mDecoder;
 
         private bool eosReceived;
@@ -166,35 +181,42 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public bool setup(DecoderCallback callback_obj) //format_hint is aviFileContent 
         {
+
+            //mExtractor = new MediaExtractor();
+            ////mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
+            ////mExtractor.SetDataSource("http://192.168.0.11:8890/rdp.mp4");
+            //mExtractor.SetDataSource("http://192.168.0.11/~ryo/hls/genFromBMPFilesWithFFMPEG.mp4");
+
+
+            //for (int i = 0; i < mExtractor.TrackCount; i++)
+            //{
+            //    inputFormat = mExtractor.GetTrackFormat(i);
+
+            //    String mime = inputFormat.GetString(MediaFormat.KeyMime);
+            //    if (mime.StartsWith(VIDEO))
+            //    {
+            //        mExtractor.SelectTrack(i);
+            //        mDecoder = MediaCodec.CreateDecoderByType(mime);
+            //        break;
+            //    }
+            //}
+
+            HandlerThread callbackThread = new HandlerThread("H264DecoderHandler");
+            callbackThread.Start();
+            Handler handler = new Handler(callbackThread.Looper);
+
+            mDecoder = MediaCodec.CreateDecoderByType(MIME);
             mCallbackObj = callback_obj;
-            mExtractor = new MediaExtractor();
-            //mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
-            //mExtractor.SetDataSource("http://192.168.0.11:8890/rdp.mp4");
-            mExtractor.SetDataSource("http://192.168.0.11/~ryo/hls/genFromBMPFilesWithFFMPEG.mp4");
+            mDecoder.SetCallback(new MyCallback(mDecoder, mCallbackObj), handler);
 
-
-            for (int i = 0; i < mExtractor.TrackCount; i++)
-            {
-                inputFormat = mExtractor.GetTrackFormat(i);
-
-                String mime = inputFormat.GetString(MediaFormat.KeyMime);
-                if (mime.StartsWith(VIDEO))
-                {
-                    mExtractor.SelectTrack(i);
-                    mDecoder = MediaCodec.CreateDecoderByType(mime);
-                    break;
-                }
-            }
-
-             mDecoder.SetCallback(new MyCallback(mDecoder, mExtractor, mCallbackObj));
-
-             //mOutputFormat = mDecoder.GetOutputFormat(); // option B
-
+            //mOutputFormat = mDecoder.GetOutputFormat(); // option B
+            inputFormat = MediaFormat.CreateVideoFormat(MIME, 540, 960);
+            inputFormat.SetInteger(MediaFormat.KeyMaxInputSize, 540 * 960);
+            inputFormat.SetInteger("durationUs", 63446722);
             try
             {
                 //mDecoder.Configure(format, surface, null, 0 /* Decoder */);
                 mDecoder.Configure(inputFormat, null, null, 0 /* Decoder */);
-
             }
             catch (Exception ex)
             {
@@ -553,7 +575,7 @@ namespace RemoteDesktop.Client.Android.Droid
         {
             mDecoder.Stop();
             mDecoder.Release();
-            mExtractor.Release();
+            //mExtractor.Release();
             eosReceived = true;
         }
     }

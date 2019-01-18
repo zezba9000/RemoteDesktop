@@ -107,19 +107,6 @@ namespace RemoteDesktop.Client.Android
             //Utils.getLocalIP();
             //connectToSoundServer(); // start recieve sound data which playing on remote PC
 
-            // setup decoder for H264
-            if (RTPConfiguration.isSendAnAviContent)
-            {
-                // do nothing hire
-            }
-            else
-            {
-                decoCallback = new DecoderCallback(encodedFrameDataQ);
-                decoCallback.encodedDataGenerated += H264DecodedDataHandler;
-                vdecoder = new VideoDecoderManager();
-                vdecoder.setup(decoCallback);
-            }
-
             connectToImageServer(); // staart recieve captured bitmap image data 
         }
 
@@ -137,7 +124,7 @@ namespace RemoteDesktop.Client.Android
             float fit_width = metaData.width;
             float fit_height = metaData.height;
 
-            float x_ratio = info.Height / (float)metaData.height;
+            float x_ratio = info.Height / (float) (metaData.height + 4);
             float y_ratio = info.Width / (float)metaData.width;
             if (x_ratio < y_ratio)
             {
@@ -151,7 +138,7 @@ namespace RemoteDesktop.Client.Android
             }
 
             SKRect destRect = new SKRect(info.Width - fit_width, 0, fit_width, fit_height);
-            SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
+            SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height + 4);
 
 
             byte[] bitmap_data = null;
@@ -173,30 +160,33 @@ namespace RemoteDesktop.Client.Android
             {
                 return;
             }
-            //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
-            SKBitmap skbitmap = new SKBitmap();
 
-            // pin the managed array so that the GC doesn't move it
-            GCHandle gcHandle = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
-            if (RTPConfiguration.isConvTo16bit)
-            {
-                gcHandle.Free();
-                //gcHandle = GCHandle.Alloc(Utils.convertBitmapAbgr16_1555toBGR32(bitmap_data), GCHandleType.Pinned);
-                gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
-            }
-            else
-            {
-                throw new Exception("this pass is can not be executed!");
-                //gcHandle.Free();
-                //gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
-            }
+            byte[] conved_bmp_data = Utils.YUV422toRGB888(bitmap_data);
+            GCHandle gcHandle = GCHandle.Alloc(conved_bmp_data, GCHandleType.Pinned);
 
+            //GCHandle gcHandle = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
+            //if (RTPConfiguration.isConvTo16bit)
+            //{
+            //    gcHandle.Free();
+            //    //gcHandle = GCHandle.Alloc(Utils.convertBitmapAbgr16_1555toBGR32(bitmap_data), GCHandleType.Pinned);
+            //    gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
+            //}
+            //else
+            //{
+            //    throw new Exception("this pass is can not be executed!");
+            //    //gcHandle.Free();
+            //    //gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
+            //}
+            //GCHandle gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
 
 
             // install the pixels with the color type of the pixel data
             //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
-            var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
+            //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
+            //var skinfo = new SKImageInfo(metaData.width, metaData.height + 4, SKColorType.Rgb565, SKAlphaType.Opaque);
+            var skinfo = new SKImageInfo(metaData.width, metaData.height + 4, SKColorType.Rgb888x, SKAlphaType.Opaque);
 
+            SKBitmap skbitmap = new SKBitmap();
             //skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
             skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, delegate { gcHandle.Free(); }, null);
 
@@ -529,13 +519,29 @@ namespace RemoteDesktop.Client.Android
 
                         if (RTPConfiguration.isStreamRawH264Data)
                         {
-                            Utils.startTimeMeasure("H264_a_frame_decompress");
+                            //Utils.startTimeMeasure("H264_a_frame_decompress");
 
                             // TODO: need implement
 
                             //vdecoder.addEncodedFrame(compressedStream.ToArray());
                             byte[] encoded_buf = compressedStream.ToArray();
+                            Console.Write("pass encoded data to decoder length = " + encoded_buf.Length.ToString());
+                            
+
+                            if(decoCallback == null)
+                            {
+                                decoCallback = new DecoderCallback(encodedFrameDataQ);
+                                decoCallback.encodedDataGenerated += H264DecodedDataHandler;
+                            }
+
                             decoCallback.addEncodedFrameData(encoded_buf, encoded_buf.Length);
+
+                            if (vdecoder == null)
+                            {
+                                vdecoder = new VideoDecoderManager();
+                                vdecoder.setup(decoCallback);
+                            }
+
                             // block until get decoded frame
                             //byte[] decoded_bitmap = vdecoder.getDecodedFrame();
                             //if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)

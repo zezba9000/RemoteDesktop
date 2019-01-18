@@ -31,7 +31,7 @@ namespace RemoteDesktop.Server
         //System.Drawing.Imaging.PixelFormat format = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
         int screenIndex, currentScreenIndex;
         float targetFPS = 1.0f;
-        float fixedTargetFPS = 20f;
+        float fixedTargetFPS = 1.0f;
         bool compress = false; //, currentCompress;
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = false;
@@ -310,8 +310,15 @@ namespace RemoteDesktop.Server
 				{
 					if (recreate && timer != null)
 					{
-						timer.Tick -= Timer_Tick;
-						timer.Dispose();
+                        if (RTPConfiguration.isStreamRawH264Data)
+                        {
+                            timer.Tick -= Timer_Tick_bitmap_to_openH264_Encoder;
+                        }
+                        else
+                        {
+                            timer.Tick -= Timer_Tick;
+                        }
+                        timer.Dispose();
 						timer = null;
 					}
 
@@ -319,7 +326,10 @@ namespace RemoteDesktop.Server
 					{
 						timer = new System.Windows.Forms.Timer();
                         timer.Interval = (int) (1000f / fps); // targetFPSは呼び出し時には適切に更新が行われていることを想定
-						timer.Tick += Timer_Tick;
+                        if (!RTPConfiguration.isStreamRawH264Data)
+                        {
+                            timer.Tick += Timer_Tick;
+                        }
 					}
 
 					timer.Start();

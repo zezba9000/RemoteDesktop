@@ -53,7 +53,7 @@ namespace RemoteDesktop.Android.Core
             public static bool isStreamRawH264Data = true;
             public static bool isConvTo24bit = false; //こちらの方が16bit指定より優先される. falseだが最初から24bitなので問題ない
             public static bool isConvTo16bit = false; 
-            public static bool isConvJpeg = true; // 今は関係ない
+            public static bool isConvJpeg = false; // 今は関係ない
             public static int jpegEncodeQuality = 50;
             public static bool isSendAnAviContent = false;
             // FormMainとかにあったフィールド
