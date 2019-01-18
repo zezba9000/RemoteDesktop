@@ -189,7 +189,8 @@ namespace RemoteDesktop.Android.Core
                     //rgb888_data[yp++] = (byte)(((g) > 255) ? 255 : (((g) < 0) ? 0 : (g)));
                     //rgb888_data[yp++] = (byte)(((r) > 255) ? 255 : (((r) < 0) ? 0 : (r)));
 
-                    rgba8888_data[yp] = (int)((r << 14) & 0xff000000) | ((g << 6) & 0xff0000) | ((b >> 2) | 0xff00);
+                    //rgba8888_data[yp] = (int)((r << 14) & 0xff000000) | ((g << 6) & 0xff0000) | ((b >> 2) | 0xff00);
+                    rgba8888_data[yp] = (int)((0xff000000) | ((b << 6) & 0xff0000) | ((g >> 2) | (r & 0xff00)));
                 }
 
 
