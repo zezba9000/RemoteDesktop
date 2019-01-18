@@ -33,8 +33,10 @@ namespace RemoteDesktop.Client.Android.Droid
             content_ms.Position = 0;
         }
 
-        public override long Size {
-            get {
+        public override long Size
+        {
+            get
+            {
                 return content_ms.Length;
             }
         }
@@ -49,6 +51,67 @@ namespace RemoteDesktop.Client.Android.Droid
         {
             content_ms.Seek(position, SeekOrigin.Begin);
             return content_ms.Read(buffer, offset, size);
+        }
+    }
+
+    public class MyCallback : MediaCodec.Callback
+    {
+        MediaCodec mDecoder;
+        MediaExtractor mExtractor;
+        MediaFormat mOutputFormat;
+
+        public MyCallback(MediaCodec decoder, MediaExtractor extractor)
+        {
+            mDecoder = decoder;
+            mExtractor = extractor;
+        }
+        public override void OnError(MediaCodec codec, CodecException e)
+        {
+            Console.WriteLine(e);
+        }
+
+        override public void OnInputBufferAvailable(MediaCodec mc, int inputBufferId)
+        {
+            ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
+
+            int sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
+
+            if (mExtractor.Advance() && sampleSize > 0)
+            {
+                Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
+                mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, mExtractor.SampleTime, 0);
+            }
+            else
+            {
+                Console.WriteLine("QueueInputBuffer set MediaCodec.BufferFlagEndOfStream");
+                mDecoder.QueueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+                //isInput = false;
+            }
+        }
+
+        override public void OnOutputBufferAvailable(MediaCodec mc, int outputBufferId, BufferInfo info)
+        {
+            ByteBuffer outputBuffer = mDecoder.GetOutputBuffer(outputBufferId);
+            MediaFormat bufferFormat = mDecoder.GetOutputFormat(outputBufferId); // option A
+
+            // bufferFormat is equivalent to mOutputFormat
+            // outputBuffer is ready to be processed or rendered.
+
+            Console.WriteLine("OnOutputBufferAvailable: outputBufferId = " + outputBufferId.ToString());
+            //ここでコールバックを呼ぶ
+
+            mDecoder.ReleaseOutputBuffer(outputBufferId, false);
+        }
+
+        override public void OnOutputFormatChanged(MediaCodec mc, MediaFormat format)
+        {
+            // Subsequent data will conform to new format.
+            // Can ignore if using getOutputFormat(outputBufferId)
+            mOutputFormat = format; // option B
+        }
+
+        void onError()
+        {
         }
     }
 
@@ -69,195 +132,244 @@ namespace RemoteDesktop.Client.Android.Droid
         private long startWhen = 0;
         private MediaCodec.BufferInfo info = null;
         int inputIndex = -1;
+        private MediaFormat mOutputFormat; // member variable
+        private MediaFormat inputFormat;
 
         private long CurrentTimeMillisSharp()
         {
             return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
-        //public boolean init(Surface surface, String filePath)
         public bool setup(byte[] format_hint) //format_hint is aviFileContent 
         {
-            if(format_hint != null)
+            mExtractor = new MediaExtractor();
+            //mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
+            //mExtractor.SetDataSource("http://192.168.0.11:8890/rdp.mp4");
+            mExtractor.SetDataSource("http://192.168.0.11/~ryo/hls/genFromBMPFilesWithFFMPEG.mp4");
+
+
+            for (int i = 0; i < mExtractor.TrackCount; i++)
             {
-                try
+                inputFormat = mExtractor.GetTrackFormat(i);
+
+                String mime = inputFormat.GetString(MediaFormat.KeyMime);
+                if (mime.StartsWith(VIDEO))
                 {
-                    mExtractor = new MediaExtractor();
-                    //mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
-                    //mExtractor.SetDataSource("http://192.168.0.11/~ryo/hls/genFromBMPFilesWithFFMPEG.mp4");
-                    mExtractor.SetDataSource("http://192.168.0.11:8890/rdp.mp4");
-
-                    for (int i = 0; i < mExtractor.TrackCount; i++)
-                    {
-                        MediaFormat format = mExtractor.GetTrackFormat(i);
-
-                        String mime = format.GetString(MediaFormat.KeyMime);
-                        if (mime.StartsWith(VIDEO))
-                        {
-                            mExtractor.SelectTrack(i);
-                            mDecoder = MediaCodec.CreateDecoderByType(mime);
-                            try
-                            {
-                                //mDecoder.Configure(format, surface, null, 0 /* Decoder */);
-                                mDecoder.Configure(format, null, null, 0 /* Decoder */);
-
-                            }
-                            catch(Exception ex)
-                            {
-                                throw ex;
-                            }
-
-                            Console.WriteLine("before mDecoder.Start()");
-                            mDecoder.Start();
-                            Console.WriteLine("after mDecoder.Start()");
-                            break;
-                        }
-                    }
-
+                    mExtractor.SelectTrack(i);
+                    mDecoder = MediaCodec.CreateDecoderByType(mime);
+                    break;
                 }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-
-                BufferInfo info = new BufferInfo();
-                ByteBuffer[] inputBuffers = mDecoder.GetInputBuffers();
-                mDecoder.GetOutputBuffers();
-
-                bool isInput = true;
-                bool first = false;
-                long startWhen = 0;
-
-                while (!eosReceived)
-                {
-                    if (isInput)
-                    {
-                        int inputIndex = mDecoder.DequeueInputBuffer(10000);
-                        if (inputIndex >= 0)
-                        {
-                            // fill inputBuffers[inputBufferIndex] with valid data
-                            ByteBuffer inputBuffer = inputBuffers[inputIndex];
-
-                            int sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
-
-                            if (mExtractor.Advance() && sampleSize > 0)
-                            {
-                                Console.WriteLine("QueueInputBuffer inputIndex=" + inputIndex.ToString());
-                                mDecoder.QueueInputBuffer(inputIndex, 0, sampleSize, mExtractor.SampleTime, 0);
-
-                            }
-                            else
-                            {
-                                mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
-                                isInput = false;
-                            }
-                        }
-                    }
-
-                    int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
-                    Console.WriteLine("DequeueOutputBuffer outputIndex=" + outIndex.ToString());
-                    switch (outIndex)
-                    {
-                        case (int)MediaCodec.InfoOutputBuffersChanged:
-                            Console.WriteLine("OutputBufferChanged");
-                            var decoded_data = mDecoder.GetOutputBuffers();
-                            Console.WriteLine("after GetOutputBuffers length=" + decoded_data.Length.ToString());
-                            break;
-
-                        case (int)MediaCodec.InfoOutputFormatChanged:
-                            Console.WriteLine("OutputFormatChanged");
-                            break;
-
-                        case (int)MediaCodec.InfoTryAgainLater:
-                            Console.WriteLine("TryAgainLater");
-                            break;
-
-                        default:
-                            if (!first)
-                            {
-                                startWhen = CurrentTimeMillisSharp();
-                                first = true;
-                            }
-                            try
-                            {
-                                int sleepTime = (int)((info.PresentationTimeUs / 1000) - (CurrentTimeMillisSharp() - startWhen));
-
-                                if (sleepTime > 0)
-                                {
-                                    Thread.Sleep(sleepTime);
-                                }
-
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex);
-                            }
-
-                            mDecoder.ReleaseOutputBuffer(outIndex, true /* Surface init */);
-                            break;
-                    }
-
-                    // All decoded frames have been rendered, we can stop playing now
-                    if ((info.Flags & MediaCodec.BufferFlagEndOfStream) != 0)
-                    {
-                        Console.WriteLine("all input decoded!");
-                        break;
-                    }
-                }
-
-                Console.WriteLine("finalize decoder and extractor.");
-                mDecoder.Stop();
-                mDecoder.Release();
-                mExtractor.Release();
             }
-            else
+
+             mDecoder.SetCallback(new MyCallback(mDecoder,mExtractor));
+
+             //mOutputFormat = mDecoder.GetOutputFormat(); // option B
+
+            try
             {
-                eosReceived = false;
-                try
-                {
-                    //mExtractor = new MediaExtractor();
-                    //mExtractor.setDataSource(filePath);
+                //mDecoder.Configure(format, surface, null, 0 /* Decoder */);
+                mDecoder.Configure(inputFormat, null, null, 0 /* Decoder */);
 
-                    //for (int i = 0; i < mExtractor.getTrackCount(); i++)
-                    //{
-                    //    MediaFormat format = mExtractor.getTrackFormat(i);
-
-                    //    String mime = format.getString(MediaFormat.KEY_MIME);
-                    //    if (mime.startsWith(VIDEO))
-                    //    {
-                    //        mExtractor.selectTrack(i);
-                    mDecoder = MediaCodec.CreateDecoderByType(MIME);
-                    try
-                    {
-                        //mDecoder.configure(format, surface, null, 0 /* Decoder */);
-                        MediaFormat format = new MediaFormat();
-                        format.SetString(MediaFormat.KeyMime, MIME);
-                        mDecoder.Configure(format, new Surface(new SurfaceTexture(true)), null, 0);
-
-                    }
-                    catch (Exception ex)
-                    {
-                        return false;
-                    }
-
-                    mDecoder.Start();
-                    //        break;
-                    //    }
-                    //}
-
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-
-                info = new MediaCodec.BufferInfo();
-                inputBuffers = mDecoder.GetInputBuffers();
-                mDecoder.GetOutputBuffers();
             }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            Console.WriteLine("before mDecoder.Start()");
+            mDecoder.Start();
+            Console.WriteLine("after mDecoder.Start()");
+
+            //Console.WriteLine("finalize decoder and extractor.");
+            //mDecoder.Stop();
+            //mDecoder.Release();
+            //mExtractor.Release();
 
             return true;
         }
+
+        //public bool setup(byte[] format_hint) //format_hint is aviFileContent 
+        //{
+        //    if(format_hint != null)
+        //    {
+        //        try
+        //        {
+        //            mExtractor = new MediaExtractor();
+        //            //mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
+        //            //mExtractor.SetDataSource("http://192.168.0.11/~ryo/hls/genFromBMPFilesWithFFMPEG.mp4");
+        //            mExtractor.SetDataSource("http://192.168.0.11:8890/rdp.mp4");
+
+        //            for (int i = 0; i < mExtractor.TrackCount; i++)
+        //            {
+        //                MediaFormat format = mExtractor.GetTrackFormat(i);
+
+        //                String mime = format.GetString(MediaFormat.KeyMime);
+        //                if (mime.StartsWith(VIDEO))
+        //                {
+        //                    mExtractor.SelectTrack(i);
+        //                    mDecoder = MediaCodec.CreateDecoderByType(mime);
+        //                    try
+        //                    {
+        //                        //mDecoder.Configure(format, surface, null, 0 /* Decoder */);
+        //                        mDecoder.Configure(format, null, null, 0 /* Decoder */);
+
+        //                    }
+        //                    catch(Exception ex)
+        //                    {
+        //                        throw ex;
+        //                    }
+
+        //                    Console.WriteLine("before mDecoder.Start()");
+        //                    mDecoder.Start();
+        //                    Console.WriteLine("after mDecoder.Start()");
+        //                    break;
+        //                }
+        //            }
+
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            throw ex;
+        //        }
+
+        //        BufferInfo info = new BufferInfo();
+        //        ByteBuffer[] inputBuffers = mDecoder.GetInputBuffers();
+        //        mDecoder.GetOutputBuffers();
+
+        //        bool isInput = true;
+        //        bool first = false;
+        //        long startWhen = 0;
+
+        //        while (!eosReceived)
+        //        {
+        //            if (isInput)
+        //            {
+        //                int inputIndex = mDecoder.DequeueInputBuffer(10000);
+        //                if (inputIndex >= 0)
+        //                {
+        //                    // fill inputBuffers[inputBufferIndex] with valid data
+        //                    ByteBuffer inputBuffer = inputBuffers[inputIndex];
+
+        //                    int sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
+
+        //                    if (mExtractor.Advance() && sampleSize > 0)
+        //                    {
+        //                        Console.WriteLine("QueueInputBuffer inputIndex=" + inputIndex.ToString());
+        //                        mDecoder.QueueInputBuffer(inputIndex, 0, sampleSize, mExtractor.SampleTime, 0);
+
+        //                    }
+        //                    else
+        //                    {
+        //                        mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+        //                        isInput = false;
+        //                    }
+        //                }
+        //            }
+
+        //            int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
+        //            Console.WriteLine("DequeueOutputBuffer outputIndex=" + outIndex.ToString());
+        //            switch (outIndex)
+        //            {
+        //                case (int)MediaCodec.InfoOutputBuffersChanged:
+        //                    Console.WriteLine("OutputBufferChanged");
+        //                    var decoded_data = mDecoder.GetOutputBuffers();
+        //                    Console.WriteLine("after GetOutputBuffers length=" + decoded_data.Length.ToString());
+        //                    break;
+
+        //                case (int)MediaCodec.InfoOutputFormatChanged:
+        //                    Console.WriteLine("OutputFormatChanged");
+        //                    break;
+
+        //                case (int)MediaCodec.InfoTryAgainLater:
+        //                    Console.WriteLine("TryAgainLater");
+        //                    break;
+
+        //                default:
+        //                    if (!first)
+        //                    {
+        //                        startWhen = CurrentTimeMillisSharp();
+        //                        first = true;
+        //                    }
+        //                    try
+        //                    {
+        //                        int sleepTime = (int)((info.PresentationTimeUs / 1000) - (CurrentTimeMillisSharp() - startWhen));
+
+        //                        if (sleepTime > 0)
+        //                        {
+        //                            Thread.Sleep(sleepTime);
+        //                        }
+
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        Console.WriteLine(ex);
+        //                    }
+
+        //                    mDecoder.ReleaseOutputBuffer(outIndex, true /* Surface init */);
+        //                    break;
+        //            }
+
+        //            // All decoded frames have been rendered, we can stop playing now
+        //            if ((info.Flags & MediaCodec.BufferFlagEndOfStream) != 0)
+        //            {
+        //                Console.WriteLine("all input decoded!");
+        //                break;
+        //            }
+        //        }
+
+        //        Console.WriteLine("finalize decoder and extractor.");
+        //        mDecoder.Stop();
+        //        mDecoder.Release();
+        //        mExtractor.Release();
+        //    }
+        //    else
+        //    {
+        //        eosReceived = false;
+        //        try
+        //        {
+        //            //mExtractor = new MediaExtractor();
+        //            //mExtractor.setDataSource(filePath);
+
+        //            //for (int i = 0; i < mExtractor.getTrackCount(); i++)
+        //            //{
+        //            //    MediaFormat format = mExtractor.getTrackFormat(i);
+
+        //            //    String mime = format.getString(MediaFormat.KEY_MIME);
+        //            //    if (mime.startsWith(VIDEO))
+        //            //    {
+        //            //        mExtractor.selectTrack(i);
+        //            mDecoder = MediaCodec.CreateDecoderByType(MIME);
+        //            try
+        //            {
+        //                //mDecoder.configure(format, surface, null, 0 /* Decoder */);
+        //                MediaFormat format = new MediaFormat();
+        //                format.SetString(MediaFormat.KeyMime, MIME);
+        //                mDecoder.Configure(format, new Surface(new SurfaceTexture(true)), null, 0);
+
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                return false;
+        //            }
+
+        //            mDecoder.Start();
+        //            //        break;
+        //            //    }
+        //            //}
+
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            throw ex;
+        //        }
+
+        //        info = new MediaCodec.BufferInfo();
+        //        inputBuffers = mDecoder.GetInputBuffers();
+        //        mDecoder.GetOutputBuffers();
+        //    }
+
+        //    return true;
+        //}
 
         //// if eosReceived == false, return false
         //public bool checkStatus()
@@ -355,7 +467,8 @@ namespace RemoteDesktop.Client.Android.Droid
             //mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
         }
 
-        public byte[] getDecodedFrame() { 
+        public byte[] getDecodedFrame()
+        {
             int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
             while (true)
             {
@@ -415,7 +528,7 @@ namespace RemoteDesktop.Client.Android.Droid
         {
             mDecoder.Stop();
             mDecoder.Release();
-            //            mExtractor.Release();
+            mExtractor.Release();
             eosReceived = true;
         }
     }
