@@ -88,21 +88,21 @@ namespace RemoteDesktop.Android.Core
             foreach (IPAddress address in addresses)
             {
                 // IPv4 のみ
-                if ( address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork )
+                if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
                     return address;
                     ///Console.WriteLine("getLocalIP func got IP Address: " + address.ToString());
                 }
             }
             return null;
-            
+
         }
 
         // 渡したバイト配列はバッファとして内包していない
         public static MemoryStream getAddHeaderdBitmapStreamByPixcels(byte[] pixels, int width, int height)
         {
             //buffer作成
-            var numPixels = width * height; 
+            var numPixels = width * height;
             //var numPixelBytes = 2 * numPixels; // RGB565
             var numPixelBytes = 3 * numPixels; // RGB24
             //var numPixelBytes = 4 * numPixels; // RGB32
@@ -148,11 +148,62 @@ namespace RemoteDesktop.Android.Core
             fs.Close();
         }
 
-//#define CLAMP(t) (((t)>255)?255:(((t)<0)?0:(t)))
-//// Color space conversion for RGB
-//#define GET_R_FROM_YUV(y, u, v) ((298*y+409*v+128)>>8)
-//#define GET_G_FROM_YUV(y, u, v) ((298*y-100*u-208*v+128)>>8)
-//#define GET_B_FROM_YUV(y, u, v) ((298*y+516*u+128)>>8)
+        public static int[] YUV420SPtoRGBA888(byte[] yuv420_data, int width, int height)
+        {
+            int len = yuv420_data.Length;
+
+            //byte[] rgb888_data = new byte[width * height * 3];
+            int[] rgba8888_data = new int[width * height];
+            int frameSize = width * height;
+
+
+            // define variables before loops (+ 20-30% faster algorithm o0`)
+            int r, g, b, y1192, y, i, uvp, u, v;
+            for (int j = 0, yp = 0; j < height; j++)
+            {
+                uvp = frameSize + (j >> 1) * width;
+                u = 0;
+                v = 0;
+                for (i = 0; i < width; i++, yp++)
+                {
+                    y = (0xff & ((int)yuv420_data[yp])) - 16;
+                    if (y < 0)
+                        y = 0;
+                    if ((i & 1) == 0)
+                    {
+                        v = (0xff & yuv420_data[uvp++]) - 128;
+                        u = (0xff & yuv420_data[uvp++]) - 128;
+                    }
+
+                    y1192 = 1192 * y;
+                    r = (y1192 + 1634 * v);
+                    g = (y1192 - 833 * v - 400 * u);
+                    b = (y1192 + 2066 * u);
+
+                    // Java's functions are faster then 'IFs'
+                    r = Math.Max(0, Math.Min(r, 262143));
+                    g = Math.Max(0, Math.Min(g, 262143));
+                    b = Math.Max(0, Math.Min(b, 262143));
+
+                    //rgb888_data[yp++] = (byte)(((b) > 255) ? 255 : (((b) < 0) ? 0 : (b)));
+                    //rgb888_data[yp++] = (byte)(((g) > 255) ? 255 : (((g) < 0) ? 0 : (g)));
+                    //rgb888_data[yp++] = (byte)(((r) > 255) ? 255 : (((r) < 0) ? 0 : (r)));
+
+                    rgba8888_data[yp] = (int)((r << 14) & 0xff000000) | ((g << 6) & 0xff0000) | ((b >> 2) | 0xff00);
+                }
+
+
+            }
+
+            return rgba8888_data;
+        }
+
+
+        //#define CLAMP(t) (((t)>255)?255:(((t)<0)?0:(t)))
+        //// Color space conversion for RGB
+        //#define GET_R_FROM_YUV(y, u, v) ((298*y+409*v+128)>>8)
+        //#define GET_G_FROM_YUV(y, u, v) ((298*y-100*u-208*v+128)>>8)
+        //#define GET_B_FROM_YUV(y, u, v) ((298*y+516*u+128)>>8)
 
         // 注: 得られるRGB88のビットマップはBGRの順でデータが並んでいる、場合もあるかも
         public static byte[] YUV422toRGB888(byte[] yuv422_data)
@@ -215,19 +266,19 @@ namespace RemoteDesktop.Android.Core
                 //rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
 
                 // RGB
-                t = (298*y0+409*v+128) >> 8;
+                t = (298 * y0 + 409 * v + 128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
-                t = (298*y0-100*u0-208*v+128)>> 8;
+                t = (298 * y0 - 100 * u0 - 208 * v + 128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
-                t = (298*y0+516*u0+128) >> 8;
+                t = (298 * y0 + 516 * u0 + 128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
 
                 // RGB
-                t = (298*y2+409*v+128) >> 8;
+                t = (298 * y2 + 409 * v + 128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
-                t = (298*y2-100*u0-208*v+128)>> 8;
+                t = (298 * y2 - 100 * u0 - 208 * v + 128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
-                t = (298*y2+516*u0+128) >> 8;
+                t = (298 * y2 + 516 * u0 + 128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
             }
             Console.WriteLine("YUV422toRGB888: YUV422 -> " + len.ToString() + " bytes , RGB888 -> " + rgb888_data.Length.ToString() + " bytes");
