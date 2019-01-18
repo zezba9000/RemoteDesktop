@@ -121,11 +121,11 @@ namespace RemoteDesktop.Client.Android
                 return;
             }
 
-            float fit_width = metaData.width;
+            float fit_width = metaData.width + 4;
             float fit_height = metaData.height;
 
-            float x_ratio = info.Height / (float) (metaData.height + 4);
-            float y_ratio = info.Width / (float)metaData.width;
+            float x_ratio = info.Height / (float) metaData.height;
+            float y_ratio = info.Width / (float) (metaData.width + 4);
             if (x_ratio < y_ratio)
             {
                 fit_width *= x_ratio;
@@ -138,7 +138,7 @@ namespace RemoteDesktop.Client.Android
             }
 
             SKRect destRect = new SKRect(info.Width - fit_width, 0, fit_width, fit_height);
-            SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height + 4);
+            SKRect sourceRect = new SKRect(0, 0, metaData.width + 4, metaData.height);
 
 
             byte[] bitmap_data = null;
@@ -184,7 +184,7 @@ namespace RemoteDesktop.Client.Android
             //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
             //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
             //var skinfo = new SKImageInfo(metaData.width, metaData.height + 4, SKColorType.Rgb565, SKAlphaType.Opaque);
-            var skinfo = new SKImageInfo(metaData.width, metaData.height + 4, SKColorType.Rgb888x, SKAlphaType.Opaque);
+            var skinfo = new SKImageInfo(metaData.width + 4, metaData.height, SKColorType.Rgb888x, SKAlphaType.Opaque);
 
             SKBitmap skbitmap = new SKBitmap();
             //skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
