@@ -63,6 +63,9 @@ namespace RemoteDesktop.Client.Android
 
         private VideoDecoderManager vdecoder = null;
 
+        private Queue<byte[]> encodedFrameDataQ = new Queue<byte[]>();
+        private DecoderCallback decoCallback;
+
         public MainPage()
         {
             //InitializeComponent();
@@ -111,11 +114,13 @@ namespace RemoteDesktop.Client.Android
             }
             else
             {
+                decoCallback = new DecoderCallback(encodedFrameDataQ);
+                decoCallback.encodedDataGenerated += H264DecodedDataHandler;
                 vdecoder = new VideoDecoderManager();
-                vdecoder.setup(new DecoderCallback());
+                vdecoder.setup(decoCallback);
             }
 
-            //connectToImageServer(); // staart recieve captured bitmap image data 
+            connectToImageServer(); // staart recieve captured bitmap image data 
         }
 
         void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs args)
@@ -148,90 +153,175 @@ namespace RemoteDesktop.Client.Android
             SKRect destRect = new SKRect(info.Width - fit_width, 0, fit_width, fit_height);
             SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
 
-            if (RTPConfiguration.isConvJpeg)
-            {
-                byte[] bitmap_data = null;
-                long dataLength = -1;
-                // curUpdateTargetComoonentOrBuf は既に更新中のものになっているはずなので、以下はその前提
-                if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                {
-                    bitmap_data = skiaBufStreams[1].ToArray();
-                    dataLength = skiaBufStreams[1].Length;
-                    skiaBufStreams[1].Position = 0;
-                }
-                else
-                {
-                    bitmap_data = skiaBufStreams[0].ToArray();
-                    dataLength = skiaBufStreams[0].Length;
-                    skiaBufStreams[0].Position = 0;
-                }
-                if(dataLength == 0)
-                {
-                    return;
-                }
-                SKImage skimage = SKImage.FromEncodedData(bitmap_data);
 
-                canvas.Clear();
-                canvas.Scale(1, -1, 0, info.Height / 2);
-                canvas.DrawImage(skimage, sourceRect, destRect);
+            byte[] bitmap_data = null;
+            long dataLength = -1;
+            // curUpdateTargetComoonentOrBuf は既に更新中のものになっているはずなので、以下はその前提
+            if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
+            {
+                bitmap_data = skiaBufStreams[1].ToArray();
+                dataLength = skiaBufStreams[1].Length;
+                skiaBufStreams[1].Position = 0;
             }
             else
             {
-                byte[] bitmap_data = null;
-                long dataLength = -1;
-                // curUpdateTargetComoonentOrBuf は既に更新中のものになっているはずなので、以下はその前提
-                if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                {
-                    bitmap_data = skiaBufStreams[1].ToArray();
-                    dataLength = skiaBufStreams[1].Length;
-                    skiaBufStreams[1].Position = 0;
-                }
-                else
-                {
-                    bitmap_data = skiaBufStreams[0].ToArray();
-                    dataLength = skiaBufStreams[0].Length;
-                    skiaBufStreams[0].Position = 0;
-                }
-                if(dataLength == 0)
-                {
-                    return;
-                }
-                //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
-                SKBitmap skbitmap = new SKBitmap();
+                bitmap_data = skiaBufStreams[0].ToArray();
+                dataLength = skiaBufStreams[0].Length;
+                skiaBufStreams[0].Position = 0;
+            }
+            if (dataLength == 0)
+            {
+                return;
+            }
+            //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            SKBitmap skbitmap = new SKBitmap();
 
-                // pin the managed array so that the GC doesn't move it
-                GCHandle gcHandle = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
-                if (RTPConfiguration.isConvTo16bit)
-                {
-                    gcHandle.Free();
-                    //gcHandle = GCHandle.Alloc(Utils.convertBitmapAbgr16_1555toBGR32(bitmap_data), GCHandleType.Pinned);
-                    gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
-                }
-                else
-                {
-                    throw new Exception("this pass is can not be executed!");
-                    //gcHandle.Free();
-                    //gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
-                }
-
-
-
-                // install the pixels with the color type of the pixel data
-                //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
-                var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
-
-                //skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
-                skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, delegate { gcHandle.Free(); }, null);
-
-                // Display the bitmap
-                canvas.Clear();
-                canvas.Scale(1, -1, 0, info.Height / 2);
-                canvas.DrawBitmap(skbitmap, sourceRect, destRect);
+            // pin the managed array so that the GC doesn't move it
+            GCHandle gcHandle = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
+            if (RTPConfiguration.isConvTo16bit)
+            {
+                gcHandle.Free();
+                //gcHandle = GCHandle.Alloc(Utils.convertBitmapAbgr16_1555toBGR32(bitmap_data), GCHandleType.Pinned);
+                gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
+            }
+            else
+            {
+                throw new Exception("this pass is can not be executed!");
+                //gcHandle.Free();
+                //gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
             }
 
 
+
+            // install the pixels with the color type of the pixel data
+            //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
+            var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
+
+            //skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
+            skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, delegate { gcHandle.Free(); }, null);
+
+            // Display the bitmap
+            canvas.Clear();
+            canvas.Scale(1, -1, 0, info.Height / 2);
+            canvas.DrawBitmap(skbitmap, sourceRect, destRect);
+
             Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
         }
+
+        //void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs args)
+        //{
+        //    SKImageInfo info = args.Info;
+        //    SKSurface surface = args.Surface;
+        //    SKCanvas canvas = surface.Canvas;
+
+        //    if (!(isBitDisplayComponetsAdded && isBitDisplayCompOrBufInited))
+        //    {
+        //        return;
+        //    }
+
+        //    float fit_width = metaData.width;
+        //    float fit_height = metaData.height;
+
+        //    float x_ratio = info.Height / (float)metaData.height;
+        //    float y_ratio = info.Width / (float)metaData.width;
+        //    if (x_ratio < y_ratio)
+        //    {
+        //        fit_width *= x_ratio;
+        //        fit_height *= x_ratio;
+        //    }
+        //    else
+        //    {
+        //        fit_width *= y_ratio;
+        //        fit_height *= y_ratio;
+        //    }
+
+        //    SKRect destRect = new SKRect(info.Width - fit_width, 0, fit_width, fit_height);
+        //    SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
+
+        //    if (RTPConfiguration.isConvJpeg)
+        //    {
+        //        byte[] bitmap_data = null;
+        //        long dataLength = -1;
+        //        // curUpdateTargetComoonentOrBuf は既に更新中のものになっているはずなので、以下はその前提
+        //        if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
+        //        {
+        //            bitmap_data = skiaBufStreams[1].ToArray();
+        //            dataLength = skiaBufStreams[1].Length;
+        //            skiaBufStreams[1].Position = 0;
+        //        }
+        //        else
+        //        {
+        //            bitmap_data = skiaBufStreams[0].ToArray();
+        //            dataLength = skiaBufStreams[0].Length;
+        //            skiaBufStreams[0].Position = 0;
+        //        }
+        //        if(dataLength == 0)
+        //        {
+        //            return;
+        //        }
+        //        SKImage skimage = SKImage.FromEncodedData(bitmap_data);
+
+        //        canvas.Clear();
+        //        canvas.Scale(1, -1, 0, info.Height / 2);
+        //        canvas.DrawImage(skimage, sourceRect, destRect);
+        //    }
+        //    else
+        //    {
+        //        byte[] bitmap_data = null;
+        //        long dataLength = -1;
+        //        // curUpdateTargetComoonentOrBuf は既に更新中のものになっているはずなので、以下はその前提
+        //        if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
+        //        {
+        //            bitmap_data = skiaBufStreams[1].ToArray();
+        //            dataLength = skiaBufStreams[1].Length;
+        //            skiaBufStreams[1].Position = 0;
+        //        }
+        //        else
+        //        {
+        //            bitmap_data = skiaBufStreams[0].ToArray();
+        //            dataLength = skiaBufStreams[0].Length;
+        //            skiaBufStreams[0].Position = 0;
+        //        }
+        //        if(dataLength == 0)
+        //        {
+        //            return;
+        //        }
+        //        //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+        //        SKBitmap skbitmap = new SKBitmap();
+
+        //        // pin the managed array so that the GC doesn't move it
+        //        GCHandle gcHandle = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
+        //        if (RTPConfiguration.isConvTo16bit)
+        //        {
+        //            gcHandle.Free();
+        //            //gcHandle = GCHandle.Alloc(Utils.convertBitmapAbgr16_1555toBGR32(bitmap_data), GCHandleType.Pinned);
+        //            gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("this pass is can not be executed!");
+        //            //gcHandle.Free();
+        //            //gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
+        //        }
+
+
+
+        //        // install the pixels with the color type of the pixel data
+        //        //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
+        //        var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
+
+        //        //skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
+        //        skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, delegate { gcHandle.Free(); }, null);
+
+        //        // Display the bitmap
+        //        canvas.Clear();
+        //        canvas.Scale(1, -1, 0, info.Height / 2);
+        //        canvas.DrawBitmap(skbitmap, sourceRect, destRect);
+        //    }
+
+
+        //    Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
+        //}
 
         protected override void OnDisappearing()
         {
@@ -297,6 +387,23 @@ namespace RemoteDesktop.Client.Android
             socket.Connect(IPAddress.Parse(RTPConfiguration.ServerAddress), IMAGE_SERVER_PORT);
         }
 
+
+        private void H264DecodedDataHandler(byte[] decoded_data)
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
+                {
+                    skiaBufStreams[0].Write(decoded_data, 0, decoded_data.Length);
+                }
+                else
+                {
+                    skiaBufStreams[1].Write(decoded_data, 0, decoded_data.Length);
+                }
+                // このメソッドの中でImageコンポーネントへの更新通知も行う
+                dataUpdateTargetImageComponentToggle();
+            });
+        }
 
         private void setNewBitmapDisplayComponentAndBitmap(BITMAP_DISPLAY_COMPONENT_TAG tag)
         {
@@ -411,30 +518,37 @@ namespace RemoteDesktop.Client.Android
                     Console.WriteLine("elapsed for image data transfer communication: " + Utils.stopMeasureAndGetElapsedMilliSeconds("Image_Transfer_Communication").ToString() + " msec");
                     try
                     {
-                        if (RTPConfiguration.isSendAnAviContent){
-                            Utils.startTimeMeasure("H264_avi_file_decompress");
+                        //if (RTPConfiguration.isSendAnAviContent){
+                        //    Utils.startTimeMeasure("H264_avi_file_decompress");
 
-                            vdecoder = new VideoDecoderManager();
-                            vdecoder.setup(new DecoderCallback());
-                            Console.WriteLine("elapsed for h264 avi file decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_avi_file_decompress").ToString() + " msec");
+                        //    vdecoder = new VideoDecoderManager();
+                        //    vdecoder.setup(new DecoderCallback());
+                        //    Console.WriteLine("elapsed for h264 avi file decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_avi_file_decompress").ToString() + " msec");
 
-                        } else if (RTPConfiguration.isStreamRawH264Data)
+                        //} else 
+
+                        if (RTPConfiguration.isStreamRawH264Data)
                         {
                             Utils.startTimeMeasure("H264_a_frame_decompress");
 
-                            vdecoder.addEncodedFrame(compressedStream.ToArray());
-                            // block until get decoded frame
-                            byte[] decoded_bitmap = vdecoder.getDecodedFrame();
-                            if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-                            {
-                                skiaBufStreams[0].Write(decoded_bitmap, 0, metaData.imageDataSize);
-                            }
-                            else
-                            {
-                                skiaBufStreams[1].Write(decoded_bitmap, 0, metaData.imageDataSize);
-                            }
+                            // TODO: need implement
 
-                            Console.WriteLine("elapsed for h264 one frame decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_a_frame_decompress").ToString() + " msec");
+                            //vdecoder.addEncodedFrame(compressedStream.ToArray());
+                            byte[] encoded_buf = compressedStream.ToArray();
+                            decoCallback.addEncodedFrameData(encoded_buf, encoded_buf.Length);
+                            // block until get decoded frame
+                            //byte[] decoded_bitmap = vdecoder.getDecodedFrame();
+                            //if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
+                            //{
+                            //    skiaBufStreams[0].Write(decoded_bitmap, 0, metaData.imageDataSize);
+                            //}
+                            //else
+                            //{
+                            //    skiaBufStreams[1].Write(decoded_bitmap, 0, metaData.imageDataSize);
+                            //}
+
+                            //Console.WriteLine("elapsed for h264 one frame decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_a_frame_decompress").ToString() + " msec");
+                            return;
                         } else if (RTPConfiguration.isConvJpeg) {
                             Utils.startTimeMeasure("Bitmap_decompress");
 

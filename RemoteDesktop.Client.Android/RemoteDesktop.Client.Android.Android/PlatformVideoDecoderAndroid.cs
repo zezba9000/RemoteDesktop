@@ -54,12 +54,17 @@ namespace RemoteDesktop.Client.Android.Droid
         }
     }
 
+    public delegate void DecodedBitmapHandler(byte[] decoded_data);
+
     public class MyCallback : MediaCodec.Callback
     {
         MediaCodec mDecoder;
         MediaExtractor mExtractor;
         MediaFormat mOutputFormat;
         DecoderCallback mCallbackObj;
+        int frameCounter = 0;
+
+        public event DecodedBitmapHandler encodedDataGenerated;
 
         public MyCallback(MediaCodec decoder, MediaExtractor extractor, DecoderCallback callback_obj)
         {
@@ -74,20 +79,33 @@ namespace RemoteDesktop.Client.Android.Droid
 
         override public void OnInputBufferAvailable(MediaCodec mc, int inputBufferId)
         {
-            ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
-
-            int sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
-
-            if (mExtractor.Advance() && sampleSize > 0)
+            byte[] encoded_data = mCallbackObj.getEncodedFrameData(); // Length=0 byte array notify end of stream
+            if(encoded_data != null)
             {
-                Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, mExtractor.SampleTime, 0);
-            }
-            else
-            {
-                Console.WriteLine("QueueInputBuffer set MediaCodec.BufferFlagEndOfStream");
-                mDecoder.QueueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
-                //isInput = false;
+                //int sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
+                int sampleSize = encoded_data.Length;
+                if (sampleSize > 0)
+                {
+                    ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
+
+                    inputBuffer.Put(encoded_data);
+
+                    //if (mExtractor.Advance() && sampleSize > 0)
+                    if (frameCounter++ == 0)
+                    {
+                        Console.WriteLine("feed a frame contains SSP and PSP");
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
+                    }else
+                    {
+                        Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, mExtractor.SampleTime, 0);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("QueueInputBuffer set MediaCodec.BufferFlagEndOfStream");
+                    mDecoder.QueueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+                }
             }
         }
 
@@ -100,8 +118,10 @@ namespace RemoteDesktop.Client.Android.Droid
             // outputBuffer is ready to be processed or rendered.
 
             Console.WriteLine("OnOutputBufferAvailable: outputBufferId = " + outputBufferId.ToString());
-            mCallbackObj.OnDecodeFrame(null);
-            //ここでコールバックを呼ぶ
+            byte[] decoded_data = outputBuffer.ToArray<byte>();
+            byte[] copied_data = new byte[decoded_data.Length];
+            Array.Copy(decoded_data, 0, copied_data, 0, decoded_data.Length);
+            mCallbackObj.OnDecodeFrame(copied_data);
 
             mDecoder.ReleaseOutputBuffer(outputBufferId, false);
         }
@@ -458,66 +478,66 @@ namespace RemoteDesktop.Client.Android.Droid
         //    return eosReceived == true;
         //}
 
-        // if eosReceived == false, return false
-        public void addEncodedFrame(byte[] frame_data)
-        {
-            int inputIndex = mDecoder.DequeueInputBuffer(10000);
-            Java.Nio.ByteBuffer inputBuffer = inputBuffers[inputIndex];
-            sbyte[] sbyte_frame = ((frame_data as Array) as sbyte[]);
-            foreach (sbyte sb in sbyte_frame)
-            {
-                inputBuffer.Put(sb);
-            }
-            mDecoder.QueueInputBuffer(inputIndex, 0, frame_data.Length, 1000 /* 1sec */, 0);
-            //mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
-        }
+        //// if eosReceived == false, return false
+        //public void addEncodedFrame(byte[] frame_data)
+        //{
+        //    int inputIndex = mDecoder.DequeueInputBuffer(10000);
+        //    Java.Nio.ByteBuffer inputBuffer = inputBuffers[inputIndex];
+        //    sbyte[] sbyte_frame = ((frame_data as Array) as sbyte[]);
+        //    foreach (sbyte sb in sbyte_frame)
+        //    {
+        //        inputBuffer.Put(sb);
+        //    }
+        //    mDecoder.QueueInputBuffer(inputIndex, 0, frame_data.Length, 1000 /* 1sec */, 0);
+        //    //mDecoder.QueueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+        //}
 
-        public byte[] getDecodedFrame()
-        {
-            int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
-            while (true)
-            {
-                switch (outIndex)
-                {
-                    case (int)MediaCodec.InfoOutputBuffersChanged:
-                        Console.WriteLine("OutputBufferChanged");
-                        return mDecoder.GetOutputBuffer(outIndex).ToArray<byte>();
-                    //break;
+        //public byte[] getDecodedFrame()
+        //{
+        //    int outIndex = mDecoder.DequeueOutputBuffer(info, 10000);
+        //    while (true)
+        //    {
+        //        switch (outIndex)
+        //        {
+        //            case (int)MediaCodec.InfoOutputBuffersChanged:
+        //                Console.WriteLine("OutputBufferChanged");
+        //                return mDecoder.GetOutputBuffer(outIndex).ToArray<byte>();
+        //            //break;
 
-                    case (int)MediaCodec.InfoOutputFormatChanged:
-                        Console.WriteLine("OutputFormatChanged");
-                        break;
+        //            case (int)MediaCodec.InfoOutputFormatChanged:
+        //                Console.WriteLine("OutputFormatChanged");
+        //                break;
 
-                    case (int)MediaCodec.InfoTryAgainLater:
-                        Console.WriteLine("TryAgainLater");
-                        break;
+        //            case (int)MediaCodec.InfoTryAgainLater:
+        //                Console.WriteLine("TryAgainLater");
+        //                break;
 
-                    default:
-                        if (!first)
-                        {
-                            startWhen = CurrentTimeMillisSharp();
-                            first = true;
-                        }
-                        try
-                        {
-                            int sleepTime = (int)((info.PresentationTimeUs / 1000) - (CurrentTimeMillisSharp() - startWhen));
+        //            default:
+        //                if (!first)
+        //                {
+        //                    startWhen = CurrentTimeMillisSharp();
+        //                    first = true;
+        //                }
+        //                try
+        //                {
+        //                    int sleepTime = (int)((info.PresentationTimeUs / 1000) - (CurrentTimeMillisSharp() - startWhen));
 
-                            if (sleepTime > 0)
-                            {
-                                Thread.Sleep(sleepTime);
-                            }
+        //                    if (sleepTime > 0)
+        //                    {
+        //                        Thread.Sleep(sleepTime);
+        //                    }
 
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex);
-                        }
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    Console.WriteLine(ex);
+        //                }
 
-                        mDecoder.ReleaseOutputBuffer(outIndex, true /* Surface init */);
-                        break;
-                        //return false;
-                }
-            }
+        //                mDecoder.ReleaseOutputBuffer(outIndex, true /* Surface init */);
+        //                break;
+        //                //return false;
+        //        }
+        //    }
 
             //// All decoded frames have been rendered, we can stop playing now
             //if ((info.Flags & MediaCodec.BufferFlagEndOfStream) != 0)
@@ -527,7 +547,7 @@ namespace RemoteDesktop.Client.Android.Droid
             //}
 
             //return eosReceived == true;
-        }
+        //}
 
         public void Close()
         {

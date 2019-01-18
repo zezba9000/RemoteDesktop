@@ -189,19 +189,19 @@ namespace RemoteDesktop.Server
                 //var streams = rtsp_serv.MediaStreams;
                 //rtsp_serv.TryAddRequestHandler(Media.Rtsp.RtspMethod.DESCRIBE, rtspReuestHandlerTest);
                 //Console.WriteLine(streams);
-            }           
+            }
 
             //var rtspsrc = new Media.Rtsp.Server. RtspSource();
 
-            //// start TCP socket listen for image server
-            //socket = new DataSocket(NetworkTypes.Server);
-            //socket.ConnectedCallback += Socket_ConnectedCallback;
-            //socket.DisconnectedCallback += Socket_DisconnectedCallback;
-            //socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-            //socket.DataRecievedCallback += Socket_DataRecievedCallback;
-            //socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-            //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-            //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
+            // start TCP socket listen for image server
+            socket = new DataSocket(NetworkTypes.Server);
+            socket.ConnectedCallback += Socket_ConnectedCallback;
+            socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
         }
 
         private bool rtspReuestHandlerTest(RtspMessage request, out RtspMessage response)

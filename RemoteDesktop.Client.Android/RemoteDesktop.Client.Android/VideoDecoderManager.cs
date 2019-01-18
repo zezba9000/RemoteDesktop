@@ -31,15 +31,15 @@ namespace RemoteDesktop.Client.Android
             return pdecoder.setup(callback_obj);
         }
 
-        public byte[] getDecodedFrame()
-        {
-            return pdecoder.getDecodedFrame();
-        }
+        //public byte[] getDecodedFrame()
+        //{
+        //    return pdecoder.getDecodedFrame();
+        //}
 
-        public void addEncodedFrame(byte[] frame_data)
-        {
-            pdecoder.addEncodedFrame(frame_data);
-        }
+        //public void addEncodedFrame(byte[] frame_data)
+        //{
+        //    pdecoder.addEncodedFrame(frame_data);
+        //}
 
         public void Close()
         {
