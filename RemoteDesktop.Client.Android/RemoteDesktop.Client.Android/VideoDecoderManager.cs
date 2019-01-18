@@ -26,9 +26,9 @@ namespace RemoteDesktop.Client.Android
         //    return true;
         //}
 
-        public bool setup(byte[] format_hint)
+        public bool setup(DecoderCallback callback_obj)
         {
-            return pdecoder.setup(format_hint);
+            return pdecoder.setup(callback_obj);
         }
 
         public byte[] getDecodedFrame()

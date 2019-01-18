@@ -112,7 +112,7 @@ namespace RemoteDesktop.Client.Android
             else
             {
                 vdecoder = new VideoDecoderManager();
-                vdecoder.setup(new byte[1]);
+                vdecoder.setup(new DecoderCallback());
             }
 
             //connectToImageServer(); // staart recieve captured bitmap image data 
@@ -415,7 +415,7 @@ namespace RemoteDesktop.Client.Android
                             Utils.startTimeMeasure("H264_avi_file_decompress");
 
                             vdecoder = new VideoDecoderManager();
-                            vdecoder.setup(compressedStream.ToArray());
+                            vdecoder.setup(new DecoderCallback());
                             Console.WriteLine("elapsed for h264 avi file decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_avi_file_decompress").ToString() + " msec");
 
                         } else if (RTPConfiguration.isStreamRawH264Data)

@@ -59,9 +59,11 @@ namespace RemoteDesktop.Client.Android.Droid
         MediaCodec mDecoder;
         MediaExtractor mExtractor;
         MediaFormat mOutputFormat;
+        DecoderCallback mCallbackObj;
 
-        public MyCallback(MediaCodec decoder, MediaExtractor extractor)
+        public MyCallback(MediaCodec decoder, MediaExtractor extractor, DecoderCallback callback_obj)
         {
+            mCallbackObj = callback_obj;
             mDecoder = decoder;
             mExtractor = extractor;
         }
@@ -98,6 +100,7 @@ namespace RemoteDesktop.Client.Android.Droid
             // outputBuffer is ready to be processed or rendered.
 
             Console.WriteLine("OnOutputBufferAvailable: outputBufferId = " + outputBufferId.ToString());
+            mCallbackObj.OnDecodeFrame(null);
             //ここでコールバックを呼ぶ
 
             mDecoder.ReleaseOutputBuffer(outputBufferId, false);
@@ -134,14 +137,16 @@ namespace RemoteDesktop.Client.Android.Droid
         int inputIndex = -1;
         private MediaFormat mOutputFormat; // member variable
         private MediaFormat inputFormat;
+        private DecoderCallback mCallbackObj;
 
         private long CurrentTimeMillisSharp()
         {
             return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
-        public bool setup(byte[] format_hint) //format_hint is aviFileContent 
+        public bool setup(DecoderCallback callback_obj) //format_hint is aviFileContent 
         {
+            mCallbackObj = callback_obj;
             mExtractor = new MediaExtractor();
             //mExtractor.SetDataSource(new AviFileContentDataSource(format_hint));
             //mExtractor.SetDataSource("http://192.168.0.11:8890/rdp.mp4");
@@ -161,7 +166,7 @@ namespace RemoteDesktop.Client.Android.Droid
                 }
             }
 
-             mDecoder.SetCallback(new MyCallback(mDecoder,mExtractor));
+             mDecoder.SetCallback(new MyCallback(mDecoder, mExtractor, mCallbackObj));
 
              //mOutputFormat = mDecoder.GetOutputFormat(); // option B
 
