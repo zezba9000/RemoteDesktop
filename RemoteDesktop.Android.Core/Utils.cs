@@ -154,7 +154,7 @@ namespace RemoteDesktop.Android.Core
 //#define GET_G_FROM_YUV(y, u, v) ((298*y-100*u-208*v+128)>>8)
 //#define GET_B_FROM_YUV(y, u, v) ((298*y+516*u+128)>>8)
 
-        // 注: 得られるRGB88のビットマップはBGRの順でデータが並んでいる
+        // 注: 得られるRGB88のビットマップはBGRの順でデータが並んでいる、場合もあるかも
         public static byte[] YUV422toRGB888(byte[] yuv422_data)
         {
             int len = yuv422_data.Length;
@@ -165,25 +165,69 @@ namespace RemoteDesktop.Android.Core
             int y0, u0, y2, v, t;
             while (ii < len)
             {
-                y0 = yuv422_data[ii++] -= 16;
-                u0 = yuv422_data[ii++] -= 128;
-                y2 = yuv422_data[ii++] -= 16;
-                v = yuv422_data[ii++] -= 128;
+                y0 = yuv422_data[ii++] - 16;
+                u0 = yuv422_data[ii++] - 128;
+                y2 = yuv422_data[ii++] - 16;
+                v = yuv422_data[ii++] - 128;
 
-                // BGR
-                t = (298 * y0 + 409 * v + 128) >> 8;
+                //u0 = yuv422_data[ii++] - 128;
+                //y0 = yuv422_data[ii++] - 16;
+                //v = yuv422_data[ii++] - 128;
+                //y2 = yuv422_data[ii++] - 16;
+
+                //これが一番近そう？
+                //v = yuv422_data[ii++] - 128;
+                //y0 = yuv422_data[ii++] - 16;
+                //u0 = yuv422_data[ii++] - 128;
+                //y2 = yuv422_data[ii++] - 16;
+
+                //y0 = yuv422_data[ii++] - 16;
+                //v = yuv422_data[ii++] - 128;
+                //y2 = yuv422_data[ii++] - 16;
+                //u0 = yuv422_data[ii++] - 128;
+
+                //こっちが一番？
+                //y0 = yuv422_data[ii++] - 16;
+                //y2 = yuv422_data[ii++] - 16;
+                //u0 = yuv422_data[ii++] - 128;
+                //v = yuv422_data[ii++] - 128;
+
+                //上と同じようなもんか
+                //y0 = yuv422_data[ii++] - 16;
+                //y2 = yuv422_data[ii++] - 16;
+                //v = yuv422_data[ii++] - 128;
+                //u0 = yuv422_data[ii++] - 128;
+
+                //// BGR
+                //t = (298*y0+516*u0+128) >> 8;
+                //rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
+                //t = (298*y0-100*u0-208*v+128)>> 8;
+                //rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
+                //t = (298*y0+409*v+128) >> 8;
+                //rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
+
+                //// BGR
+                //t = (298*y2+516*u0+128) >> 8;
+                //rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
+                //t = (298*y2-100*u0-208*v+128)>> 8;
+                //rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
+                //t = (298*y2+409*v+128) >> 8;
+                //rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
+
+                // RGB
+                t = (298*y0+409*v+128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
                 t = (298*y0-100*u0-208*v+128)>> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
-                t = (298 * y0 + 516 * u0 + 128) >> 8;
+                t = (298*y0+516*u0+128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
 
-                // BGR
-                t = (298 * y2 + 409 * v + 128) >> 8;
+                // RGB
+                t = (298*y2+409*v+128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
                 t = (298*y2-100*u0-208*v+128)>> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
-                t = (298 * y2 + 516 * u0 + 128) >> 8;
+                t = (298*y2+516*u0+128) >> 8;
                 rgb888_data[jj++] = (byte)(((t) > 255) ? 255 : (((t) < 0) ? 0 : (t)));
             }
             Console.WriteLine("YUV422toRGB888: YUV422 -> " + len.ToString() + " bytes , RGB888 -> " + rgb888_data.Length.ToString() + " bytes");
