@@ -162,7 +162,9 @@ namespace RemoteDesktop.Client.Android
             }
 
             //byte[] conved_bmp_data = Utils.YUV422toRGB888(bitmap_data);
-            int[] conved_bmp_data = Utils.YUV420SPtoRGBA888(bitmap_data, metaData.width + 4, metaData.height);
+            //int[] conved_bmp_data = Utils.YUV420SPtoRGBA8888(bitmap_data, metaData.width + 4, metaData.height);
+            byte[] conved_bmp_data = Utils.NV12ToRGBA8888(bitmap_data, metaData.width + 4, metaData.height);
+
             GCHandle gcHandle = GCHandle.Alloc(conved_bmp_data, GCHandleType.Pinned);
 
             //GCHandle gcHandle = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
@@ -186,6 +188,7 @@ namespace RemoteDesktop.Client.Android
             //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
             //var skinfo = new SKImageInfo(metaData.width, metaData.height + 4, SKColorType.Rgb565, SKAlphaType.Opaque);
             //var skinfo = new SKImageInfo(metaData.width + 4, metaData.height, SKColorType.Rgb888x, SKAlphaType.Opaque);
+
             var skinfo = new SKImageInfo(metaData.width + 4, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
 
             SKBitmap skbitmap = new SKBitmap();

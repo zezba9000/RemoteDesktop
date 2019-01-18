@@ -148,11 +148,81 @@ namespace RemoteDesktop.Android.Core
             fs.Close();
         }
 
-        public static int[] YUV420SPtoRGBA888(byte[] yuv420_data, int width, int height)
+
+        public static int CLIP(int x)
+        {
+            int ret = x;
+            if (x < 0)
+            {
+                ret = 0;
+            }
+            else if (x > 255)
+            {
+                ret = 255;
+            }
+            return ret;
+        }
+
+        public static int CONVERT_R(int Y, int V)
+        {
+            return ((298 * (Y - 16) + 409 * (V - 128) + 128) >> 8);
+        }
+
+        public static int CONVERT_G(int Y, int U, int V)
+        {
+            return ((298 * (Y - 16) - 100 * (U - 128) - 208 * (V - 128) + 128) >> 8);
+        }
+
+        public static int CONVERT_B(int Y, int U)
+        {
+            return ((298 * (Y - 16) + 516 * (U - 128) + 128) >> 8);
+        }
+
+        public static byte[] NV12ToRGBA8888(byte[] yuvBuffer, int width, int height)
+        {
+            byte[] rgbBuffer = new byte[width * height * 4];
+            byte[] uvStart = new byte[width * height * 2];
+            Array.Copy(yuvBuffer, width * height, uvStart, 0, uvStart.Length);
+            byte[] y = new byte[2]{ 0, 0 };
+            byte u = 0;
+            byte v = 0;
+            int r = 0;
+            int g = 0;
+            int b = 0;
+            int uv_idx = 0;
+            for (int rowCnt = 0; rowCnt < height; rowCnt++)
+            {
+                for (int colCnt = 0; colCnt < width; colCnt += 2)
+                {
+                    u = uvStart[uv_idx + colCnt + 0];
+                    v = uvStart[uv_idx + colCnt + 1];
+
+                    for (int cnt = 0; cnt < 2; cnt++)
+                    {
+                        y[cnt] = yuvBuffer[rowCnt * width + colCnt + cnt];
+
+                        r = CONVERT_R(y[cnt], v);
+                        r = CLIP(r);
+                        g = CONVERT_G(y[cnt], u, v);
+                        g = CLIP(g);
+                        b = CONVERT_B(y[cnt], u);
+                        b = CLIP(b);
+                        rgbBuffer[(rowCnt * width + colCnt + cnt) * 4 + 0] = (byte)r;
+                        rgbBuffer[(rowCnt * width + colCnt + cnt) * 4 + 1] = (byte)g;
+                        rgbBuffer[(rowCnt * width + colCnt + cnt) * 4 + 2] = (byte)b;
+                        rgbBuffer[(rowCnt * width + colCnt + cnt) * 4 + 3] = (byte)0xFF;
+                    }
+                }
+
+                uv_idx += width * (rowCnt % 2);
+            }
+            return rgbBuffer;
+        }
+
+        public static int[] YUV420SPtoRGBA8888(byte[] yuv420_data, int width, int height)
         {
             int len = yuv420_data.Length;
 
-            //byte[] rgb888_data = new byte[width * height * 3];
             int[] rgba8888_data = new int[width * height];
             int frameSize = width * height;
 
@@ -185,15 +255,9 @@ namespace RemoteDesktop.Android.Core
                     g = Math.Max(0, Math.Min(g, 262143));
                     b = Math.Max(0, Math.Min(b, 262143));
 
-                    //rgb888_data[yp++] = (byte)(((b) > 255) ? 255 : (((b) < 0) ? 0 : (b)));
-                    //rgb888_data[yp++] = (byte)(((g) > 255) ? 255 : (((g) < 0) ? 0 : (g)));
-                    //rgb888_data[yp++] = (byte)(((r) > 255) ? 255 : (((r) < 0) ? 0 : (r)));
-
                     //rgba8888_data[yp] = (int)((r << 14) & 0xff000000) | ((g << 6) & 0xff0000) | ((b >> 2) | 0xff00);
                     rgba8888_data[yp] = (int)((0xff000000) | ((r << 6) & 0xff0000) | ((g >> 2) | (b & 0xff00)));
                 }
-
-
             }
 
             return rgba8888_data;
