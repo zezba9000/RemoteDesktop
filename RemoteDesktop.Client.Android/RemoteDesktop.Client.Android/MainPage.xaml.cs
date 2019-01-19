@@ -70,12 +70,12 @@ namespace RemoteDesktop.Client.Android
         {
             //InitializeComponent();
 
-            //var gr = new TapGestureRecognizer();
+
             //gr.Tapped += (s, e) =>
             //{
             //    Device.BeginInvokeOnMainThread(() =>
             //    {
-            //        //updateImageContentRandom();
+
             //    });
             //    //DisplayAlert("", "Tap", "OK");
             //};
@@ -161,31 +161,11 @@ namespace RemoteDesktop.Client.Android
                 return;
             }
 
-            //byte[] conved_bmp_data = Utils.YUV422toRGB888(bitmap_data);
-            //int[] conved_bmp_data = Utils.YUV420SPtoRGBA8888(bitmap_data, metaData.width + 4, metaData.height);
             byte[] conved_bmp_data = Utils.NV12ToRGBA8888(bitmap_data, metaData.width + 4, metaData.height);
 
             GCHandle gcHandle = GCHandle.Alloc(conved_bmp_data, GCHandleType.Pinned);
 
-            //GCHandle gcHandle = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
-            //if (RTPConfiguration.isConvTo16bit)
-            //{
-            //    gcHandle.Free();
-            //    //gcHandle = GCHandle.Alloc(Utils.convertBitmapAbgr16_1555toBGR32(bitmap_data), GCHandleType.Pinned);
-            //    gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
-            //}
-            //else
-            //{
-            //    throw new Exception("this pass is can not be executed!");
-            //    //gcHandle.Free();
-            //    //gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
-            //}
-            //GCHandle gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
-
-
             // install the pixels with the color type of the pixel data
-            //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
-            //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
             //var skinfo = new SKImageInfo(metaData.width, metaData.height + 4, SKColorType.Rgb565, SKAlphaType.Opaque);
             //var skinfo = new SKImageInfo(metaData.width + 4, metaData.height, SKColorType.Rgb888x, SKAlphaType.Opaque);
 
@@ -641,10 +621,7 @@ namespace RemoteDesktop.Client.Android
                 {
                     try
                     {
-                        //while ((!processingFrame) && uiState == UIStates.Streaming && !isDisposed) Thread.Sleep(1);
-                        //if (uiState != UIStates.Streaming || isDisposed) return;
-
-                        if (metaData.compressed || RTPConfiguration.isConvJpeg || RTPConfiguration.isStreamRawH264Data || RTPConfiguration.isSendAnAviContent)
+                        if (metaData.compressed || RTPConfiguration.isConvJpeg || RTPConfiguration.isStreamRawH264Data)
                         {
                             compressedStream.Write(local_buf, 0, dataSize);
                         }

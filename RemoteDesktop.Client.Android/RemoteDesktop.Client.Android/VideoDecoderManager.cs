@@ -14,32 +14,10 @@ namespace RemoteDesktop.Client.Android
             pdecoder = VideoDecoderFactory.getInstance();
         }
 
-        //public void PlayData(byte[] data, bool flag)
-        //{
-        //    pplayer.PlayData(data, flag);
-        //}
-
-        //public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
-        //{
-        //    pplayer.Open(waveOutDeviceName, samplesPerSecond, bitsPerSample, channels, bufferCount);
-        //    Opened = true;
-        //    return true;
-        //}
-
         public bool setup(DecoderCallback callback_obj)
         {
             return pdecoder.setup(callback_obj);
         }
-
-        //public byte[] getDecodedFrame()
-        //{
-        //    return pdecoder.getDecodedFrame();
-        //}
-
-        //public void addEncodedFrame(byte[] frame_data)
-        //{
-        //    pdecoder.addEncodedFrame(frame_data);
-        //}
 
         public void Close()
         {

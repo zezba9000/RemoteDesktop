@@ -14,7 +14,6 @@ using System.Windows.Threading;
 using WindowsInput;
 using WindowsInput.Native;
 using OpenH264.Encoder;
-using Media.Rtsp;
 
 namespace RemoteDesktop.Server
 {
@@ -45,61 +44,10 @@ namespace RemoteDesktop.Server
 		//private byte inputLastMouseState;
         private CaptureSoundStreamer cap_streamer;
         private Process ffmpegProc = null;
-        //byte[] tmp_buf = new byte[540 * 960 * 2];
 
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
-
-        private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
         private static string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
-        //private string testAviFilePath = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\test.avi";
-        private string testAviFilePath = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\fileSequence0.ts";
-
-
-        // using -f hls
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -tune zerolatency -r 1 -g 5 -vf format=yuv420p -f hls -r 1 -g 5  -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
-
-        // using -f hls (2) -> not work
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -movflags +faststart -bsf:v h264_mp4toannexb -map 0 -flags +cgop+global_header -f hls -r 1 -g 60  -hls_time 1 -hls_list_size 4 -hls_allow_cache 0 -segment_list_flags +live -break_non_keyframes 1 -hls_segment_filename " + outPathBase + "stream_%d.ts -hls_flags delete_segments " + outPathBase + "test.m3u8";
-
-        // using -f ssegment
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60  -bsf:v h264_mp4toannexb -map 0 -f ssegment -segment_format mpegts -segment_list_type hls -segment_time 1 -segment_list_size 4 -segment_list_flags +live -break_non_keyframes 1 -segment_list_flags -cache -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%d.ts";
-
-        // using -f ssegment and disable -break_non_keyframes
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 2  -bsf:v h264_mp4toannexb -map 0 -f ssegment -segment_format mpegts -segment_list_type hls -segment_time 1 -segment_list_size 4 -segment_list_flags +live -break_non_keyframes 0 -segment_list_flags -cache -segment_list " + outPathBase + "test.m3u8 " + outPathBase + "stream_%d.ts";
-
-        // RTP
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase +  "sdp_file.sdp rtp://192.168.137.1:8889";
-
-        // RTP (2)
-        ///private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtp -sdp_file " + outPathBase + "sdp_file.sdp rtp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() +   "/?listen";
-
-        // RTSP
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp  -rtsp_flags listen rtsp://" + RTPConfiguration.ServerAddress + ":8889/live.sdp";
-
-        // rtsp over HTTP
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -listen 1 -f rtsp http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/";
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30 -movflags +faststart -vf format=yuv420p -map 0 -flags +cgop+global_header -listen 1 -f mp4 -movflags +faststart http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg.mp4";
-
-        // tcp:// for VLC as server (VLC could relay and play but demo player could not play)
-        //private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://" + RTPConfiguration.ServerAddress.ToString() + ":" + RTPConfiguration.ImageServerPort.ToString() + "?listen";
-
-        // tcp:// for VLC as server (2)
-        //private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -r 1 -g 1 -vf format=yuv420p -f mpegts tcp://" + RTPConfiguration.ServerAddress.ToString() + ":" + RTPConfiguration.ImageServerPort.ToString() + "?listen";
-
-        // raw h264 stream over HTTP with FFMPEG
-        //private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -flags:v global_header -map 0 -listen 1 -f mp4 -movflags faststart http://" + RTPConfiguration.ServerAddress.ToString() + ":" + (RTPConfiguration.ImageServerPort + 1).ToString() + "/rdp.mp4";
-        //private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -bsf:v h264_mp4toannexb -flags:v global_header -map 0 -listen 1 -f mp4 -movflags faststart http://" + RTPConfiguration.ServerAddress.ToString() + ":" + (RTPConfiguration.ImageServerPort + 1).ToString() + "/rdp.mp4";
-        private string ffmpegForHLSArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -bsf:v h264_mp4toannexb -vf format=yuv420p -map 0 -listen 1 -f mpegts http://" + RTPConfiguration.ServerAddress.ToString() + ":" + (RTPConfiguration.ImageServerPort + 1).ToString() + "/rdp.mp4";
-
-        // RTSP send to my C# server
-        //private string ffmpegForHLSArgs = "-y -loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 30  -bsf:v h264_mp4toannexb -map 0 -f rtsp -rtsp_transport tcp rtsp://" + RTPConfiguration.ServerAddress + ":" + (RTPConfiguration.ImageServerPort + 1).ToString() + "/";
-
-        // -crf (0-51)でクオリティ設定
-        //private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yuv420p -f mpegts tcp://192.168.0.11:8888?listen";
-
-        private string ffmpegForDirectStreamingArgs = "-loglevel debug -f image2pipe -framerate 1 -i - -c:v libx264 -preset veryslow -tune zerolatency -r 1 -g 60 -vf format=yub420p -f mpegts tcp://192.168.0.11:8889?listen";
-
 
         public MainApplicationContext()
 		{
@@ -125,72 +73,6 @@ namespace RemoteDesktop.Server
             //// init input simulation
             //input = new InputSimulator();
 
-            //// 余計なデータがstdinにあったらクリアする
-            //TextReader input;
-            //input = Console.In;
-            //string line;
-            //while ((line = input.ReadLine()) != null) { }
-            //input.Dispose();
-
-            if (RTPConfiguration.isUseFFMPEG)
-            {
-                //kickFFMPEG();
-                //timer = new System.Windows.Forms.Timer();
-                //timer.Interval = (int) (1000 * (1.0f / (float)targetFPS));
-                //timer.Tick += Timer_Tick_for_ffmpeg_hls_test;
-                //timer.Start();
-
-                timer = new System.Windows.Forms.Timer();
-                timer.Interval = (int)(1000 * (1.0f / (float)targetFPS));
-                timer.Start();
-                timer.Tick += Timer_Tick_bitmap_to_openH264_Encoder;
-                encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 10.0f);
-                encoder.aviDataGenerated += h264AVIDataHandlerHlsFFMPEG;
-            } 
-
-            if (RTPConfiguration.isUseRTSPLib)
-            {
-                var rtsp_serv = new Media.Rtsp.RtspServer(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort + 1)
-                {
-                    Logger = new Media.Rtsp.Server.RtspServerConsoleLogger()
-                };
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.SourceMedia()
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource() // ffmpegに接続？ffmpegからこっちに流させる？
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/live.sdp", RtspClient.ClientProtocolType.Tcp));
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4"));
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/", RtspClient.ClientProtocolType.Http));
-
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtspSource("h264", "rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov", RtspClient.ClientProtocolType.Tcp));
-
-                //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540,960,"h264");
-                //h264_src.Source = new System.Uri("file://work/tmp/gen_HLS_files_from_h264_avi_file_try/capturedDatax2.mp4");
-                //rtsp_serv.TryAddMedia(h264_src);
-
-                //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540, 960, "h264");
-                //h264_src.Source = new System.Uri("http://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/ffmpeg.mp4");
-                //rtsp_serv.TryAddMedia(h264_src);
-
-                var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540, 960, "h264");
-                h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString());
-                h264_src.ForceTCP = true;
-                rtsp_serv.TryAddMedia(h264_src);
-
-                //rtsp_serv.TryAddMedia(new Media.Rtsp.Server.MediaTypes.RtpSource("h264", new Media.Sdp.SessionDescription(
-                //    (new StreamReader(new FileStream(outPathBase + "sdp_file.sdp", FileMode.Open), System.Text.Encoding.ASCII)).ReadToEnd()
-                //)));
-                // can be accessed rtsp://sever_addr:port/test
-
-                //var h264_src = new Media.Rtsp.Server.MediaTypes.RFC6184Media(540, 960, "h264");
-                //h264_src.Source = new System.Uri("tcp://" + RTPConfiguration.ServerAddress + ":" + RTPConfiguration.ImageServerPort.ToString() + "/");
-                //h264_src.ForceTCP = true;
-                //rtsp_serv.TryAddMedia(h264_src);
-                rtsp_serv.Start();
-
-                //var streams = rtsp_serv.MediaStreams;
-                //rtsp_serv.TryAddRequestHandler(Media.Rtsp.RtspMethod.DESCRIBE, rtspReuestHandlerTest);
-                //Console.WriteLine(streams);
-            }
-
             //var rtspsrc = new Media.Rtsp.Server. RtspSource();
 
             // start TCP socket listen for image server
@@ -203,63 +85,6 @@ namespace RemoteDesktop.Server
             socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
         }
-
-        private bool rtspReuestHandlerTest(RtspMessage request, out RtspMessage response)
-        {
-            Console.WriteLine(request);
-            response = request; // 苦肉の策
-            return true;
-        }
-
-
-        // set ffmpegProc field
-        private void kickFFMPEG()
-        {
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.UseShellExecute = false; //required to redirect standart input/output
-
-            // redirects on your choice
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.RedirectStandardInput = true;
-            startInfo.CreateNoWindow = true;
-            startInfo.FileName = ffmpegPath;
-
-            startInfo.Arguments = ffmpegForHLSArgs;
-            //startInfo.Arguments = ffmpegForDirectStreamingArgs;
-
-            ffmpegProc = new Process();
-            ffmpegProc.StartInfo = startInfo;
-            // リダイレクトした標準出力・標準エラーの内容を受信するイベントハンドラを設定する
-            ffmpegProc.OutputDataReceived += PrintFFMPEGOutputData;
-            ffmpegProc.ErrorDataReceived  += PrintFFMPEGErrorData;
-
-            ffmpegProc.Start();
-
-            // ffmpegが確実に起動状態になるまで待つ
-            Thread.Sleep(3000);
-
-            // 標準出力・標準エラーの非同期読み込みを開始する
-            ffmpegProc.BeginOutputReadLine();
-            ffmpegProc.BeginErrorReadLine();
-        }
-
-          private void PrintFFMPEGOutputData(object sender, DataReceivedEventArgs e)
-          {
-            Process p = (Process)sender;
-
-            if (!string.IsNullOrEmpty(e.Data))
-              Console.WriteLine("[{0}2;stdout] {1}", p.ProcessName, e.Data);
-          }
-
-          private void PrintFFMPEGErrorData(object sender, DataReceivedEventArgs e)
-          {
-            // 子プロセスの標準エラーから受信した内容を自プロセスの標準エラーに書き込む
-            Process p = (Process)sender;
-
-            if (!string.IsNullOrEmpty(e.Data))
-              Console.Error.WriteLine("[{0}2;stderr] {1}", p.ProcessName, e.Data);
-          }
 
 		void Exit(object sender, EventArgs e)
 		{
@@ -455,12 +280,7 @@ namespace RemoteDesktop.Server
                 {
                     if (isDisposed) return;
 
-                    if (RTPConfiguration.isSendAnAviContent)
-                    {
-                        sendAnAviContent();
-                    }
-                    else
-                    {
+
                         //encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 10.0f);
                         //encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 1.0f);
                         //encoder = new ExtractedH264Encoder(540, 960, 1600 * 1024 * 8, 1.0f, 60.0f);
@@ -483,30 +303,10 @@ namespace RemoteDesktop.Server
 					    {
 						    CreateTimer(false, (int)targetFPS);
 					    });
-                    }
+
                 }
             }
 		}
-
-        private void sendAnAviContent()
-        {
-            MemoryStream ms = new MemoryStream();
-            FileStream fs = new FileStream(testAviFilePath, FileMode.Open);
-            byte[] buf = new byte[1024];
-            int offset = 0;
-            int readBytes = -1;
-            while((readBytes = fs.Read(buf, offset, buf.Length)) > 0){
-                ms.Write(buf, 0, readBytes);
-            }
-            fs.Close();
-            byte[] content_data = ms.ToArray();
-            MetaData md = new MetaData();
-            md.dataSize = content_data.Length;
-            md.compressed = false;
-            md.type = MetaDataTypes.ImageData;
-            socket.SendMetaData(md);
-            socket.SendBinary(content_data, content_data.Length);
-        }
 
 		private void Socket_DisconnectedCallback()
 		{
@@ -526,47 +326,24 @@ namespace RemoteDesktop.Server
 
         private unsafe BitmapXama convertToBitmapXamaAndRotate(Bitmap bmap)
         {
-            bmap.RotateFlip(RotateFlipType.Rotate90FlipY);
+            //bmap.RotateFlip(RotateFlipType.Rotate90FlipY);
+            bmap.RotateFlip(RotateFlipType.Rotate90FlipNone); // for OpenH264 encoder&decoder
 
             Rectangle rect = new Rectangle(0, 0, bmap.Width, bmap.Height);
 
             BitmapData bmpData = null;
             Bitmap bmap16 = null;
             long dataLength = -1;
-            if (RTPConfiguration.isConvTo24bit)
-            {
-                bmap16 = bmap.Clone(new Rectangle(0, 0, bmap.Width, bmap.Height), PixelFormat.Format24bppRgb);
-                bmpData = bmap16.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap16.PixelFormat);
-                dataLength = bmap.Width * bmap.Height * 3; // RGB24                
-            }
-            else if (RTPConfiguration.isConvTo16bit)
-            {                
-                bmap16 = bmap.Clone(new Rectangle(0, 0, bmap.Width, bmap.Height), PixelFormat.Format16bppRgb565);
-                bmpData = bmap16.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap16.PixelFormat);
-                dataLength = bmap.Width * bmap.Height * 2; // RGB565
-            }
-            else
-            {
-                bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
-                dataLength = bmap.Width * bmap.Height * 3; //RGB24
-            }
+
+            bmpData = bmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadWrite, bmap.PixelFormat);
+            dataLength = bmap.Width * bmap.Height * 3; //RGB24
+
             
             IntPtr ptr = bmpData.Scan0;
             MemoryStream ms = new MemoryStream();
             var bitmapStream = new UnmanagedMemoryStream((byte*)bmpData.Scan0, dataLength);
             bitmapStream.CopyTo(ms);
-            if (RTPConfiguration.isConvTo24bit)
-            {
-                bmap16.UnlockBits(bmpData);
-            }
-            else if (RTPConfiguration.isConvTo16bit)
-            {
-                bmap16.UnlockBits(bmpData);
-            }
-            else
-            {
-                bmap.UnlockBits(bmpData);
-            }
+            bmap.UnlockBits(bmpData);
 
 
             //byte[] buf = ms.GetBuffer();
@@ -578,12 +355,6 @@ namespace RemoteDesktop.Server
             return retBmap;
         }
 
-        private void h264AVIDataHandlerHlsFFMPEG(byte[] data)
-        {
-            ffmpegProc.StandardInput.BaseStream.Write(data, 0, data.Length);
-            ffmpegProc.StandardInput.BaseStream.Flush();
-        }
-
         private void h264RawDataHandlerSendTCP(byte[] data)
         {
             BitmapXama bmpXama = new BitmapXama(data);
@@ -592,34 +363,6 @@ namespace RemoteDesktop.Server
 
             socket.SendImage(bmpXama, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
         }
-
-
-		private void Timer_Tick_for_ffmpeg_hls_test(object sender, EventArgs e)
-		{
-			lock (this)
-			{
-				CaptureScreen();
-                BitmapXama convedXBmap = null;
-                convedXBmap = convertToBitmapXamaAndRotate(scaledBitmap);
-                var tmp_buf = new byte[convedXBmap.Width * convedXBmap.Height * 3];
-                if(convedXBmap.getInternalBuffer().Length == 0)
-                {
-                    return;
-                }
-                Array.Copy(convedXBmap.getInternalBuffer(), 0, tmp_buf, 0, tmp_buf.Length);
-                //Utils.saveByteArrayToFile(tmp_buf, outPathBase + "rgb565-540x960.raw");
-
-                var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
-
-                //Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
-                //byte[] bmpfFile_buf = bitmap_ms.ToArray();
-                //encoder.addBitmapFrame(bmpfFile_buf, timestamp++);
-
-                var br = bitmap_ms.ToArray();
-                ffmpegProc.StandardInput.BaseStream.Write(br, 0, br.Length);
-                ffmpegProc.StandardInput.BaseStream.Flush();
-            }
-		}
 
 		private void Timer_Tick_bitmap_to_openH264_Encoder(object sender, EventArgs e)
 		{
@@ -652,12 +395,7 @@ namespace RemoteDesktop.Server
                 var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
 
                 Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
-                //encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp++);
                 encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp++);
-
-                //var br = bitmap_ms.ToArray();
-                //ffmpegProc.StandardInput.BaseStream.Write(br, 0, br.Length);
-                //ffmpegProc.StandardInput.BaseStream.Flush();
             }
 		}
 

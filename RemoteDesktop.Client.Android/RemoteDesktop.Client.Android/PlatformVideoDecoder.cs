@@ -50,9 +50,7 @@ namespace RemoteDesktop.Client.Android
     public interface IPlatformVideoDecoder
     {
         bool setup(DecoderCallback callback_obj);
-        //byte[] getDecodedFrame();
-        //void addEncodedFrame(byte[] frame_data);
-        void Close();
+         void Close();
     }
 
     public static class VideoDecoderFactory

@@ -83,7 +83,6 @@ namespace RemoteDesktop.Android.Core
 		public bool compressed;
 		public int dataSize, imageDataSize;
 		public short width, height, screenWidth, screenHeight, screenIndex;
-		//public PixelFormatXama format;
 		public float resolutionScale;
 		public float targetFPS;
 
@@ -128,11 +127,9 @@ namespace RemoteDesktop.Android.Core
 
 			receiveBuffer = new byte[BUF_SIZE];
 			sendBuffer = new byte[BUF_SIZE];
-            //metaDataSize = Marshal.SizeOf<MetaData>();
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, new MetaData()); // for get Binary Seriazed data size
-            //metaDataSize = ms.GetBuffer().Length;
             metaDataSize = (int) ms.Length;
             Console.WriteLine("Serialized MetaData Class object binary size is berow");
             Console.WriteLine(metaDataSize);
@@ -416,13 +413,6 @@ namespace RemoteDesktop.Android.Core
 							bytesRead -= count;
 							overflow = bytesRead; // overflow and current bytesRead means bitmap data already read (if value > 0)
 
-                            // create meta data object
-                            //var handle = GCHandle.Alloc(metaDataBuffer, GCHandleType.Pinned);
-                            //metaData = Marshal.PtrToStructure<MetaData>(handle.AddrOfPinnedObject());
-                            //handle.Free();
-
-                            //Console.Write("metaDataBuffer: ");
-                            //debugPrintByteArray4ElemSpan(metaDataBuffer);
                             BinaryFormatter bf = new BinaryFormatter();
                             metaData = (MetaData) bf.Deserialize(new MemoryStream(metaDataBuffer));
 
@@ -510,20 +500,6 @@ namespace RemoteDesktop.Android.Core
 			}
 		}
 
-		//private void SendBinary(byte[] data)
-		//{
-		//	if (data == null || data.Length == 0) throw new Exception("Invalid data size");
-		//	int size = data.Length, offset = 0;
-		//	do
-		//	{
-		//		int dataRead = socket.Send(data, offset, size, SocketFlags.None);
-		//		if (dataRead == 0) break;
-		//		offset += dataRead;
-		//		size -= dataRead;
-		//	}
-		//	while (size != 0);
-		//}
-
 		//private unsafe void SendBinary(byte* data, int dataLength)
 		public void SendBinary(byte[] data, int dataLength)
 		{
@@ -545,22 +521,6 @@ namespace RemoteDesktop.Android.Core
             }
         }
 
-		//private void SendStream(Stream stream)
-		//{
-		//	if (stream == null || stream.Length == 0) throw new Exception("Invalid stream size");
-		//	int size = (int)stream.Length, offset = 0;
-		//	do
-		//	{
-		//		int writeSize = (size <= sendBuffer.Length) ? size : sendBuffer.Length;
-		//		writeSize = stream.Read(sendBuffer, 0, writeSize);
-		//		int dataRead = socket.Send(sendBuffer, 0, writeSize, SocketFlags.None);
-		//		if (dataRead == 0) break;
-		//		offset += dataRead;
-		//		size -= dataRead;
-		//	}
-		//	while (size != 0);
-		//}
-
 		//public unsafe void SendImage(Bitmap bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, int targetFPS)
 		public void SendImage(BitmapXama bitmap, int screenWidth, int screenHeight, int screenIndex, bool compress, float targetFPS)		
 		{
@@ -568,20 +528,10 @@ namespace RemoteDesktop.Android.Core
 			{
 				// get data length
 				int dataLength, imageDataSize;
-                if (RTPConfiguration.isConvTo16bit)
-                {
-                    imageDataSize = bitmap.Width * bitmap.Height * 2; //PixelFormat.Format16bppArgb1555
-                }
-                else
-                {
-                    imageDataSize = bitmap.Width * bitmap.Height * 3; //PixelFormat.Format24bprRgb
-                }
+                imageDataSize = bitmap.Width * bitmap.Height * 3; //PixelFormat.Format24bprRgb
 
 				dataLength = imageDataSize;
 
-                // DEBUG: comment out to avoid error
-                //// lock bitmap
-                //locked = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
                 //            // compress if needed
                 if (RTPConfiguration.isStreamRawH264Data)
@@ -643,8 +593,6 @@ namespace RemoteDesktop.Android.Core
 
                 if (compress || RTPConfiguration.isConvJpeg)
                 {
-                    //compressedStream.Position = 0;
-                    //SendStream(compressedStream);
                     SendBinary(compressedStream.GetBuffer(), dataLength);
                 }
                 else
@@ -664,14 +612,8 @@ namespace RemoteDesktop.Android.Core
 		}
 
 
-		//private unsafe void SendMetaDataInternal(MetaData metaData)
 		private void SendMetaDataInternal(MetaData metaData)
 		{
-            // DEBUG: rewrite to avoid error (not work correctly)
-            //var binaryMetaData = (byte*)&metaData;
-
-            // Marshal.Copy(new IntPtr(binaryMetaData), metaDataBuffer, 0, metaDataSize);
-            // SendBinary(metaDataBuffer);
             MemoryStream ms = new MemoryStream();
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(ms, metaData);
