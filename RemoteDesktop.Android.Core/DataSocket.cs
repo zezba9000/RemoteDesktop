@@ -288,7 +288,7 @@ namespace RemoteDesktop.Android.Core
 					{
 						string error = string.Format("socket.EndConnect failed: {0}\n{1}", e.SocketErrorCode, e.Message);
 						FireConnectionFailedCallback(error);
-						DebugLog.LogError(error);
+						Console.WriteLine(error);
 						disconnected = true;
 						return;
 					}
@@ -296,7 +296,7 @@ namespace RemoteDesktop.Android.Core
 					{
 						string error = "socket.EndConnect failed: " + e.Message;
 						FireConnectionFailedCallback(error);
-						DebugLog.LogError(error);
+						Console.WriteLine(error);
 						disconnected = true;
 						return;
 					}
@@ -313,7 +313,7 @@ namespace RemoteDesktop.Android.Core
 					{
 						string error = string.Format("socket.EndConnect failed: {0}\n{1}", e.SocketErrorCode, e.Message);
 						FireConnectionFailedCallback(error);
-						DebugLog.LogError(error);
+						Console.WriteLine(error);
 						disconnected = true;
 						return;
 					}
@@ -321,7 +321,7 @@ namespace RemoteDesktop.Android.Core
 					{
 						string error = "socket.EndConnect failed: " + e.Message;
 						FireConnectionFailedCallback(error);
-						DebugLog.LogError(error);
+						Console.WriteLine(error);
 						disconnected = true;
 						return;
 					}
@@ -336,7 +336,7 @@ namespace RemoteDesktop.Android.Core
 				}
 				catch (Exception e)
 				{
-					DebugLog.LogError("Failed to BeginReceive SocketConnection: " + e.Message);
+					Console.WriteLine("Failed to BeginReceive SocketConnection: " + e.Message);
 					disconnected = true;
 					return;
 				}
@@ -381,16 +381,19 @@ namespace RemoteDesktop.Android.Core
 					bytesRead = socket.EndReceive(ar); // this retuened larger than buffer size? (it means total read byte size?) => maybe No
                     Console.WriteLine("read data size got from socketEndReceive(ar): " + bytesRead.ToString());
 				}
-				catch
+				catch(Exception ex)
 				{
-					return;
+                    throw ex;
 				}
 
 				// write data to stream
 				var state = (ReceiveState)ar.AsyncState;
+                Console.WriteLine("top of RecieveDataCallback state.size = " + state.size.ToString());
+                Console.WriteLine("top of RecieveDataCallback state.bytesRead = " + state.bytesRead.ToString());
 				if (bytesRead > 0)
 				{
-					EXTRA_STREAM:;
+                    EXTRA_STREAM:;
+                    Console.WriteLine("pass EXTRA_STREAM at DataSocket");
 					int overflow = 0;
 
 					// read meta data
@@ -403,8 +406,13 @@ namespace RemoteDesktop.Android.Core
                         // DEBUG: if EndReceive func do not return total read bytes, calc sum code may be needed!!!
 						//if (bytesRead < metaDataSize)
                         if (metaDataBufferRead < metaDataSize)
-                            {
-							try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
+                        {
+                            Console.WriteLine("RecieveDataCallback: metaDataBufferRead < metaDataSize: " + metaDataBufferRead.ToString() + " ,  " + metaDataSize.ToString());
+							try {
+                                socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);
+                            } catch (Exception ex) {
+                                Console.WriteLine(ex);
+                            }
 							return;
 						}
 						else
@@ -443,7 +451,8 @@ namespace RemoteDesktop.Android.Core
 							}
 							else // go to read yet not received data (bitmap data)
 							{
-								try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
+                                Console.WriteLine("go to read yet not received data (bitmap data)");
+                                try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
 								return;
 							}
 						}
@@ -465,13 +474,18 @@ namespace RemoteDesktop.Android.Core
 
                     //if (state.bytesRead != state.size) // did not read all data of current frame yet
                     if (state.bytesRead < state.size) // did not read all data of current frame yet
-                        {
+                     {
                         Console.WriteLine("call socket.BeginReceive func to read left bitmap data of current frame");
-						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
+						try {
+                            socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);
+                        } catch(Exception ex) {
+                            throw ex;
+                        }
 						return;
 					}
 					else // already read all data of current frame
 					{
+                        Console.WriteLine("FireEndDataRecievedCallback state.bytesRead=" + state.bytesRead.ToString() + " state.size=" + state.size.ToString());
 						FireEndDataRecievedCallback();
 					}
 
@@ -495,6 +509,7 @@ namespace RemoteDesktop.Android.Core
 				}
 				else // read request to socket failed (some failue should occured) 
 				{
+                    Console.WriteLine("read request to socket failed (some failue should occured) ");
 					disconnected = true;
 				}
 			}
