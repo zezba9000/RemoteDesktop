@@ -337,14 +337,19 @@ namespace RemoteDesktop.Android.Core
 			}
 		}
 
-        private void debugPrintByteArray4ElemSpan(byte[] buf)
+        private void debugPrinbByteArray(byte[] buf, int span)
         {
-            string debugStr = "contents of buffer 4 elem span :";
-            for (int i = 0; i < buf.Length; i += 4)
+            string debugStr = "contents of buffer " + span.ToString() + " elem span :";
+            for (int i = 0; i < buf.Length; i += span)
             {
                 debugStr += buf[i].ToString() + ", ";
             }
             Console.WriteLine(debugStr);
+        }
+
+        private void debugPrintByteArray4ElemSpan(byte[] buf)
+        {
+            debugPrinbByteArray(buf, 4);
         }
 
 		private void ReceiveBufferShiftDown(int atIndex)
@@ -419,7 +424,24 @@ namespace RemoteDesktop.Android.Core
 							overflow = bytesRead; // overflow and current bytesRead means bitmap data already read (if value > 0)
 
                             BinaryFormatter bf = new BinaryFormatter();
-                            metaData = (MetaData) bf.Deserialize(new MemoryStream(metaDataBuffer));
+                            try
+                            {
+                                metaData = (MetaData)bf.Deserialize(new MemoryStream(metaDataBuffer));
+                            }catch(Exception ex)
+                            {
+                                // print information for debug
+                                debugPrinbByteArray(metaDataBuffer, 1);
+                                debugPrinbByteArray(receiveBuffer, 1);
+                                Console.WriteLine("state.size = " + state.size.ToString());
+                                Console.WriteLine("state.bytesRead = " + state.bytesRead.ToString());
+                                Console.WriteLine("bytesRead = " + bytesRead.ToString());
+                                Console.WriteLine("metaDataBufferRead = " + metaDataBufferRead.ToString());
+                                Console.WriteLine("count = " + count.ToString());
+                                Console.WriteLine(metaData);
+                                Console.Out.Flush();
+
+                                throw ex;
+                            }
 
 							if (metaData.dataSize == 0) throw new Exception("Invalid data size");
                             Console.WriteLine("read MetaData at DataSocket success!");
@@ -438,6 +460,7 @@ namespace RemoteDesktop.Android.Core
 							{
                                 Console.WriteLine("set state size after deserialize MetaData:" + metaData.dataSize.ToString());
 								state.size = metaData.dataSize; // bitmap data size
+                                //state.bytesRead = overflow;
 							}
 
                             Console.WriteLine("value of state at end of MetaData process block: " + state.size.ToString() + ", " + state.bytesRead.ToString());
@@ -622,23 +645,35 @@ namespace RemoteDesktop.Android.Core
                     SendBinary(bitmap.getInternalBuffer(), dataLength);
                 }
             }
-			catch (Exception e)
+			catch (Exception ex)
 			{
-                Console.WriteLine(e);
-			}
-			finally
-			{
-				//if (locked != null) bitmap.UnlockBits(locked);
+                throw ex;
 			}
 		}
 
+        // if all element value is zero, returns false
+        private bool checkSeriarizedMetaData(byte[] data, int dataLength)
+        {
+            for(int idx = 0; idx < dataLength; idx++)
+            {
+                if(data[idx] != 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
 		private void SendMetaDataInternal(MetaData metaData)
 		{
             MemoryStream ms = new MemoryStream();
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(ms, metaData);
-            byte[] buf = ms.GetBuffer();
+            byte[] buf = ms.ToArray();
+            if(checkSeriarizedMetaData(buf, (int) ms.Length) == false)
+            {
+                throw new Exception("seriarized MetaData is all zero!!!");
+            }
             Console.WriteLine("check MetaData object serialized binary size");
             Console.WriteLine(metaDataSize);
             Console.WriteLine(ms.Length);
@@ -649,27 +684,32 @@ namespace RemoteDesktop.Android.Core
             SendBinary(buf, metaDataSize);
 		}
 
-		public void SendMetaData(MetaData metaData)
-		{
-			try
-			{
-				SendMetaDataInternal(metaData);
-			}
-			catch {}
-		}
+        public void SendMetaData(MetaData metaData)
+        {
+            try
+            {
+                SendMetaDataInternal(metaData);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
 
-		private static bool IsConnected(Socket socket)
+        private static bool IsConnected(Socket socket)
 		{
 			if (socket == null || !socket.Connected) return false;
 
-			try
-			{
-				return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-			}
-			catch
-			{
-				return false;
-			}
+            return true;
+
+			//try
+			//{
+			//	return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+			//}
+			//catch
+			//{
+			//	return false;
+			//}
 		}
 
 		public bool IsConnected()
