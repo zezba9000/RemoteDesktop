@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.InteropServices;
 
 namespace RemoteDesktop.Android.Core
 {
@@ -55,7 +56,7 @@ namespace RemoteDesktop.Android.Core
         public int Width = 0;
     }
 
-    [Serializable()]
+    //[Serializable()]
     public enum MetaDataTypes
 	{
 		None,
@@ -69,8 +70,8 @@ namespace RemoteDesktop.Android.Core
 	}
 
 
-    //[StructLayout(LayoutKind.Sequential)]
-    [Serializable()]
+    //[Serializable()]
+    [StructLayout(LayoutKind.Sequential)]
 	public struct MetaData
 	{
 		public MetaDataTypes type;
@@ -121,10 +122,13 @@ namespace RemoteDesktop.Android.Core
 
 			receiveBuffer = new byte[BUF_SIZE];
 			sendBuffer = new byte[BUF_SIZE];
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
-            bf.Serialize(ms, new MetaData()); // for get Binary Seriazed data size
-            metaDataSize = (int) ms.Length;
+
+            //BinaryFormatter bf = new BinaryFormatter();
+            //MemoryStream ms = new MemoryStream();
+            //bf.Serialize(ms, new MetaData()); // for get Binary Seriazed data size
+            //metaDataSize = (int) ms.Length;
+            metaDataSize = Marshal.SizeOf(new MetaData());
+
             Console.WriteLine("Serialized MetaData Class object binary size is berow");
             Console.WriteLine(metaDataSize);
             Console.WriteLine(type);
@@ -423,11 +427,17 @@ namespace RemoteDesktop.Android.Core
 							bytesRead -= count;
 							overflow = bytesRead; // overflow and current bytesRead means bitmap data already read (if value > 0)
 
-                            BinaryFormatter bf = new BinaryFormatter();
-                            try
-                            {
-                                metaData = (MetaData)bf.Deserialize(new MemoryStream(metaDataBuffer));
-                            }catch(Exception ex)
+                            //BinaryFormatter bf = new BinaryFormatter();
+                            //try
+                            //{
+                            //    metaData = (MetaData)bf.Deserialize(new MemoryStream(metaDataBuffer));
+                            try {
+                                IntPtr ptr = Marshal.AllocHGlobal(metaDataSize);
+                                Marshal.Copy(metaDataBuffer, 0, ptr, metaDataSize);
+                                metaData = (MetaData) Marshal.PtrToStructure(ptr, typeof(MetaData));
+                                Marshal.FreeHGlobal(ptr);
+                            }
+                            catch(Exception ex)
                             {
                                 // print information for debug
                                 debugPrinbByteArray(metaDataBuffer, 1);
@@ -666,22 +676,29 @@ namespace RemoteDesktop.Android.Core
 
 		private void SendMetaDataInternal(MetaData metaData)
 		{
-            MemoryStream ms = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(ms, metaData);
-            byte[] buf = ms.ToArray();
-            if(checkSeriarizedMetaData(buf, (int) ms.Length) == false)
-            {
-                throw new Exception("seriarized MetaData is all zero!!!");
-            }
-            Console.WriteLine("check MetaData object serialized binary size");
-            Console.WriteLine(metaDataSize);
-            Console.WriteLine(ms.Length);
-            if(metaDataSize != ms.Length)
-            {
-                throw new Exception("serialized MetaData binary size is not constant...");
-            }
-            SendBinary(buf, metaDataSize);
+            //MemoryStream ms = new MemoryStream();
+            //BinaryFormatter bf = new BinaryFormatter();
+            //bf.Serialize(ms, metaData);
+            //byte[] buf = ms.ToArray();
+            //if(checkSeriarizedMetaData(buf, (int) ms.Length) == false)
+            //{
+            //    throw new Exception("seriarized MetaData is all zero!!!");
+            //}
+            //Console.WriteLine("check MetaData object serialized binary size");
+            //Console.WriteLine(metaDataSize);
+            //Console.WriteLine(ms.Length);
+            //if(metaDataSize != ms.Length)
+            //{
+            //    throw new Exception("serialized MetaData binary size is not constant...");
+            //}
+
+
+            byte[] bytes = new byte[metaDataSize];
+
+            GCHandle gchw = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            Marshal.StructureToPtr(metaData, gchw.AddrOfPinnedObject(), false);
+            gchw.Free();
+            SendBinary(bytes, metaDataSize);
 		}
 
         public void SendMetaData(MetaData metaData)
