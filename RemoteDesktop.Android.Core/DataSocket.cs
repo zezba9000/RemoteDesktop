@@ -3,16 +3,10 @@
 using System.Net.Sockets;
 using System.Net;
 using System.IO;
-using System.Runtime.InteropServices;
 
-// DEBUG: comment out to avoid error
-//using System.Drawing.Imaging;
-
-using System.Drawing;
 using System.IO.Compression;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Collections;
 
 namespace RemoteDesktop.Android.Core
 {
@@ -390,7 +384,10 @@ namespace RemoteDesktop.Android.Core
 				var state = (ReceiveState)ar.AsyncState;
                 Console.WriteLine("top of RecieveDataCallback state.size = " + state.size.ToString());
                 Console.WriteLine("top of RecieveDataCallback state.bytesRead = " + state.bytesRead.ToString());
-				if (bytesRead > 0)
+                Console.WriteLine("top of RecieveDataCallback bytesRead = " + bytesRead.ToString());
+                Console.WriteLine("top of RecieveDataCallback metaDataBufferRead = " + metaDataBufferRead.ToString());
+
+                if (bytesRead > 0)
 				{
                     EXTRA_STREAM:;
                     Console.WriteLine("pass EXTRA_STREAM at DataSocket");
@@ -452,7 +449,11 @@ namespace RemoteDesktop.Android.Core
 							else // go to read yet not received data (bitmap data)
 							{
                                 Console.WriteLine("go to read yet not received data (bitmap data)");
-                                try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);} catch {}
+                                try {
+                                    socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, state);
+                                } catch (Exception ex) {
+                                    throw ex;
+                                }
 								return;
 							}
 						}
@@ -464,6 +465,7 @@ namespace RemoteDesktop.Android.Core
 
 					// read data chunk
 					int offset = state.bytesRead;
+                    Console.WriteLine("update state.bytesRead: current state.bytesRead = " + state.bytesRead.ToString() + " bytesRead = " + bytesRead.ToString() + " updated state.bytesRead = " + (state.bytesRead + bytesRead).ToString());
 					state.bytesRead += bytesRead;
 					overflow = Math.Max(state.bytesRead - state.size, 0); // overflow > 0 means already read next frame data
 					state.bytesRead = Math.Min(state.bytesRead, state.size);
@@ -503,7 +505,11 @@ namespace RemoteDesktop.Android.Core
 					{
                         Console.WriteLine("call socket.BeginReceive func to read next frame because finished read all data of current frame. metaDataBufferRead: " + metaDataBufferRead.ToString());
                         metaDataBufferRead = 0;
-						try {socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());} catch {}
+						try {
+                            socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, RecieveDataCallback, new ReceiveState());
+                        } catch(Exception ex) {
+                            throw ex;
+                        }
 						return;
 					}
 				}
