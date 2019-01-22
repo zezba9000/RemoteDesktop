@@ -280,7 +280,9 @@ namespace RemoteDesktop.Server
                 {
                     if (isDisposed) return;
                         //encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 60.0f);
-                        encoder = new ExtractedH264Encoder(540, 960, 1 * 1024 * 8, 1.0f, 60.0f);
+                        //encoder = new ExtractedH264Encoder(540, 960, 1 * 1024 * 8, 1.0f, 60.0f);
+                        //encoder = new ExtractedH264Encoder(540, 960, 1 * 1024 * 8, 1.0f, 60.0f);
+                        encoder = new ExtractedH264Encoder(540, 960, 300 * 8, 1.0f, 60.0f);
                         encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
 
                         void CreateTimer(bool recreate, int fps)
