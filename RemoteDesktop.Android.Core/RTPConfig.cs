@@ -41,6 +41,9 @@ namespace RemoteDesktop.Android.Core
             public ProtcolMode protcol_mode = ProtcolMode.TCP;
             public bool compress = false;
             public bool isConvertMulaw = false;
+            public static int h246EncoderBitPerSec = 1024 * 8;
+            //public static float h264EncoderFrameRate = 1.0f;
+            public static float h264EncoderKeyframeInterval = 60.0f;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";

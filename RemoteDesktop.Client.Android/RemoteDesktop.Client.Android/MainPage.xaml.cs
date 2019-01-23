@@ -66,6 +66,9 @@ namespace RemoteDesktop.Client.Android
         private Queue<byte[]> encodedFrameDataQ = new Queue<byte[]>();
         private DecoderCallback decoCallback;
 
+        private int h264DecodedHeight = -1;
+        private int h264DecodedWidth = -1;
+
         public MainPage()
         {
             //InitializeComponent();
@@ -116,16 +119,30 @@ namespace RemoteDesktop.Client.Android
             SKSurface surface = args.Surface;
             SKCanvas canvas = surface.Canvas;
 
+            float original_height = -1;
+            float original_width = -1;
+            if(h264DecodedHeight != -1)
+            {
+                original_width = h264DecodedWidth;
+                original_height = h264DecodedHeight;
+            }
+            else
+            {
+                original_width = metaData.width;
+                original_height = metaData.height;
+            }
+
+
             if (!(isBitDisplayComponetsAdded && isBitDisplayCompOrBufInited))
             {
                 return;
             }
 
-            float fit_width = metaData.width + 4;
-            float fit_height = metaData.height;
+            float fit_width = original_width;
+            float fit_height = original_height;
 
-            float x_ratio = info.Height / (float) metaData.height;
-            float y_ratio = info.Width / (float) (metaData.width + 4);
+            float x_ratio = info.Width / (float)original_width;
+            float y_ratio = info.Height / (float) original_height;
             if (x_ratio < y_ratio)
             {
                 fit_width *= x_ratio;
@@ -138,7 +155,7 @@ namespace RemoteDesktop.Client.Android
             }
 
             SKRect destRect = new SKRect(info.Width - fit_width, 0, fit_width, fit_height);
-            SKRect sourceRect = new SKRect(0, 0, metaData.width + 4, metaData.height);
+            SKRect sourceRect = new SKRect(0, 0, original_width, original_height);
 
 
             byte[] bitmap_data = null;
@@ -161,7 +178,7 @@ namespace RemoteDesktop.Client.Android
                 return;
             }
 
-            byte[] conved_bmp_data = Utils.NV12ToRGBA8888(bitmap_data, metaData.width + 4, metaData.height);
+            byte[] conved_bmp_data = Utils.NV12ToRGBA8888(bitmap_data, (int) original_width, (int) original_height);
 
             GCHandle gcHandle = GCHandle.Alloc(conved_bmp_data, GCHandleType.Pinned);
 
@@ -169,7 +186,7 @@ namespace RemoteDesktop.Client.Android
             //var skinfo = new SKImageInfo(metaData.width, metaData.height + 4, SKColorType.Rgb565, SKAlphaType.Opaque);
             //var skinfo = new SKImageInfo(metaData.width + 4, metaData.height, SKColorType.Rgb888x, SKAlphaType.Opaque);
 
-            var skinfo = new SKImageInfo(metaData.width + 4, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+            var skinfo = new SKImageInfo((int)original_width, (int)original_height, SKColorType.Rgba8888, SKAlphaType.Opaque);
 
             SKBitmap skbitmap = new SKBitmap();
             //skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
@@ -363,10 +380,12 @@ namespace RemoteDesktop.Client.Android
         }
 
 
-        private void H264DecodedDataHandler(byte[] decoded_data)
+        private void H264DecodedDataHandler(byte[] decoded_data, int width, int height)
         {
             Device.BeginInvokeOnMainThread(() =>
             {
+                h264DecodedWidth = width;
+                h264DecodedHeight = height;
                 if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
                 {
                     skiaBufStreams[0].Write(decoded_data, 0, decoded_data.Length);
@@ -524,7 +543,7 @@ namespace RemoteDesktop.Client.Android
                             if (vdecoder == null)
                             {
                                 vdecoder = new VideoDecoderManager();
-                                vdecoder.setup(decoCallback);
+                                vdecoder.setup(decoCallback, (int) metaData.width, (int) metaData.height);
                             }
 
                             // block until get decoded frame

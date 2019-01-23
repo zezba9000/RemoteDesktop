@@ -119,7 +119,8 @@ namespace RemoteDesktop.Client.Android.Droid
             mDecoder.ReleaseOutputBuffer(outputBufferId, false);
             Console.WriteLine("call OnDecodeFrame from decoder!");
 
-            mCallbackObj.OnDecodeFrame(decoded_data);
+            Console.WriteLine("bufferFormat.getInteger(MediaFormat.KeyWidth)=" + bufferFormat.GetInteger(MediaFormat.KeyWidth).ToString() + " bufferFormat.getInteger(MediaFormat.KeyHeight)=" + bufferFormat.GetInteger(MediaFormat.KeyHeight).ToString());
+            mCallbackObj.OnDecodeFrame(decoded_data, bufferFormat.GetInteger(MediaFormat.KeyWidth), bufferFormat.GetInteger(MediaFormat.KeyHeight));
         }
 
         override public void OnOutputFormatChanged(MediaCodec mc, MediaFormat format)
@@ -160,7 +161,7 @@ namespace RemoteDesktop.Client.Android.Droid
             return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
-        public bool setup(DecoderCallback callback_obj) //format_hint is aviFileContent 
+        public bool setup(DecoderCallback callback_obj, int width, int height) //format_hint is aviFileContent 
         {
             HandlerThread callbackThread = new HandlerThread("H264DecoderHandler");
             callbackThread.Start();
@@ -171,8 +172,8 @@ namespace RemoteDesktop.Client.Android.Droid
             mDecoder.SetCallback(new MyCallback(mDecoder, mCallbackObj), handler);
 
             //mOutputFormat = mDecoder.GetOutputFormat(); // option B
-            inputFormat = MediaFormat.CreateVideoFormat(MIME, 540, 960);
-            inputFormat.SetInteger(MediaFormat.KeyMaxInputSize, 540 * 960);
+            inputFormat = MediaFormat.CreateVideoFormat(MIME, width, height);
+            inputFormat.SetInteger(MediaFormat.KeyMaxInputSize, width * height);
             inputFormat.SetInteger("durationUs", 63446722);
             try
             {

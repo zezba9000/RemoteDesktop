@@ -14,9 +14,9 @@ namespace RemoteDesktop.Client.Android
             pdecoder = VideoDecoderFactory.getInstance();
         }
 
-        public bool setup(DecoderCallback callback_obj)
+        public bool setup(DecoderCallback callback_obj, int width, int height)
         {
-            return pdecoder.setup(callback_obj);
+            return pdecoder.setup(callback_obj, width, height);
         }
 
         public void Close()

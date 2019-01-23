@@ -5,7 +5,7 @@ using Xamarin.Forms;
 
 namespace RemoteDesktop.Client.Android
 {
-    public delegate void DecodedBitmapHandler(byte[] decoded_data);
+    public delegate void DecodedBitmapHandler(byte[] decoded_data, int width, int height);
 
     public class DecoderCallback
     {
@@ -17,10 +17,10 @@ namespace RemoteDesktop.Client.Android
             mEncodedFrameQ = encoded_frame_q;
         }
 
-        public void OnDecodeFrame(byte[] frame_data)
+        public void OnDecodeFrame(byte[] frame_data, int width, int height)
         {
             Console.WriteLine("OnDecodeFrame callback called!");
-            encodedDataGenerated(frame_data);
+            encodedDataGenerated(frame_data, width, height);
         }
 
         public void addEncodedFrameData(byte[] encoded_data, int length)
@@ -49,8 +49,8 @@ namespace RemoteDesktop.Client.Android
 
     public interface IPlatformVideoDecoder
     {
-        bool setup(DecoderCallback callback_obj);
-         void Close();
+        bool setup(DecoderCallback callback_ob, int width, int heightj);
+        void Close();
     }
 
     public static class VideoDecoderFactory

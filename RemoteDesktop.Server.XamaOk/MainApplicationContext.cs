@@ -67,6 +67,12 @@ namespace RemoteDesktop.Server
 
             dispatcher = Dispatcher.CurrentDispatcher;
 
+            // 重複するコードがあとで実行されるかひとまず置いておく
+            // get screen to catpure
+            var screens = Screen.AllScreens;
+            var screen = (screenIndex < screens.Length) ? screens[screenIndex] : screens[0];
+            screenRect = screen.Bounds;
+
             // 一旦音声配信は止める
             //cap_streamer = new CaptureSoundStreamer();
 
@@ -278,12 +284,23 @@ namespace RemoteDesktop.Server
             {
                 lock (this)
                 {
-                    if (isDisposed) return;
+                        if (isDisposed) return;
                         //encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 60.0f);
                         //encoder = new ExtractedH264Encoder(540, 960, 1 * 1024 * 8, 1.0f, 60.0f);
                         //encoder = new ExtractedH264Encoder(540, 960, 1 * 1024 * 8, 1.0f, 60.0f);
-                        encoder = new ExtractedH264Encoder(540, 960, 300 * 8, 1.0f, 60.0f);
-                        encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
+                        if (isFixedParamUse)
+                        {
+                            encoder = new ExtractedH264Encoder((int)(screenRect.Height * fixedResolutionScale), (int)(screenRect.Width * fixedResolutionScale), 
+                                RTPConfiguration.h246EncoderBitPerSec, fixedTargetFPS, RTPConfiguration.h264EncoderKeyframeInterval);
+                            encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
+                        }
+                        else // この時点ではクライアントから指定されたscaleは分からないので、fixedXXXXXをひとまず使っておく
+                        {
+                            encoder = new ExtractedH264Encoder((int)(screenRect.Height * fixedResolutionScale), (int)(screenRect.Width * fixedResolutionScale),
+                                RTPConfiguration.h246EncoderBitPerSec, fixedTargetFPS, RTPConfiguration.h264EncoderKeyframeInterval);
+                            encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
+                        }
+
 
                         void CreateTimer(bool recreate, int fps)
                         {
@@ -356,8 +373,8 @@ namespace RemoteDesktop.Server
         private void h264RawDataHandlerSendTCP(byte[] data)
         {
             BitmapXama bmpXama = new BitmapXama(data);
-            bmpXama.Width = 540;
-            bmpXama.Height = 960;
+            bmpXama.Width = screenRect.Width;
+            bmpXama.Height = screenRect.Height;
 
             socket.SendImage(bmpXama, screenRect.Width, screenRect.Height, screenIndex, compress, targetFPS);
         }
