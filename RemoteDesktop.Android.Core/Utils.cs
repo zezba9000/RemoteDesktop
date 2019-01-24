@@ -16,6 +16,74 @@ using System.Threading.Tasks;
 
 namespace RemoteDesktop.Android.Core
 {
+    public class DoNothingStream : Stream
+    {
+        public override bool CanRead
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public override bool CanSeek
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public override bool CanWrite
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public override long Length
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        public override long Position
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+            }
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return 0;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return 0;
+        }
+
+        public override void SetLength(long value)
+        {
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+        }
+    }
+
     public static class Utils
     {
         private static Dictionary<string, Stopwatch> sw_dic = new Dictionary<string, Stopwatch>();
@@ -148,6 +216,12 @@ namespace RemoteDesktop.Android.Core
             fs.Close();
         }
 
+        public static void setStdoutOff()
+        {
+            DoNothingStream dns = new DoNothingStream();
+            StreamWriter writer = new StreamWriter(dns);
+            Console.SetOut(writer);
+        }
 
         public static int CLIP(int x)
         {

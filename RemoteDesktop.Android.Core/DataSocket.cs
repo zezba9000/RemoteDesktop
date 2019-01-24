@@ -343,12 +343,15 @@ namespace RemoteDesktop.Android.Core
 
         private void debugPrinbByteArray(byte[] buf, int span)
         {
-            string debugStr = "contents of buffer " + span.ToString() + " elem span :";
-            for (int i = 0; i < buf.Length; i += span)
+            if (!RTPConfiguration.isStdOutOff)
             {
-                debugStr += buf[i].ToString() + ", ";
+                string debugStr = "contents of buffer " + span.ToString() + " elem span :";
+                for (int i = 0; i < buf.Length; i += span)
+                {
+                    debugStr += buf[i].ToString() + ", ";
+                }
+                Console.WriteLine(debugStr);
             }
-            Console.WriteLine(debugStr);
         }
 
         private void debugPrintByteArray4ElemSpan(byte[] buf)
@@ -359,7 +362,7 @@ namespace RemoteDesktop.Android.Core
 		private void ReceiveBufferShiftDown(int atIndex)
 		{
             Console.WriteLine("call ReceiveBufferShiftDown func. atIndex: " + atIndex.ToString());
-            debugPrintByteArray4ElemSpan(receiveBuffer);
+            //debugPrintByteArray4ElemSpan(receiveBuffer);
 			for (int i = 0, i2 = atIndex; i2 < receiveBuffer.Length; ++i, ++i2)
 			{
 				receiveBuffer[i] = receiveBuffer[i2];

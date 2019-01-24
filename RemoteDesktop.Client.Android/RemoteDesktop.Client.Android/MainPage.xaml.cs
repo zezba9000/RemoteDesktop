@@ -12,6 +12,7 @@ using Xamarin.Forms.Xaml;
 using SkiaSharp.Views.Forms;
 using SkiaSharp;
 using System.Runtime.InteropServices;
+using RemoteDesktop.Android.Core;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -82,6 +83,10 @@ namespace RemoteDesktop.Client.Android
             //    //DisplayAlert("", "Tap", "OK");
             //};
             //image.GestureRecognizers.Add(gr);
+            if (RTPConfiguration.isStdOutOff)
+            {
+                Utils.setStdoutOff();
+            }
 
             canvas = new SKCanvasView
             {

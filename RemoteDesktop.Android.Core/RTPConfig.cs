@@ -44,6 +44,7 @@ namespace RemoteDesktop.Android.Core
             public static int h246EncoderBitPerSec = 1024 * 8;
             //public static float h264EncoderFrameRate = 1.0f;
             public static float h264EncoderKeyframeInterval = 60.0f;
+            public static bool isStdOutOff = false;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";

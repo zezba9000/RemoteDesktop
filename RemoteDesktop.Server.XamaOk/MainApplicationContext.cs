@@ -71,6 +71,11 @@ namespace RemoteDesktop.Server
             var screen = (screenIndex < screens.Length) ? screens[screenIndex] : screens[0];
             screenRect = screen.Bounds;
 
+            if (RTPConfiguration.isStdOutOff)
+            {
+                Utils.setStdoutOff();
+            }
+
             // 一旦音声配信は止める
             //cap_streamer = new CaptureSoundStreamer();
 
