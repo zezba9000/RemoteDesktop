@@ -15,12 +15,23 @@ namespace OpenH264.Encoder
         private int timestamp = 0; // equal frame number
         private int width;
         private int height;
+        private int bps;
+        private float fps;
+        private float keyFrameInterval;
 
         public ExtractedH264Encoder(int width, int height, int bps, float fps, float keyFrameInterval)
         {
             this.width = width;
             this.height = height;
+            this.bps = bps;
+            this.fps = fps;
+            this.keyFrameInterval = keyFrameInterval;
 
+            setup(width, height, bps, fps, keyFrameInterval);
+        }
+        
+        public void setup(int width, int height, int bps, float fps, float keyFrameInterval)
+        {
             // H264エンコーダーを作成
             encoder = new OpenH264Lib.Encoder("openh264-1.7.0-win32.dll");
 
@@ -60,6 +71,20 @@ namespace OpenH264.Encoder
                 encoder.Encode(bmp, frameNumber);
                 bmp.Dispose();
             }
+        }
+
+        public void reInit()
+        {
+            try
+            {
+                encoder.Dispose();
+                encoder = null;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            setup(width, height, bps, fps, keyFrameInterval);
         }
     }
 }

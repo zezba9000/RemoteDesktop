@@ -43,11 +43,9 @@ namespace RemoteDesktop.Server
         private bool receivedMetaData = false;
 		//private byte inputLastMouseState;
         private CaptureSoundStreamer cap_streamer;
-        private Process ffmpegProc = null;
 
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
-        private static string outPathBase = "F:\\work\\tmp\\gen_HLS_files_from_h264_avi_file_try\\";
 
         public MainApplicationContext()
 		{
@@ -331,9 +329,13 @@ namespace RemoteDesktop.Server
 			{
                 if (timer != null)
                 {
-					timer.Tick -= Timer_Tick;
+                    timer.Tick -= Timer_Tick_bitmap_to_openH264_Encoder;
 					timer.Dispose();
 					timer = null;
+                }
+                if(encoder != null)
+                {
+                    encoder.reInit();
                 }
 				socket.ReListen();
 			});

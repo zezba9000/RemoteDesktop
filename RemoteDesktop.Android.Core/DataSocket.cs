@@ -378,7 +378,7 @@ namespace RemoteDesktop.Android.Core
 				if (isDisposed || socket == null || !socket.Connected) return;
 
 				// handle failed reads
-				int bytesRead;
+				int bytesRead = 0;
 				try
 				{
 					bytesRead = socket.EndReceive(ar); // this retuened larger than buffer size? (it means total read byte size?) => maybe No
@@ -386,7 +386,8 @@ namespace RemoteDesktop.Android.Core
 				}
 				catch(Exception ex)
 				{
-                    throw ex;
+                    Console.WriteLine(ex);
+                    disconnected = true;
 				}
 
 				// write data to stream
