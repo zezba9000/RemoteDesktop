@@ -35,7 +35,7 @@ namespace RemoteDesktop.Server
         bool isFixedParamUse = true; // use server side hard coded parameter on running
         bool fixedCompress = false;
         float resolutionScale = 1.0F; // DEBUG INFO: current jpeg encoding implementation is not work with not value 1.0
-        float fixedResolutionScale = 0.5F; // if this value is not 1, this value is used at scaling always
+        float fixedResolutionScale = 0.5F;
 		private System.Windows.Forms.Timer timer = null;
 		public static Dispatcher dispatcher;
 

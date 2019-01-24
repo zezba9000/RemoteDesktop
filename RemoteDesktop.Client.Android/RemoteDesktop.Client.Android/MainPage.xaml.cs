@@ -47,7 +47,6 @@ namespace RemoteDesktop.Client.Android
 
         private int width = 432; // dp based app display area size is set
         private int height = 708; // dp based app display area size is set
-        private const int IMAGE_SERVER_PORT = 8889;
 
         private RTPSoundStreamPlayer player = null;
         private AbsoluteLayout layout;
@@ -376,7 +375,7 @@ namespace RemoteDesktop.Client.Android
             socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
             socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             //socket.Connect(host.endpoints[0]);
-            socket.Connect(IPAddress.Parse(RTPConfiguration.ServerAddress), IMAGE_SERVER_PORT);
+            socket.Connect(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
         }
 
 
