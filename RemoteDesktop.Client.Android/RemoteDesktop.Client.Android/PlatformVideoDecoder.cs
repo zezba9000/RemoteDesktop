@@ -20,7 +20,12 @@ namespace RemoteDesktop.Client.Android
         public void OnDecodeFrame(byte[] frame_data, int width, int height)
         {
             Console.WriteLine("OnDecodeFrame callback called!");
-            encodedDataGenerated(frame_data, width, height);
+            byte[] copied_buf = new byte[frame_data.Length];
+            Array.Copy(frame_data, 0, copied_buf, 0, frame_data.Length);
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                encodedDataGenerated(copied_buf, width, height);
+            });
         }
 
         public void addEncodedFrameData(byte[] encoded_data, int length)

@@ -71,13 +71,21 @@ namespace RemoteDesktop.Client.Android.Droid
 
         override public void OnInputBufferAvailable(MediaCodec mc, int inputBufferId)
         {
-            byte[] encoded_data; // = mCallbackObj.getEncodedFrameData();
-            while ((encoded_data = mCallbackObj.getEncodedFrameData()) == null)
+            Console.WriteLine("called OnInputBufferAvailable at Decoder");
+            byte[] encoded_data= mCallbackObj.getEncodedFrameData();
+            //while ((encoded_data = mCallbackObj.getEncodedFrameData()) == null)
+            //{
+            //    Thread.Sleep(1000);
+            //}
+            //Console.WriteLine("OnInputBufferAvailable: got encoded data!");
+            //if (encoded_data != null)
+            if (encoded_data == null)
             {
-                Thread.Sleep(1000);
+                ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
+                inputBuffer.Put(new byte[0]);
+                mDecoder.QueueInputBuffer(inputBufferId, 0, 0, frameCounter * 1000 /* 1FPS */, 0);
             }
-            if (encoded_data != null)
-            {
+            else {
                 int sampleSize = encoded_data.Length;
                 if (sampleSize > 0)
                 {
