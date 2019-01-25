@@ -30,23 +30,29 @@ namespace RemoteDesktop.Client.Android
 
         public void addEncodedFrameData(byte[] encoded_data, int length)
         {
-            byte[] copied_data = new byte[length];
-            Array.Copy(encoded_data, 0, copied_data, 0, length);
-            mEncodedFrameQ.Enqueue(copied_data);
+            lock (this)
+            {
+                byte[] copied_data = new byte[length];
+                Array.Copy(encoded_data, 0, copied_data, 0, length);
+                mEncodedFrameQ.Enqueue(copied_data);
+            };
         }
 
         // i frame data is not prepared, return NULL
         // for Decoder
         public byte[] getEncodedFrameData()
         {
-            try
+            lock (this)
             {
-                return mEncodedFrameQ.Dequeue();
-            }
-            catch(InvalidOperationException ex)
-            {
-                Console.WriteLine("encoded frame deque missed.");
-                return null;
+                try
+                {
+                    return mEncodedFrameQ.Dequeue();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine("encoded frame deque missed.");
+                    return null;
+                }
             }
         }
     }

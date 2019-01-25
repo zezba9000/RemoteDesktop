@@ -11,6 +11,7 @@ using Java.Nio;
 using static Android.Media.MediaCodec;
 using System.IO;
 using Android.OS;
+using System.Threading.Tasks;
 
 [assembly: Dependency(typeof(PlatformVideoDecoderAndroid))]
 
@@ -69,23 +70,16 @@ namespace RemoteDesktop.Client.Android.Droid
             Console.WriteLine(e);
         }
 
-        override public void OnInputBufferAvailable(MediaCodec mc, int inputBufferId)
+        private void OnInputBufferAvailableInner(MediaCodec mc, int inputBufferId)
         {
-            Console.WriteLine("called OnInputBufferAvailable at Decoder");
-            byte[] encoded_data= mCallbackObj.getEncodedFrameData();
-            //while ((encoded_data = mCallbackObj.getEncodedFrameData()) == null)
-            //{
-            //    Thread.Sleep(1000);
-            //}
-            //Console.WriteLine("OnInputBufferAvailable: got encoded data!");
-            //if (encoded_data != null)
-            if (encoded_data == null)
+            byte[] encoded_data = null;
+            while ((encoded_data = mCallbackObj.getEncodedFrameData()) == null)
             {
-                ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
-                inputBuffer.Put(new byte[0]);
-                mDecoder.QueueInputBuffer(inputBufferId, 0, 0, frameCounter * 1000 /* 1FPS */, 0);
+                Thread.Sleep(500);
             }
-            else {
+            Console.WriteLine("OnInputBufferAvailable: got encoded data!");
+            
+            if (encoded_data != null) {
                 int sampleSize = encoded_data.Length;
                 if (sampleSize > 0)
                 {
@@ -109,6 +103,18 @@ namespace RemoteDesktop.Client.Android.Droid
                 }
                 frameCounter++;
             }
+        }
+
+        override public void OnInputBufferAvailable(MediaCodec mc, int inputBufferId)
+        {
+            Console.WriteLine("called OnInputBufferAvailable at Decoder");
+            Task.Run(() =>
+            {
+                lock (this)
+                {
+                    OnInputBufferAvailableInner(mc, inputBufferId);
+                }
+            });
         }
 
         override public void OnOutputBufferAvailable(MediaCodec mc, int outputBufferId, BufferInfo info)
