@@ -342,6 +342,7 @@ namespace RemoteDesktop.Server
                 {
                     encoder.reInit();
                 }
+                timestamp = 0;
 				socket.ReListen();
 			});
 		}
@@ -396,6 +397,12 @@ namespace RemoteDesktop.Server
                 }
 
                 CaptureScreen();
+                if(timestamp < RTPConfiguration.initialSkipCaptureNums)
+                {
+                    timestamp++;
+                    return;
+                }
+
                 BitmapXama convedXBmap = null;
                 byte[] tmp_buf = new byte[scaledBitmap.Width * scaledBitmap.Height * 3];
                 if (resolutionScale == 1)
@@ -417,7 +424,8 @@ namespace RemoteDesktop.Server
                 var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
 
                 Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
-                encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp++);
+                encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp - RTPConfiguration.initialSkipCaptureNums);
+                timestamp++;
             }
 		}
 

@@ -55,6 +55,7 @@ namespace RemoteDesktop.Android.Core
             public static bool isStreamRawH264Data = true;
             public static bool isConvJpeg = false; // 今は関係ない
             public static int jpegEncodeQuality = 50;
+            public static int initialSkipCaptureNums = 0;
 
             // FormMainとかにあったフィールド
             //private uint m_RecorderFactor = 4;
