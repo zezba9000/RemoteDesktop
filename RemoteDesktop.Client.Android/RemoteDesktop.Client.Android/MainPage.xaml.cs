@@ -112,9 +112,9 @@ namespace RemoteDesktop.Client.Android
 
 
             //Utils.getLocalIP();
-            //connectToSoundServer(); // start recieve sound data which playing on remote PC
+            connectToSoundServer(); // start recieve sound data which playing on remote PC
 
-            connectToImageServer(); // staart recieve captured bitmap image data 
+            //connectToImageServer(); // staart recieve captured bitmap image data 
         }
 
         void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs args)
