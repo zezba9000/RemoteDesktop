@@ -385,6 +385,7 @@ namespace RemoteDesktop.Server.XamaOK
 
         private void handleDataWithTCP(byte[] pcm8_buf)
         {
+            Console.WriteLine("call handleDataWithTcp");
             if (!sdsock.IsConnected())
             {
                 return;
@@ -394,7 +395,9 @@ namespace RemoteDesktop.Server.XamaOK
             {
                 return;
             }
+            Console.WriteLine("call SoundUtils.ToRTPPacket");
             RTPPacket rtp = SoundUtils.ToRTPPacket(pcm8_buf, rtp_config);
+            Console.WriteLine("call sdsock.SendRTPPacket");
             sdsock.SendRTPPacket(rtp, rtp_config.compress, rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, rtp_config.isConvertMulaw);
         }
 

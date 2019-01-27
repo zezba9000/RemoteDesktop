@@ -467,6 +467,7 @@ namespace RemoteDesktop.Android.Core.Sound
                 soundDataSize = packet.Data.Length;
                 dataLength = soundDataSize;
 
+                /*
                 if (compress)
                 {
                     if (compressedStream == null) compressedStream = new MemoryStream();
@@ -482,6 +483,7 @@ namespace RemoteDesktop.Android.Core.Sound
                     compressedStream.Flush();
                     dataLength = (int)compressedStream.Length;
                 }
+                */
 
                 // send packet header
                 var pktHeader = new PacketHeader()
@@ -498,12 +500,14 @@ namespace RemoteDesktop.Android.Core.Sound
 
 				SendPacketHeaderInternal(pktHeader);
 
-                if (compress)
+                //if (compress)
+                if (false)
                 {
                     SendBinary(compressedStream.GetBuffer(), dataLength);
                 }
                 else
                 {
+                    Console.WriteLine("call SendBinary for commpressed mp3 data");
                     SendBinary(packet.Data, dataLength);
                 }
             }
@@ -521,6 +525,7 @@ namespace RemoteDesktop.Android.Core.Sound
 		//private unsafe void SendPacketHeaderInternal(PacketHeader metaData)
 		private void SendPacketHeaderInternal(PacketHeader pktHdr)
 		{
+            Console.WriteLine("call SendPacketHeaderInternal");
             MemoryStream ms = new MemoryStream();
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(ms, pktHdr);
