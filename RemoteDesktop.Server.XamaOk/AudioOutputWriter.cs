@@ -410,13 +410,13 @@ namespace RemoteDesktop.Server.XamaOK
 
             try
             {
-                if (rtp_config.isAlreadySetInfoFromSndCard == false)
-                {
-                    // キャプチャした音声データについて情報を設定
-                    updateRTPConfiguration();
-                    //m_RTPPartsLength = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.SamplesPerSecond, rtp_config.Channels);
-                    rtp_config.isAlreadySetInfoFromSndCard = true;
-                }
+                //if (rtp_config.isAlreadySetInfoFromSndCard == false)
+                //{
+                //    // キャプチャした音声データについて情報を設定
+                //    updateRTPConfiguration();
+                //    //m_RTPPartsLength = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.SamplesPerSecond, rtp_config.Channels);
+                //    rtp_config.isAlreadySetInfoFromSndCard = true;
+                //}
 
                 if(rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
                 {
