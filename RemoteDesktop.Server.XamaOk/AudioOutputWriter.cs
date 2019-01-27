@@ -233,7 +233,7 @@ namespace RemoteDesktop.Server.XamaOK
             //this.Dispose();
         }
 
-        private byte[] convertIEEE32bitFloatTo8bitPCM(WaveInEventArgs e)
+        private byte[] convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(WaveInEventArgs e)
         {
             byte[] recorded_buf = e.Buffer;
             int recorded_length = e.BytesRecorded;
@@ -247,6 +247,7 @@ namespace RemoteDesktop.Server.XamaOK
             byte[] pcm8_buf = null;
             //int pcm8_len = -1;
 
+            byte[] mp3_buf = null;
             try
             {
                 //// 生データを再生可能なデータに変換
@@ -264,6 +265,7 @@ namespace RemoteDesktop.Server.XamaOK
                     LeftVolume = 1f,
                     RightVolume = 1f
                 };
+
 
                 // Convert to 32bit float to 16bit PCM
                 var ieeeToPcm = new SampleToWaveProvider16(monoStream);
@@ -284,7 +286,10 @@ namespace RemoteDesktop.Server.XamaOK
                 pcm8_buf = new byte[pcm8_len];
                 var depthConvertStream = new WaveFormatConversionStream(new WaveFormat(8000, 8, 1), new RawSourceWaveStream(pcm16_buf, 0, pcm16_len, new WaveFormat(8000, 16, 1)));
                 depthConvertStream.Flush();
-                depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
+                //depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
+
+                mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertStream);
+
 
                 //var depthConvStream = new AcmStream(new WaveFormat(rtp_config.SamplesPerSecond, 16, 1), new WaveFormat(rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, 1));
                 //Buffer.BlockCopy(pcm16_buf, 0, depthConvStream.SourceBuffer, 0, pcm16_len);
@@ -294,7 +299,7 @@ namespace RemoteDesktop.Server.XamaOK
                 //pcm8_buf = new byte[pcm8_len];
                 //Buffer.BlockCopy(depthConvStream.DestBuffer, 0, pcm8_buf, 0, pcm8_len);
 
-                Console.WriteLine("convert 32bit float 64KHz stereo to 8bit PCM 8KHz mono success");
+                Console.WriteLine("convert 32bit float 64KHz stereo to 8bit PCM 8KHz mono and encode it to mp3 compressed data");
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);
@@ -303,7 +308,8 @@ namespace RemoteDesktop.Server.XamaOK
             }
 
             //return pcm16_buf;
-            return pcm8_buf;
+            //return pcm8_buf;
+            return mp3_buf;
         }
 
         private void handleDataWithUDP(byte[] pcm8_buf)
@@ -390,7 +396,7 @@ namespace RemoteDesktop.Server.XamaOK
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
 
-            byte[] pcm8_buf = convertIEEE32bitFloatTo8bitPCM(e);
+            byte[] pcm8_buf = convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(e);
 
             try
             {

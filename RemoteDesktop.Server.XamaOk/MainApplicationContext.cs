@@ -14,6 +14,7 @@ using System.Windows.Threading;
 using WindowsInput;
 using WindowsInput.Native;
 using OpenH264.Encoder;
+using NAudio.MediaFoundation;
 
 namespace RemoteDesktop.Server
 {
@@ -76,7 +77,9 @@ namespace RemoteDesktop.Server
                 Utils.setStdoutOff();
             }
 
-            // 一旦音声配信は止める
+
+
+            // 音声配信サーバ
             cap_streamer = new CaptureSoundStreamer();
 
             //// init input simulation
