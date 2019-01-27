@@ -37,7 +37,7 @@ namespace RemoteDesktop.Client.Android.Droid
             //    depthBits = Encoding.Pcm8bit;
             //}
 
-            ChannelOut ch = ChannelOut.Stereo;
+            ChannelOut ch = ChannelOut.Mono;
             //if(channels == 1)
             //{
             //    ch = ChannelOut.Mono;
@@ -51,7 +51,7 @@ namespace RemoteDesktop.Client.Android.Droid
             // Stream type
             Stream.Music,
             // Frequency
-            48000, //samplesPerSecond,
+            24000, //samplesPerSecond,
             // Mono or stereo
             ch,
             // Audio encoding
