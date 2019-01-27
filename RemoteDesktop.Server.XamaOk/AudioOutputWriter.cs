@@ -254,48 +254,40 @@ namespace RemoteDesktop.Server.XamaOK
             byte[] mp3_buf = null;
             try
             {
-                // 生データを再生可能なデータに変換
+                //// 生データを再生可能なデータに変換
                 var waveBufferResample = new BufferedWaveProvider(this._WaveIn.WaveFormat);
                 waveBufferResample.DiscardOnBufferOverflow = true;
                 waveBufferResample.ReadFully = false;  // leave a buffer?
-/*
                 var sampleStream = new WaveToSampleProvider(waveBufferResample);
 
                 // Downsample to 8000
                 var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, rtp_config.SamplesPerSecond);
 
                 // Stereo to mono
-                var monoProvider = new StereoToMonoSampleProvider(resamplingProvider)
+                var monoStream = new StereoToMonoSampleProvider(resamplingProvider)
                 {
                     LeftVolume = 1f,
                     RightVolume = 1f
                 };
 
                 // Convert to 32bit float to 16bit PCM
-                var ieeeToPcm = new SampleToWaveProvider16(monoProvider);
+                var ieeeToPcm = new SampleToWaveProvider16(monoStream);
+                pcm16_len = recorded_length / (2 * 6 * 2);
+                pcm16_buf = new byte[pcm16_len];
 
-                //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(ieeeToPcm);
+                waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
 
-                // Convert 16bit PCM to 8bit PCM
-                //var depthConvertProvider = new WaveFormatConversionProvider(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), ieeeToPcm);
-
-                //pcm16_len = recorded_length / (2 * 6 * 2);
-                //pcm16_buf = new byte[pcm16_len];
+                mp3_buf = SoundEncodeUtil.encodePCMtoMP3(waveBufferResample);
                 //ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
+
+                //// Convert 16bit PCM to 8bit PCM
+                //int pcm8_len = pcm16_len / 2;
+                //pcm8_buf = new byte[pcm8_len];
                 //var depthConvertStream = new WaveFormatConversionStream(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), new RawSourceWaveStream(pcm16_buf, 0, pcm16_len, new WaveFormat(rtp_config.SamplesPerSecond, 16, 1)));
                 //depthConvertStream.Flush();
 
-                //int pcm8_len = pcm16_len / 2;
-                //pcm8_buf = new byte[pcm8_len];
-                //depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
-
-                //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertProvider);
-*/
-                // データを源流から流す
-                waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
-
-                //何の処理もしていないProviderを渡す(動くので)
-                SoundEncodeUtil.encodePCMtoMP3(waveBufferResample);
+                ////depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
+                //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertStream);
 
                 Console.WriteLine("convert 32bit float 64KHz stereo to 8bit PCM 8KHz mono and encode it to mp3 compressed data");
             } catch (Exception ex)

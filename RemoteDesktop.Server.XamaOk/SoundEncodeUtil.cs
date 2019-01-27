@@ -183,17 +183,7 @@ namespace RemoteDesktop.Server.XamaOK
             //);
             //MediaFoundationEncoder encoder = new MediaFoundationEncoder(mediaType);
 
-            //// MediaTypeにMFAudioFormat_MP3を指定
-            //NAudio.MediaFoundation.MediaType mediaType = MediaFoundationEncoder.SelectMediaType(
-            //NAudio.MediaFoundation.AudioSubtypes.MFAudioFormat_MP3,
-            //waveIn.WaveFormat,
-            //1000 * 8);
-            //using (MediaFoundationEncoder encoder = new MediaFoundationEncoder(mediaType))
-            //{
-            //    encoder.Encode("F:\\work\\tmp\\tmp.mp3", waveIn);
-            //}
-
-            MediaFoundationEncoder.EncodeToMp3(waveIn, "F:\\work\\tmp\\tmp.mp3", 500 * 8);
+            MediaFoundationEncoder.EncodeToMp3(waveIn, "F:\\work\\tmp\\tmp.mp3");
             Mp3FileReader reader = new Mp3FileReader("F:\\work\\tmp\\tmp.mp3");
             MemoryStream ms = new MemoryStream();
             Mp3Frame ret;
