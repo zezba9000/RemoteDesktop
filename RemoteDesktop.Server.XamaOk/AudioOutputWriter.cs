@@ -254,10 +254,11 @@ namespace RemoteDesktop.Server.XamaOK
             byte[] mp3_buf = null;
             try
             {
-                //// 生データを再生可能なデータに変換
+                // 生データを再生可能なデータに変換
                 var waveBufferResample = new BufferedWaveProvider(this._WaveIn.WaveFormat);
                 waveBufferResample.DiscardOnBufferOverflow = true;
                 waveBufferResample.ReadFully = false;  // leave a buffer?
+/*
                 var sampleStream = new WaveToSampleProvider(waveBufferResample);
 
                 // Downsample to 8000
@@ -273,10 +274,7 @@ namespace RemoteDesktop.Server.XamaOK
                 // Convert to 32bit float to 16bit PCM
                 var ieeeToPcm = new SampleToWaveProvider16(monoProvider);
 
-                // データを源流から流す
-                waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
-
-                mp3_buf = SoundEncodeUtil.encodePCMtoMP3(ieeeToPcm);
+                //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(ieeeToPcm);
 
                 // Convert 16bit PCM to 8bit PCM
                 //var depthConvertProvider = new WaveFormatConversionProvider(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), ieeeToPcm);
@@ -292,6 +290,12 @@ namespace RemoteDesktop.Server.XamaOK
                 //depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
 
                 //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertProvider);
+*/
+                // データを源流から流す
+                waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
+
+                //何の処理もしていないProviderを渡す(動くので)
+                SoundEncodeUtil.encodePCMtoMP3(waveBufferResample);
 
                 Console.WriteLine("convert 32bit float 64KHz stereo to 8bit PCM 8KHz mono and encode it to mp3 compressed data");
             } catch (Exception ex)
