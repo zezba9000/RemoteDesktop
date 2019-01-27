@@ -550,14 +550,15 @@ namespace RemoteDesktop.Android.Core.Sound
 		{
 			if (socket == null || !socket.Connected) return false;
 
-			try
-			{
-				return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-			}
-			catch
-			{
-				return false;
-			}
+            return true;
+			//try
+			//{
+			//	return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+			//}
+			//catch
+			//{
+			//	return false;
+			//}
 		}
 
 		public bool IsConnected()

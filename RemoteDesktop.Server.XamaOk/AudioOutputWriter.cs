@@ -405,6 +405,11 @@ namespace RemoteDesktop.Server.XamaOK
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
 
+            if(sdsock.IsConnected() == false)
+            {
+                return;
+            }
+
             byte[] mp3_buf = convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(e);
             if(mp3_buf == null)
             {
