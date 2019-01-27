@@ -241,6 +241,10 @@ namespace RemoteDesktop.Server.XamaOK
         {
             byte[] recorded_buf = e.Buffer;
             int recorded_length = e.BytesRecorded;
+            if(recorded_length == 0)
+            {
+                return null;
+            }
 
             //byte[] depthConv_buf = null;
             //int depthConvBytes = -1;
@@ -249,7 +253,6 @@ namespace RemoteDesktop.Server.XamaOK
             int pcm16_len = -1;
 
             byte[] pcm8_buf = null;
-            //int pcm8_len = -1;
 
             byte[] mp3_buf = null;
             try
@@ -264,30 +267,35 @@ namespace RemoteDesktop.Server.XamaOK
                 var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, rtp_config.SamplesPerSecond);
 
                 // Stereo to mono
-                var monoStream = new StereoToMonoSampleProvider(resamplingProvider)
+                var monoProvider = new StereoToMonoSampleProvider(resamplingProvider)
                 {
                     LeftVolume = 1f,
                     RightVolume = 1f
                 };
 
                 // Convert to 32bit float to 16bit PCM
-                var ieeeToPcm = new SampleToWaveProvider16(monoStream);
+                var ieeeToPcm = new SampleToWaveProvider16(monoProvider);
+
+                //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(ieeeToPcm);
+
+                //Convert 16bit PCM to 8bit PCM
+                var depthConvertProvider = new WaveFormatConversionProvider(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), ieeeToPcm);
+
                 pcm16_len = recorded_length / (2 * 6 * 2);
                 pcm16_buf = new byte[pcm16_len];
+                ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
+                var depthConvertStream = new WaveFormatConversionStream(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), new RawSourceWaveStream(pcm16_buf, 0, pcm16_len, new WaveFormat(rtp_config.SamplesPerSecond, 16, 1)));
 
+                // データを源流から流す
                 waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
 
-                mp3_buf = SoundEncodeUtil.encodePCMtoMP3(waveBufferResample);
-                //ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
+                depthConvertStream.Flush();
 
-                //// Convert 16bit PCM to 8bit PCM
-                //int pcm8_len = pcm16_len / 2;
-                //pcm8_buf = new byte[pcm8_len];
-                //var depthConvertStream = new WaveFormatConversionStream(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), new RawSourceWaveStream(pcm16_buf, 0, pcm16_len, new WaveFormat(rtp_config.SamplesPerSecond, 16, 1)));
-                //depthConvertStream.Flush();
+                int pcm8_len = pcm16_len / 2;
+                pcm8_buf = new byte[pcm8_len];
+                depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
 
-                ////depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
-                //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertStream);
+                mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertProvider);
 
                 Console.WriteLine("convert 32bit float 64KHz stereo to 8bit PCM 8KHz mono and encode it to mp3 compressed data");
             } catch (Exception ex)
@@ -386,7 +394,11 @@ namespace RemoteDesktop.Server.XamaOK
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
 
-            byte[] pcm8_buf = convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(e);
+            byte[] mp3_buf = convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(e);
+            if(mp3_buf == null)
+            {
+                return;
+            }
 
             try
             {
@@ -400,11 +412,11 @@ namespace RemoteDesktop.Server.XamaOK
 
                 if(rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
                 {
-                    handleDataWithUDP(pcm8_buf);
+                    handleDataWithUDP(mp3_buf);
                 }
                 else
                 {
-                    handleDataWithTCP(pcm8_buf);
+                    handleDataWithTCP(mp3_buf);
                 }
             }
             catch (Exception ex)
