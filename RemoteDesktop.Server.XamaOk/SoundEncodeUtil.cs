@@ -184,11 +184,16 @@ namespace RemoteDesktop.Server.XamaOK
             //MediaFoundationEncoder encoder = new MediaFoundationEncoder(mediaType);
 
             MediaFoundationEncoder.EncodeToMp3(waveIn, "F:\\work\\tmp\\tmp.mp3");
+            Console.WriteLine("before create MP3FileReader");
+            Console.Out.Flush();
             Mp3FileReader reader = new Mp3FileReader("F:\\work\\tmp\\tmp.mp3");
+            Console.WriteLine("after create MP3FileReader");
+            Console.Out.Flush();
             MemoryStream ms = new MemoryStream();
             Mp3Frame ret;
             while((ret = reader.ReadNextFrame()) != null)
             {
+                Console.WriteLine("write frame data to MemoryStream size = " + ret.FrameLength);
                 ms.Write(ret.RawData, 0, ret.FrameLength);
             }
             reader.Close();

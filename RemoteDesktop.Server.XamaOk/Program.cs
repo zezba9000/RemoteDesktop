@@ -3,8 +3,13 @@ using System.Windows.Forms;
 
 namespace RemoteDesktop.Server
 {
+
 	static class Program
 	{
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern bool AllocConsole();
+
 		[STAThread]
 		static void Main(string[] args)
 		{
@@ -20,6 +25,9 @@ namespace RemoteDesktop.Server
 			// start app
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
+
+            AllocConsole();
+
 			if (isDebugMode) Application.Run(new MainForm());
 			else Application.Run(new MainApplicationContext());
 		}
