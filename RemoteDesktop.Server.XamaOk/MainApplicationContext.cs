@@ -77,8 +77,6 @@ namespace RemoteDesktop.Server
                 Utils.setStdoutOff();
             }
 
-
-
             // 音声配信サーバ
             cap_streamer = new CaptureSoundStreamer();
 
