@@ -12,15 +12,16 @@ using static Android.Media.MediaCodec;
 using System.IO;
 using Android.OS;
 using System.Threading.Tasks;
+using Stream = Android.Media.Stream;
 
 [assembly: Dependency(typeof(PlatformVideoDecoderAndroid))]
 
 namespace RemoteDesktop.Client.Android.Droid
 {
 
-    public delegate void DecodedBitmapHandler(byte[] decoded_data);
+    public delegate void DecodedPCMHandler(byte[] decoded_data);
 
-    public class MyCallback : MediaCodec.Callback
+    public class AudioDecoderCallback : MediaCodec.Callback
     {
         MediaCodec mDecoder;
         MediaFormat mOutputFormat;
@@ -29,7 +30,7 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public event DecodedBitmapHandler encodedDataGenerated;
 
-        public MyCallback(MediaCodec decoder, DecoderCallback callback_obj)
+        public AudioDecoderCallback(MediaCodec decoder, DecoderCallback callback_obj)
         {
             mCallbackObj = callback_obj;
             mDecoder = decoder;
@@ -54,16 +55,8 @@ namespace RemoteDesktop.Client.Android.Droid
                 {
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
                     inputBuffer.Put(encoded_data);
-
-                    if (frameCounter == 0)
-                    {
-                        Console.WriteLine("feed a frame contains SSP and PSP");
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
-                    }else
-                    {
-                        Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, frameCounter * 1000 /* 1FPS */, 0);
-                    }
+                    Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
+                    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, frameCounter * 1000 /* 1FPS */, 0);
                 }
                 else
                 {
@@ -118,7 +111,7 @@ namespace RemoteDesktop.Client.Android.Droid
         }
     }
 
-    public class PlatformVideoDecoderAndroid : IPlatformVideoDecoder
+    public class PlatformAudioDecodingPlayerAndroid : IPlatformAudioDecodingPlayer
     {
         private static String VIDEO = "video/";
         private static String MIME = "video/avc";
@@ -139,12 +132,76 @@ namespace RemoteDesktop.Client.Android.Droid
         private MediaFormat inputFormat;
         private DecoderCallback mCallbackObj;
 
+        AudioTrack audioTrack;
+
+        public void PlayData(byte[] data, bool flag)
+        {
+            audioTrack.Write(data, 0, data.Length);
+            //int len = data.Length / 4;
+            //float[] fdata = new float[len];
+            //for(int idx = 0; idx < len; idx++)
+            //{
+            //    fdata[idx] = BitConverter.ToSingle(data, idx * 4);
+            //    //Console.WriteLine(fdata[idx].ToString());
+            //}
+            //const int WRITE_BLOCKING = 0x00000000;
+            //audioTrack.Write(fdata, 0, len, WRITE_BLOCKING);
+        }
+
+        public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
+        {
+            Encoding depthBits = Encoding.Mp3;
+            //if(bitsPerSample == 16)
+            //{
+            //    depthBits = Encoding.Pcm16bit;
+            //}else if (bitsPerSample == 8)
+            //{
+            //    depthBits = Encoding.Pcm8bit;
+            //}
+
+            ChannelOut ch = ChannelOut.Mono;
+            //if(channels == 1)
+            //{
+            //    ch = ChannelOut.Mono;
+            //}
+            //else
+            //{
+            //    ch = ChannelOut.Stereo;
+            //}
+#pragma warning disable CS0618 // Type or member is obsolete
+           audioTrack = new AudioTrack(
+            // Stream type
+            Stream.Music,
+            // Frequency
+            24000, //samplesPerSecond,
+            // Mono or stereo
+            ch,
+            // Audio encoding
+            depthBits,
+            //Encoding.PcmFloat,
+            //Encoding.Pcm8bit,
+            // Length of the audio clip.
+            //1024 * 1024,
+            bufferCount,
+            // Mode. Stream or static.
+            AudioTrackMode.Stream);
+#pragma warning restore CS0618 // Type or member is obsolete
+            audioTrack.Play();
+            return true;
+        }
+
+        public void Close()
+        {
+            audioTrack.Stop();
+            audioTrack.Release();
+        }
+
         private long CurrentTimeMillisSharp()
         {
             return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
-        public bool setup(DecoderCallback callback_obj, int width, int height) //format_hint is aviFileContent 
+        public bool setup(AudioDecoderCallback callback_ob, int samplingRate, int ch, int bitrate)
         {
             HandlerThread callbackThread = new HandlerThread("H264DecoderHandler");
             callbackThread.Start();

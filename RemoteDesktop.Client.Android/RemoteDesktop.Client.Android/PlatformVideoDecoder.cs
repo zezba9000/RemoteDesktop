@@ -5,37 +5,14 @@ using Xamarin.Forms;
 
 namespace RemoteDesktop.Client.Android
 {
-    public delegate void DecodedBitmapHandler(byte[] decoded_data, int width, int height);
 
-    public class DecoderCallback
+    public class AudioDecoderCallback
     {
         private Queue<byte[]> mEncodedFrameQ;
-        public event DecodedBitmapHandler encodedDataGenerated;
 
-        public DecoderCallback(Queue<byte[]> encoded_frame_q)
+        public AudioDecoderCallback(Queue<byte[]> encoded_frame_q)
         {
             mEncodedFrameQ = encoded_frame_q;
-        }
-
-        public void OnDecodeFrame(byte[] frame_data, int width, int height)
-        {
-            Console.WriteLine("OnDecodeFrame callback called!");
-            byte[] copied_buf = new byte[frame_data.Length];
-            Array.Copy(frame_data, 0, copied_buf, 0, frame_data.Length);
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                encodedDataGenerated(copied_buf, width, height);
-            });
-        }
-
-        public void addEncodedFrameData(byte[] encoded_data, int length)
-        {
-            lock (this)
-            {
-                byte[] copied_data = new byte[length];
-                Array.Copy(encoded_data, 0, copied_data, 0, length);
-                mEncodedFrameQ.Enqueue(copied_data);
-            };
         }
 
         // i frame data is not prepared, return NULL
@@ -58,17 +35,17 @@ namespace RemoteDesktop.Client.Android
     }
 
 
-    public interface IPlatformVideoDecoder
+    public interface IPlatformAudioDecodingPlayer
     {
-        bool setup(DecoderCallback callback_ob, int width, int heightj);
+        bool setup(AudioDecoderCallback callback_ob, int samplingRate, int ch, int bitrate);
         void Close();
     }
 
-    public static class VideoDecoderFactory
+    public static class AudioDecodingPlayerFactory
     {
-        public static IPlatformVideoDecoder getInstance()
+        public static IPlatformAudioDecodingPlayer getInstance()
         {
-            return DependencyService.Get<IPlatformVideoDecoder>();
+            return DependencyService.Get<IPlatformAudioDecodingPlayer>();
         }
     }
 }
