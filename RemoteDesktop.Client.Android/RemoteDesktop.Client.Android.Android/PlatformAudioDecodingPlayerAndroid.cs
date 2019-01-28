@@ -14,7 +14,7 @@ using Android.OS;
 using System.Threading.Tasks;
 using Stream = Android.Media.Stream;
 
-[assembly: Dependency(typeof(PlatformVideoDecoderAndroid))]
+[assembly: Dependency(typeof(PlatformAudioDecodingPlayerAndroid))]
 
 namespace RemoteDesktop.Client.Android.Droid
 {
@@ -35,6 +35,7 @@ namespace RemoteDesktop.Client.Android.Droid
         {
             mCallbackObj = callback_obj;
             mDecoder = decoder;
+            mADP = parent;
         }
         public override void OnError(MediaCodec codec, CodecException e)
         {
@@ -96,7 +97,7 @@ namespace RemoteDesktop.Client.Android.Droid
             mDecoder.ReleaseOutputBuffer(outputBufferId, false);
             Console.WriteLine("call OnDecodeFrame from decoder!");
 
-            Console.WriteLine("bufferFormat.getInteger(MediaFormat.KeyWidth)=" + bufferFormat.GetInteger(MediaFormat.KeyWidth).ToString() + " bufferFormat.getInteger(MediaFormat.KeyHeight)=" + bufferFormat.GetInteger(MediaFormat.KeyHeight).ToString());
+            //Console.WriteLine("bufferFormat.getInteger(MediaFormat.KeyWidth)=" + bufferFormat.GetInteger(MediaFormat.KeyWidth).ToString() + " bufferFormat.getInteger(MediaFormat.KeyHeight)=" + bufferFormat.GetInteger(MediaFormat.KeyHeight).ToString());
             //mCallbackObj.OnDecodeFrame(decoded_data, bufferFormat.GetInteger(MediaFormat.KeyWidth), bufferFormat.GetInteger(MediaFormat.KeyHeight));
             mADP.PlayData(decoded_data, true);
         }
