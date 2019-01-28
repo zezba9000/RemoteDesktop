@@ -25,12 +25,13 @@ namespace RemoteDesktop.Client.Android.Droid
     {
         MediaCodec mDecoder;
         MediaFormat mOutputFormat;
-        DecoderCallback mCallbackObj;
+        AudioDecodingPlayerCallback mCallbackObj;
+        PlatformAudioDecodingPlayerAndroid mADP;
         int frameCounter = 0;
 
         public event DecodedBitmapHandler encodedDataGenerated;
 
-        public AudioDecoderCallback(MediaCodec decoder, DecoderCallback callback_obj)
+        public AudioDecoderCallback(MediaCodec decoder, AudioDecodingPlayerCallback callback_obj, PlatformAudioDecodingPlayerAndroid parent)
         {
             mCallbackObj = callback_obj;
             mDecoder = decoder;
@@ -43,7 +44,7 @@ namespace RemoteDesktop.Client.Android.Droid
         private void OnInputBufferAvailableInner(MediaCodec mc, int inputBufferId)
         {
             byte[] encoded_data = null;
-            while ((encoded_data = mCallbackObj.getEncodedFrameData()) == null)
+            while ((encoded_data = mCallbackObj.getEncodedSamplesData()) == null)
             {
                 Thread.Sleep(500);
             }
@@ -96,7 +97,8 @@ namespace RemoteDesktop.Client.Android.Droid
             Console.WriteLine("call OnDecodeFrame from decoder!");
 
             Console.WriteLine("bufferFormat.getInteger(MediaFormat.KeyWidth)=" + bufferFormat.GetInteger(MediaFormat.KeyWidth).ToString() + " bufferFormat.getInteger(MediaFormat.KeyHeight)=" + bufferFormat.GetInteger(MediaFormat.KeyHeight).ToString());
-            mCallbackObj.OnDecodeFrame(decoded_data, bufferFormat.GetInteger(MediaFormat.KeyWidth), bufferFormat.GetInteger(MediaFormat.KeyHeight));
+            //mCallbackObj.OnDecodeFrame(decoded_data, bufferFormat.GetInteger(MediaFormat.KeyWidth), bufferFormat.GetInteger(MediaFormat.KeyHeight));
+            mADP.PlayData(decoded_data, true);
         }
 
         override public void OnOutputFormatChanged(MediaCodec mc, MediaFormat format)
@@ -113,9 +115,9 @@ namespace RemoteDesktop.Client.Android.Droid
 
     public class PlatformAudioDecodingPlayerAndroid : IPlatformAudioDecodingPlayer
     {
-        private static String VIDEO = "video/";
-        private static String MIME = "video/avc";
-        private static String TAG = "VideoDecoder";
+        //private static String AUDIO = "video/";
+        //private static String MIME = "video/avc";
+        //private static String TAG = "VideoDecoder";
         //private MediaExtractor mExtractor;
         private MediaCodec mDecoder;
 
@@ -128,48 +130,40 @@ namespace RemoteDesktop.Client.Android.Droid
         private long startWhen = 0;
         private MediaCodec.BufferInfo info = null;
         int inputIndex = -1;
-        private MediaFormat mOutputFormat; // member variable
-        private MediaFormat inputFormat;
-        private DecoderCallback mCallbackObj;
+        //private MediaFormat mOutputFormat; // member variable
+        //private MediaFormat inputFormat;
+        private AudioDecodingPlayerCallback mCallbackObj;
 
         AudioTrack audioTrack;
 
         public void PlayData(byte[] data, bool flag)
         {
             audioTrack.Write(data, 0, data.Length);
-            //int len = data.Length / 4;
-            //float[] fdata = new float[len];
-            //for(int idx = 0; idx < len; idx++)
-            //{
-            //    fdata[idx] = BitConverter.ToSingle(data, idx * 4);
-            //    //Console.WriteLine(fdata[idx].ToString());
-            //}
-            //const int WRITE_BLOCKING = 0x00000000;
-            //audioTrack.Write(fdata, 0, len, WRITE_BLOCKING);
         }
 
         public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
         {
-            Encoding depthBits = Encoding.Mp3;
-            //if(bitsPerSample == 16)
-            //{
-            //    depthBits = Encoding.Pcm16bit;
-            //}else if (bitsPerSample == 8)
-            //{
-            //    depthBits = Encoding.Pcm8bit;
-            //}
+            Encoding depthBits = Encoding.Pcm16bit;
+            if (bitsPerSample == 16)
+            {
+                depthBits = Encoding.Pcm16bit;
+            }
+            else if (bitsPerSample == 8)
+            {
+                depthBits = Encoding.Pcm8bit;
+            }
 
             ChannelOut ch = ChannelOut.Mono;
-            //if(channels == 1)
-            //{
-            //    ch = ChannelOut.Mono;
-            //}
-            //else
-            //{
-            //    ch = ChannelOut.Stereo;
-            //}
+            if (channels == 1)
+            {
+                ch = ChannelOut.Mono;
+            }
+            else
+            {
+                ch = ChannelOut.Stereo;
+            }
 #pragma warning disable CS0618 // Type or member is obsolete
-           audioTrack = new AudioTrack(
+            audioTrack = new AudioTrack(
             // Stream type
             Stream.Music,
             // Frequency
@@ -178,10 +172,6 @@ namespace RemoteDesktop.Client.Android.Droid
             ch,
             // Audio encoding
             depthBits,
-            //Encoding.PcmFloat,
-            //Encoding.Pcm8bit,
-            // Length of the audio clip.
-            //1024 * 1024,
             bufferCount,
             // Mode. Stream or static.
             AudioTrackMode.Stream);
@@ -190,7 +180,7 @@ namespace RemoteDesktop.Client.Android.Droid
             return true;
         }
 
-        public void Close()
+        public void PlayerClose()
         {
             audioTrack.Stop();
             audioTrack.Release();
@@ -201,28 +191,23 @@ namespace RemoteDesktop.Client.Android.Droid
             return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
-        public bool setup(AudioDecoderCallback callback_ob, int samplingRate, int ch, int bitrate)
+        public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate)
         {
-            HandlerThread callbackThread = new HandlerThread("H264DecoderHandler");
+            HandlerThread callbackThread = new HandlerThread("MP3DecodingPlayerHandler");
             callbackThread.Start();
             Handler handler = new Handler(callbackThread.Looper);
 
-            mDecoder = MediaCodec.CreateDecoderByType(MIME);
+            String audioCodecType = "audio/mpeg";
+            mDecoder = MediaCodec.CreateDecoderByType(audioCodecType);
             mCallbackObj = callback_obj;
-            mDecoder.SetCallback(new MyCallback(mDecoder, mCallbackObj), handler);
+            mDecoder.SetCallback(new AudioDecoderCallback(mDecoder, mCallbackObj, this), handler);
+
+            MediaFormat format = MediaFormat.CreateAudioFormat(audioCodecType, samplingRate, ch);
+			mDecoder.Configure(format, null, null, 0);
 
             //mOutputFormat = mDecoder.GetOutputFormat(); // option B
-            inputFormat = MediaFormat.CreateVideoFormat(MIME, width, height);
-            inputFormat.SetInteger(MediaFormat.KeyMaxInputSize, width * height);
-            inputFormat.SetInteger("durationUs", 63446722);
-            try
-            {
-                mDecoder.Configure(inputFormat, null, null, 0 /* Decoder */);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            //inputFormat.SetInteger(MediaFormat.KeyMaxInputSize, width * height);
+            //inputFormat.SetInteger("durationUs", 63446722);
 
             Console.WriteLine("before mDecoder.Start()");
             mDecoder.Start();
@@ -236,6 +221,7 @@ namespace RemoteDesktop.Client.Android.Droid
             mDecoder.Stop();
             mDecoder.Release();
             eosReceived = true;
+            PlayerClose();
         }
     }
 }

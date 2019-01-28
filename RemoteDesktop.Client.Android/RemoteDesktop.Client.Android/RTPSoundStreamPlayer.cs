@@ -26,11 +26,13 @@ namespace RemoteDesktop.Client.Android
 		SoundManager.Player m_Player;
 		public RTPConfiguration config = new RTPConfiguration();
 		private SoundManager.Stopwatch m_Stopwatch = new SoundManager.Stopwatch();
+        private AudioDecodingPlayerManager m_DPlayer;
+        private MemoryStream mp3data_ms;
 
         private void Init()
 		{
             //WinSoundServer
-			m_Player = new SoundManager.Player();
+			//m_Player = new SoundManager.Player();
 		}
 
         private void OnDataReceivedUDP(RTPReceiver rtr, Byte[] bytes)
@@ -97,7 +99,7 @@ namespace RemoteDesktop.Client.Android
 
         public void togglePlayingTCP()
         {
-			if (m_Player.Opened)
+			if (m_DPlayer.isOpened)
             {
                 sdsock.Dispose();
                 sdsock = null;
@@ -127,8 +129,18 @@ namespace RemoteDesktop.Client.Android
             config.isConvertMulaw = pktHdr.isConvertMulaw;
             if (!m_Player.Opened)
             {
-                m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                m_DPlayer.setup(config.SamplesPerSecond, config.Channels, -1);
                 Console.WriteLine("sound device opened.");
+            }
+            
+            if(mp3data_ms == null)
+            {
+                mp3data_ms = new MemoryStream();
+            }
+            else
+            {
+                mp3data_ms.Position = 0;
             }
 
             //Device.BeginInvokeOnMainThread(() =>
@@ -144,12 +156,15 @@ namespace RemoteDesktop.Client.Android
 
         private void Socket_EndDataRecievedCallback()
         {
+            var data = mp3data_ms.ToArray();
+            m_DPlayer.mCallback.addEncodedSamplesData(data, data.Length);
         }
 
 
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
         {
             Console.WriteLine("Socket_DataRecievedCallback: recieved sound data = " + dataSize.ToString());
+            /*
             Byte[] justSound_buf = new byte[dataSize];
             Array.Copy(data, 0, justSound_buf, 0, dataSize);
             Byte[] linearBytes = justSound_buf;
@@ -158,6 +173,8 @@ namespace RemoteDesktop.Client.Android
                 linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
             }
             m_Player.PlayData(linearBytes, false);
+            */
+            mp3data_ms.Write(data, offset, dataSize);
         }
 
         private void Socket_ConnectionFailedCallback(string error)

@@ -5,30 +5,16 @@ using Xamarin.Forms;
 
 namespace RemoteDesktop.Client.Android
 {
-    public delegate void DecodedBitmapHandler(byte[] decoded_data, int width, int height);
-
-    public class DecoderCallback
+    public class AudioDecodingPlayerCallback
     {
         private Queue<byte[]> mEncodedFrameQ;
-        public event DecodedBitmapHandler encodedDataGenerated;
 
-        public DecoderCallback(Queue<byte[]> encoded_frame_q)
+        public AudioDecodingPlayerCallback(Queue<byte[]> encoded_frame_q)
         {
             mEncodedFrameQ = encoded_frame_q;
         }
 
-        public void OnDecodeFrame(byte[] frame_data, int width, int height)
-        {
-            Console.WriteLine("OnDecodeFrame callback called!");
-            byte[] copied_buf = new byte[frame_data.Length];
-            Array.Copy(frame_data, 0, copied_buf, 0, frame_data.Length);
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                encodedDataGenerated(copied_buf, width, height);
-            });
-        }
-
-        public void addEncodedFrameData(byte[] encoded_data, int length)
+        public void addEncodedSamplesData(byte[] encoded_data, int length)
         {
             lock (this)
             {
@@ -40,7 +26,7 @@ namespace RemoteDesktop.Client.Android
 
         // i frame data is not prepared, return NULL
         // for Decoder
-        public byte[] getEncodedFrameData()
+        public byte[] getEncodedSamplesData()
         {
             lock (this)
             {
@@ -58,17 +44,36 @@ namespace RemoteDesktop.Client.Android
     }
 
 
-    public interface IPlatformVideoDecoder
+    public interface IPlatformAudioDecodingPlayer
     {
-        bool setup(DecoderCallback callback_ob, int width, int heightj);
+        bool setup(AudioDecodingPlayerCallback callback_ob, int samplingRate, int ch, int bitrate);
         void Close();
     }
 
-    public static class VideoDecoderFactory
+    public class AudioDecodingPlayerManager
     {
-        public static IPlatformVideoDecoder getInstance()
+        private IPlatformAudioDecodingPlayer mADP;
+        public bool isOpened = false;
+        public AudioDecodingPlayerCallback mCallback;
+
+
+        private IPlatformAudioDecodingPlayer getInstance()
         {
-            return DependencyService.Get<IPlatformVideoDecoder>();
+            return DependencyService.Get<IPlatformAudioDecodingPlayer>();
+        }
+
+        public bool setup(int samplingRate, int ch, int bitrate)
+        {
+            mADP = getInstance();
+            isOpened = true;
+            mCallback = new AudioDecodingPlayerCallback(new Queue<byte[]>());
+            return mADP.setup(mCallback, samplingRate, ch, bitrate);
+        }
+
+        public void Close()
+        {
+            isOpened = false;
+            mADP.Close();
         }
     }
 }
