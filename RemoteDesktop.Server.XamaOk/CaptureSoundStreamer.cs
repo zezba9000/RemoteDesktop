@@ -23,7 +23,7 @@ namespace RemoteDesktop.Server.XamaOK
         public CaptureSoundStreamer()
         {
             aservice = new AudioService();
-            var devices = aservice.GetActiveRender();            
+            var devices = aservice.GetActiveRender();
             _AudioOutputWriter = new AudioOutputWriter(devices.First(), new RTPConfiguration());
         }
 

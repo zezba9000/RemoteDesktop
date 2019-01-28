@@ -99,7 +99,7 @@ namespace RemoteDesktop.Client.Android
 
         public void togglePlayingTCP()
         {
-			if (m_DPlayer.isOpened)
+			if (sdsock != null)
             {
                 sdsock.Dispose();
                 sdsock = null;
@@ -127,9 +127,10 @@ namespace RemoteDesktop.Client.Android
             config.BitsPerSample = pktHdr.BitsPerSample;
             config.Channels = pktHdr.Channels;
             config.isConvertMulaw = pktHdr.isConvertMulaw;
-            if (!m_Player.Opened)
+            if (m_DPlayer == null)
             {
                 //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                m_DPlayer = new AudioDecodingPlayerManager();
                 m_DPlayer.setup(config.SamplesPerSecond, config.Channels, -1);
                 Console.WriteLine("sound device opened.");
             }

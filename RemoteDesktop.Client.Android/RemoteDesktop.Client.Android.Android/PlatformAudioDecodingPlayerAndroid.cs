@@ -141,7 +141,7 @@ namespace RemoteDesktop.Client.Android.Droid
             audioTrack.Write(data, 0, data.Length);
         }
 
-        public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
+        public bool OpenDevice(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
         {
             Encoding depthBits = Encoding.Pcm16bit;
             if (bitsPerSample == 16)
@@ -193,6 +193,8 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate)
         {
+            OpenDevice("hoge", samplingRate, 16, ch, 16 * 1024);
+
             HandlerThread callbackThread = new HandlerThread("MP3DecodingPlayerHandler");
             callbackThread.Start();
             Handler handler = new Handler(callbackThread.Looper);
