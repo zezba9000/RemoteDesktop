@@ -294,7 +294,7 @@ namespace RemoteDesktop.Server.XamaOK
                 //depthConvertStream.Flush();
 
                 //int pcm8_len = pcm16_len / 2;
-                //pcm8_buf = new byte[pcm8_len];
+                //pcm8_buf = new byte[pcm8_len]; 
                 //depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
 
                 //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertProvider);
@@ -305,7 +305,7 @@ namespace RemoteDesktop.Server.XamaOK
                 waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
                 mp3_buf = SoundEncodeUtil.encodePCMtoMP3(waveBufferResample);
                 */
-                Console.WriteLine("convert 32bit float 64KHz stereo to 8bit PCM 8KHz mono and encode it to mp3 compressed data");
+                Console.WriteLine(Utils.getFormatedCurrentTime() + " converted 32bit float 64KHz stereo " + recorded_length.ToString()  + " bytes to 16bit PCM 24KHz mono and encode it to mp3 compressed data " + mp3_buf.Length.ToString() + " bytes");
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);
@@ -405,7 +405,7 @@ namespace RemoteDesktop.Server.XamaOK
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
 
-            if(sdsock.IsConnected() == false)
+            if (sdsock.IsConnected() == false)
             {
                 return;
             }

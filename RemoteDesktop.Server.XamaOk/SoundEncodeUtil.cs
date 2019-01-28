@@ -193,13 +193,16 @@ namespace RemoteDesktop.Server.XamaOK
             Mp3Frame ret;
             while((ret = reader.ReadNextFrame()) != null)
             {
-                Console.WriteLine("write frame data to MemoryStream size = " + ret.FrameLength);
+                //Console.WriteLine("write frame data to MemoryStream size = " + ret.FrameLength);
                 ms.Write(ret.RawData, 0, ret.FrameLength);
             }
             reader.Close();
             reader.Dispose();
 
-            return ms.ToArray();
+            var ret_buf = ms.ToArray();
+            ms.Close();
+            ms.Dispose();
+            return ret_buf;
             //MediaFoundationInterop.MFCreateSinkWriterFromURL(null, bs, null, out writer);
         }
     }

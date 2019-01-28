@@ -308,5 +308,10 @@ namespace RemoteDesktop.Android.Core
             return conved;
         }
 
+        public static String getFormatedCurrentTime()
+        {
+            return DateTime.Now.ToString("yyyy / MM / dd hh: mm: ss.fff");
+        }
+
     }
 }
