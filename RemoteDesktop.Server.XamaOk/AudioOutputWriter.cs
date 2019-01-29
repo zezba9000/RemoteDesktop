@@ -478,42 +478,52 @@ namespace RemoteDesktop.Server.XamaOK
             //    return;
             //}
 
+
             if (RTPConfiguration.isUseFFMPEG)
             {
-                MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);	
-                MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
-                return;
-            }
-
-            byte[] mp3_buf = convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(e);
-            if(mp3_buf == null)
-            {
-                return;
-            }
-
-            try
-            {
-                //if (rtp_config.isAlreadySetInfoFromSndCard == false)
-                //{
-                //    // キャプチャした音声データについて情報を設定
-                //    updateRTPConfiguration();
-                //    //m_RTPPartsLength = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.SamplesPerSecond, rtp_config.Channels);
-                //    rtp_config.isAlreadySetInfoFromSndCard = true;
-                //}
-
-                if(rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
+                debug_ms.Write(e.Buffer, 0, e.BytesRecorded);
+                if (debug_ms.Length > 2 * 1024 * 1024)
                 {
-                    handleDataWithUDP(mp3_buf);
+                    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\capturedPCM.raw");
+                    Environment.Exit(0);
                 }
-                else
-                {
-                    handleDataWithTCP(mp3_buf);
-                }
+
+                //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);	
+                //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
+                //return;
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine(ex.Message);
-                resetAllInstanseState();
+                byte[] mp3_buf = convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(e);
+                if(mp3_buf == null)
+                {
+                    return;
+                }
+
+                try
+                {
+                    //if (rtp_config.isAlreadySetInfoFromSndCard == false)
+                    //{
+                    //    // キャプチャした音声データについて情報を設定
+                    //    updateRTPConfiguration();
+                    //    //m_RTPPartsLength = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.SamplesPerSecond, rtp_config.Channels);
+                    //    rtp_config.isAlreadySetInfoFromSndCard = true;
+                    //}
+
+                    if(rtp_config.protcol_mode == RTPConfiguration.ProtcolMode.UDP)
+                    {
+                        handleDataWithUDP(mp3_buf);
+                    }
+                    else
+                    {
+                        handleDataWithTCP(mp3_buf);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    resetAllInstanseState();
+                }
             }
         }
 

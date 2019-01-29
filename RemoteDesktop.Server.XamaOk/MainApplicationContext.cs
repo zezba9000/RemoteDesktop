@@ -84,7 +84,7 @@ namespace RemoteDesktop.Server
 
             if (RTPConfiguration.isUseFFMPEG)
             {
-                kickFFMPEG();
+                //kickFFMPEG();
             }
 
             // 音声配信サーバ
