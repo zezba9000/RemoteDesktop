@@ -48,6 +48,11 @@ namespace RemoteDesktop.Server
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
 
+        private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
+        private string ffmpegForAudioEncodeArgs = "-loglevel debug -f pcm_32le -ar 48000 -ac 2 -i - -f s16le -ar 8000 -ac 1 -map 0 -codec:a libmp3lame -f mp3 -write_xing 0 -id3v2_version 0 -";
+        public static Process ffmpegProc = null;
+        private MemoryStream debug_ms = new MemoryStream();
+
         public MainApplicationContext()
 		{
 			// init tray icon
@@ -77,6 +82,11 @@ namespace RemoteDesktop.Server
                 Utils.setStdoutOff();
             }
 
+            if (RTPConfiguration.isUseFFMPEG)
+            {
+                kickFFMPEG();
+            }
+
             // 音声配信サーバ
             cap_streamer = new CaptureSoundStreamer();
 
@@ -94,6 +104,70 @@ namespace RemoteDesktop.Server
             //socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
             //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
+        }
+
+        // set ffmpegProc field	
+        private void kickFFMPEG()	
+        {	
+            ProcessStartInfo startInfo = new ProcessStartInfo();	
+            startInfo.UseShellExecute = false; //required to redirect standart input/output	
+
+             // redirects on your choice	
+            startInfo.RedirectStandardOutput = true;	
+            startInfo.RedirectStandardError = true;	
+            startInfo.RedirectStandardInput = true;	
+            startInfo.CreateNoWindow = true;	
+            startInfo.FileName = ffmpegPath;	
+
+             startInfo.Arguments = ffmpegForAudioEncodeArgs;	
+            //startInfo.Arguments = ffmpegForDirectStreamingArgs;	
+
+            ffmpegProc = new Process();	
+            ffmpegProc.StartInfo = startInfo;	
+            // リダイレクトした標準出力・標準エラーの内容を受信するイベントハンドラを設定する	
+            ffmpegProc.OutputDataReceived += useFFMPEGOutputData;	
+            ffmpegProc.ErrorDataReceived  += PrintFFMPEGErrorData;	
+
+            ffmpegProc.Start();	
+
+             // ffmpegが確実に起動状態になるまで待つ	
+            Thread.Sleep(3000);	
+
+             // 標準出力・標準エラーの非同期読み込みを開始する	
+            ffmpegProc.BeginOutputReadLine();	
+            ffmpegProc.BeginErrorReadLine();	
+        }	
+
+        private void useFFMPEGOutputData(object sender, DataReceivedEventArgs e)	
+        {
+            Process p = (Process)sender;
+            Console.WriteLine("useFFMPEGOutputData called!");
+
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                Console.WriteLine("[{0}2;stdout] {1}", p.ProcessName, e.Data);
+                char[] char_arr = e.Data.ToCharArray();
+                byte[] byte_arr = Utils.convertCharArrayToByteArray(char_arr);
+                debug_ms.Write(byte_arr, 0, byte_arr.Length);
+
+                if(debug_ms.Length > 2 * 1024 * 1024)
+                {
+                    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\tmp\\test_raw_no_header.mp3");
+                    Environment.Exit(0);
+                }
+                //cap_streamer._AudioOutputWriter.handleDataWithTCP();
+            }
+        }	
+
+        private void PrintFFMPEGErrorData(object sender, DataReceivedEventArgs e)	
+        {
+            // 子プロセスの標準エラーから受信した内容を自プロセスの標準エラーに書き込む	
+            Process p = (Process)sender;
+
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                Console.Error.WriteLine("[{0}2;stderr] {1}", p.ProcessName, e.Data);
+            }
         }
 
 		void Exit(object sender, EventArgs e)

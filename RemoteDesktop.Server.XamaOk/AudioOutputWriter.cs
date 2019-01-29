@@ -449,7 +449,7 @@ namespace RemoteDesktop.Server.XamaOK
                 }
         }
 
-        private void handleDataWithTCP(byte[] pcm8_buf)
+        public void handleDataWithTCP(byte[] pcm8_buf)
         {
             Console.WriteLine("call handleDataWithTcp");
             if (!sdsock.IsConnected())
@@ -473,8 +473,15 @@ namespace RemoteDesktop.Server.XamaOK
 
             //saveIEEE32bitFloatToMP3File(e.Buffer, e.BytesRecorded);
 
-            if (sdsock.IsConnected() == false)
+            //if (sdsock.IsConnected() == false)
+            //{
+            //    return;
+            //}
+
+            if (RTPConfiguration.isUseFFMPEG)
             {
+                MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);	
+                MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
                 return;
             }
 

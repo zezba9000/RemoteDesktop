@@ -16,7 +16,7 @@ namespace RemoteDesktop.Server.XamaOK
 
     class CaptureSoundStreamer
     {
-        private AudioOutputWriter _AudioOutputWriter;
+        public AudioOutputWriter _AudioOutputWriter;
         private AudioService aservice;
 
         // this call block until recieved client connection request

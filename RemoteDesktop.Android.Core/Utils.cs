@@ -313,5 +313,14 @@ namespace RemoteDesktop.Android.Core
             return DateTime.Now.ToString("yyyy / MM / dd hh: mm: ss.fff");
         }
 
+        public static byte[] convertCharArrayToByteArray(char[] arr)
+        {
+            MemoryStream ms = new MemoryStream();
+            foreach(char ch in arr)
+            {
+                ms.Write(BitConverter.GetBytes(ch), 0, 2);
+            }
+            return ms.ToArray();
+        }
     }
 }
