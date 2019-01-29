@@ -169,7 +169,7 @@ namespace RemoteDesktop.Client.Android.Droid
             // Stream type
             Stream.Music,
             // Frequency
-            24000, //samplesPerSecond,
+            samplesPerSecond, //samplesPerSecond,
             // Mono or stereo
             ch,
             // Audio encoding
@@ -195,7 +195,7 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate)
         {
-            OpenDevice("hoge", samplingRate, 16, ch, 16 * 1024);
+            OpenDevice("hoge", samplingRate, 16, ch, 32 * 1024);
 
             HandlerThread callbackThread = new HandlerThread("MP3DecodingPlayerHandler");
             callbackThread.Start();
