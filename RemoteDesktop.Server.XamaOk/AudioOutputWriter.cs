@@ -319,7 +319,7 @@ namespace RemoteDesktop.Server.XamaOK
             byte[] pcm16_buf = null;
             int pcm16_len = -1;
 
-            byte[] pcm8_buf = null;
+            //byte[] pcm8_buf = null;
 
             byte[] mp3_buf = null;
             try
@@ -328,6 +328,7 @@ namespace RemoteDesktop.Server.XamaOK
                 var waveBufferResample = new BufferedWaveProvider(this._WaveIn.WaveFormat);
                 waveBufferResample.DiscardOnBufferOverflow = true;
                 waveBufferResample.ReadFully = false;  // leave a buffer?
+                waveBufferResample.BufferLength = recorded_length;
                 var sampleStream = new WaveToSampleProvider(waveBufferResample);
 
                 // Downsample to 8000
@@ -358,10 +359,8 @@ namespace RemoteDesktop.Server.XamaOK
                 //// データを源流から流す
                 //waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
 
-                //depthConvertStream.Flush();
-
                 //int pcm8_len = pcm16_len / 2;
-                //pcm8_buf = new byte[pcm8_len]; 
+                //pcm8_buf = new byte[pcm8_len];
                 //depthConvertStream.Read(pcm8_buf, 0, pcm8_len);
 
                 //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertProvider);
@@ -372,7 +371,7 @@ namespace RemoteDesktop.Server.XamaOK
                 waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
                 mp3_buf = SoundEncodeUtil.encodePCMtoMP3(waveBufferResample);
                 */
-                Console.WriteLine(Utils.getFormatedCurrentTime() + " converted 32bit float 64KHz stereo " + recorded_length.ToString()  + " bytes to 16bit PCM 24KHz mono and encode it to mp3 compressed data " + mp3_buf.Length.ToString() + " bytes");
+                Console.WriteLine(Utils.getFormatedCurrentTime() + " converted 32bit float 64KHz stereo " + recorded_length.ToString()  + " bytes to 16bit PCM 8KHz mono and encode it to mp3 compressed data " + mp3_buf.Length.ToString() + " bytes");
             } catch (Exception ex)
             {
                 Console.WriteLine(ex);
@@ -472,7 +471,7 @@ namespace RemoteDesktop.Server.XamaOK
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
 
-            saveIEEE32bitFloatToMP3File(e.Buffer, e.BytesRecorded);
+            //saveIEEE32bitFloatToMP3File(e.Buffer, e.BytesRecorded);
 
             if (sdsock.IsConnected() == false)
             {

@@ -28,8 +28,8 @@ namespace RemoteDesktop.Android.Core
 			public int SoundServerPort = 10000;
             public static int ImageServerPort = 8889;
 
-            public int SamplesPerSecond = 8000;
-            //public int SamplesPerSecond = 24 * 1000;
+            //public int SamplesPerSecond = 8000;
+            public int SamplesPerSecond = 24 * 1000;
             //public int SamplesPerSecond = 48000; // sound card native
             public short BitsPerSample = 16;
             //public short BitsPerSample = 32;  // sound card native
