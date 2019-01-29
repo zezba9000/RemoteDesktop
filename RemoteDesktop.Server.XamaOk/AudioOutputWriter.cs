@@ -14,6 +14,7 @@ using NAudio.Wave.SampleProviders;
 using RemoteDesktop.Android.Core.Sound;
 using System.Net;
 using NAudio.MediaFoundation;
+using System.Threading;
 
 namespace RemoteDesktop.Server.XamaOK
 {
@@ -39,6 +40,7 @@ namespace RemoteDesktop.Server.XamaOK
         private WinSound.JitterBuffer m_JitterBuffer;
         private uint m_JitterBufferCount = 20; // max buffering num of RTPPacket at jitter buffer
         private uint m_Milliseconds = 20; // time period of jitter buffer (msec)
+        private MemoryStream debug_ms = new MemoryStream();
 
         #endregion
 
@@ -237,6 +239,71 @@ namespace RemoteDesktop.Server.XamaOK
             //this.Dispose();
         }
 
+        private void saveIEEE32bitFloatToMP3File(byte[] data, int length)
+        {
+            if(length == 0)
+            {
+                return;
+            }
+
+
+            debug_ms.Write(data, 0, length);
+            int required_len = 48000 * 4 * 2 * 30;
+            if (debug_ms.Length < required_len) // 30sec
+            {
+                return;
+            }
+
+            try
+            {
+                //// 生データを再生可能なデータに変換
+                var waveBufferProvider = new BufferedWaveProvider(this._WaveIn.WaveFormat);
+                waveBufferProvider.BufferLength = 48000 * 4 * 2 * 30;
+
+                waveBufferProvider.DiscardOnBufferOverflow = true;
+                waveBufferProvider.ReadFully = false;  // leave a buffer?
+                var sampleProvider = waveBufferProvider.ToSampleProvider();
+
+                var sampleStream = new WaveToSampleProvider(waveBufferProvider);
+
+                // Downsample to 24KHz
+                var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, rtp_config.SamplesPerSecond);
+
+                // Stereo to mono
+                var monoProvider = new StereoToMonoSampleProvider(resamplingProvider)
+                {
+                    LeftVolume = 1f,
+                    RightVolume = 1f
+                };
+
+                // Convert to 32bit float to 16bit PCM
+                var ieeeToPcm = new SampleToWaveProvider16(monoProvider);
+
+                //Convert 16bit PCM to 8bit PCM
+                var depthConvertProvider = new WaveFormatConversionProvider(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), ieeeToPcm);
+
+                int pcm16_len = (int) (debug_ms.Length / (2 * 6 * 2));
+                byte[] pcm16_buf = new byte[pcm16_len];
+
+                // データを源流から流す
+                waveBufferProvider.AddSamples(debug_ms.ToArray(), 0, (int)debug_ms.Length);
+
+                ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
+
+                var depthConvertStream = new WaveFormatConversionStream(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), new RawSourceWaveStream(pcm16_buf, 0, pcm16_len, new WaveFormat(rtp_config.SamplesPerSecond, 16, 1)));
+
+                SoundEncodeUtil.encodePCMtoMP3(depthConvertStream);
+
+                Thread.Sleep(60 * 1000);
+                Environment.Exit(0);
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                Console.WriteLine("exit...");
+                System.Windows.Forms.Application.Exit();
+            }            
+        }
+
         private byte[] convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(WaveInEventArgs e)
         {
             byte[] recorded_buf = e.Buffer;
@@ -404,6 +471,8 @@ namespace RemoteDesktop.Server.XamaOK
         private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
+
+            saveIEEE32bitFloatToMP3File(e.Buffer, e.BytesRecorded);
 
             if (sdsock.IsConnected() == false)
             {
