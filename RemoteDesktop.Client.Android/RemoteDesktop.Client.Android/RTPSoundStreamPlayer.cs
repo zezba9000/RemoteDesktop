@@ -86,10 +86,10 @@ namespace RemoteDesktop.Client.Android
 			}
 			else
 			{
-                m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
 
                 // 1 to 1 Receivr over UDP
-                config.PacketSize = SoundUtils.GetBytesPerInterval((uint)config.SamplesPerSecond, config.BitsPerSample, config.Channels);
+                config.PacketSize = SoundUtils.GetBytesPerInterval((uint)RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels);
 				m_Receiver = new RTPReceiver(config.PacketSize);
 				m_Receiver.DataReceived2 += new RTPReceiver.DelegateDataReceived2(OnDataReceivedUDP);
 				m_Receiver.Disconnected += new RTPReceiver.DelegateDisconnected(OnDisconnectedUDP);
@@ -122,8 +122,9 @@ namespace RemoteDesktop.Client.Android
 
         private void Socket_StartDataRecievedCallback(PacketHeader pktHdr)
         {
+            Console.WriteLine("Socket_StartDataRecievedCallback called compressed data size is " + pktHdr.dataSize.ToString() + " bytes");
             // TCPの場合のみこのタイミングまでサウンドデバイスのOpenを遅らせる
-            config.SamplesPerSecond = pktHdr.SamplesPerSecond;
+            RTPConfiguration.SamplesPerSecond = pktHdr.SamplesPerSecond;
             config.BitsPerSample = pktHdr.BitsPerSample;
             config.Channels = pktHdr.Channels;
             config.isConvertMulaw = pktHdr.isConvertMulaw;
@@ -131,7 +132,7 @@ namespace RemoteDesktop.Client.Android
             {
                 //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
                 m_DPlayer = new AudioDecodingPlayerManager();
-                m_DPlayer.setup(config.SamplesPerSecond, config.Channels, -1);
+                m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1);
                 Console.WriteLine("sound device opened.");
             }
             
@@ -158,6 +159,7 @@ namespace RemoteDesktop.Client.Android
         private void Socket_EndDataRecievedCallback()
         {
             var data = mp3data_ms.ToArray();
+            Console.WriteLine("Socket_EndDataRecievedCallback and addEncodeSamplesData " + data.Length.ToString() + " bytes");
             m_DPlayer.mCallback.addEncodedSamplesData(data, data.Length);
         }
 

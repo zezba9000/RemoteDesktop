@@ -267,7 +267,7 @@ namespace RemoteDesktop.Server.XamaOK
                 var sampleStream = new WaveToSampleProvider(waveBufferProvider);
 
                 // Downsample to 24KHz
-                var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, rtp_config.SamplesPerSecond);
+                var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, RTPConfiguration.SamplesPerSecond);
 
                 // Stereo to mono
                 var monoProvider = new StereoToMonoSampleProvider(resamplingProvider)
@@ -280,7 +280,7 @@ namespace RemoteDesktop.Server.XamaOK
                 var ieeeToPcm = new SampleToWaveProvider16(monoProvider);
 
                 //Convert 16bit PCM to 8bit PCM
-                var depthConvertProvider = new WaveFormatConversionProvider(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), ieeeToPcm);
+                var depthConvertProvider = new WaveFormatConversionProvider(new WaveFormat(RTPConfiguration.SamplesPerSecond, 8, 1), ieeeToPcm);
 
                 int pcm16_len = (int) (debug_ms.Length / (2 * 6 * 2));
                 byte[] pcm16_buf = new byte[pcm16_len];
@@ -290,7 +290,7 @@ namespace RemoteDesktop.Server.XamaOK
 
                 ieeeToPcm.Read(pcm16_buf, 0, pcm16_len);
 
-                var depthConvertStream = new WaveFormatConversionStream(new WaveFormat(rtp_config.SamplesPerSecond, 8, 1), new RawSourceWaveStream(pcm16_buf, 0, pcm16_len, new WaveFormat(rtp_config.SamplesPerSecond, 16, 1)));
+                var depthConvertStream = new WaveFormatConversionStream(new WaveFormat(RTPConfiguration.SamplesPerSecond, 8, 1), new RawSourceWaveStream(pcm16_buf, 0, pcm16_len, new WaveFormat(RTPConfiguration.SamplesPerSecond, 16, 1)));
 
                 SoundEncodeUtil.encodePCMtoMP3(depthConvertStream);
 
@@ -332,7 +332,7 @@ namespace RemoteDesktop.Server.XamaOK
                 var sampleStream = new WaveToSampleProvider(waveBufferResample);
 
                 // Downsample to 8000
-                var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, rtp_config.SamplesPerSecond);
+                var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, RTPConfiguration.SamplesPerSecond);
 
                 // Stereo to mono
                 var monoProvider = new StereoToMonoSampleProvider(resamplingProvider)
@@ -410,7 +410,7 @@ namespace RemoteDesktop.Server.XamaOK
                     if (rtp_config.UseJitterBuffer)
                     {
                         //Sounddaten in kleinere Einzelteile zerlegen
-                        int bytesPerInterval = SoundUtils.GetBytesPerInterval((uint)rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels);
+                        int bytesPerInterval = SoundUtils.GetBytesPerInterval((uint)RTPConfiguration.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels);
                         int count = pcm8_len / bytesPerInterval;
                         int currentPos = 0;
                         for (int i = 0; i < count; i++)
@@ -464,7 +464,7 @@ namespace RemoteDesktop.Server.XamaOK
             Console.WriteLine("call SoundUtils.ToRTPPacket");
             RTPPacket rtp = SoundUtils.ToRTPPacket(pcm8_buf, rtp_config);
             Console.WriteLine("call sdsock.SendRTPPacket");
-            sdsock.SendRTPPacket(rtp, rtp_config.compress, rtp_config.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, rtp_config.isConvertMulaw);
+            sdsock.SendRTPPacket(rtp, rtp_config.compress, RTPConfiguration.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, rtp_config.isConvertMulaw);
         }
 
         private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
@@ -481,16 +481,15 @@ namespace RemoteDesktop.Server.XamaOK
 
             if (RTPConfiguration.isUseFFMPEG)
             {
-                debug_ms.Write(e.Buffer, 0, e.BytesRecorded);
-                if (debug_ms.Length > 2 * 1024 * 1024)
-                {
-                    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\capturedPCM.raw");
-                    Environment.Exit(0);
-                }
+                //debug_ms.Write(e.Buffer, 0, e.BytesRecorded);
+                //if (debug_ms.Length > 2 * 1024 * 1024)
+                //{
+                //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\capturedPCM.raw");
+                //    Environment.Exit(0);
+                //}
 
-                //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);	
-                //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
-                //return;
+                MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);
+                MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
             }
             else
             {

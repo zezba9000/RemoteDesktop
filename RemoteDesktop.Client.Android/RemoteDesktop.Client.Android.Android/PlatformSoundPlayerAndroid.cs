@@ -28,26 +28,27 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
         {
-            Encoding depthBits = Encoding.Mp3;
-            //if(bitsPerSample == 16)
-            //{
-            //    depthBits = Encoding.Pcm16bit;
-            //}else if (bitsPerSample == 8)
-            //{
-            //    depthBits = Encoding.Pcm8bit;
-            //}
+            Encoding depthBits = Encoding.Pcm16bit;
+            if (bitsPerSample == 16)
+            {
+                depthBits = Encoding.Pcm16bit;
+            }
+            else if (bitsPerSample == 8)
+            {
+                depthBits = Encoding.Pcm8bit;
+            }
 
             ChannelOut ch = ChannelOut.Mono;
-            //if(channels == 1)
-            //{
-            //    ch = ChannelOut.Mono;
-            //}
-            //else
-            //{
-            //    ch = ChannelOut.Stereo;
-            //}
+            if (channels == 1)
+            {
+                ch = ChannelOut.Mono;
+            }
+            else
+            {
+                ch = ChannelOut.Stereo;
+            }
 #pragma warning disable CS0618 // Type or member is obsolete
-           audioTrack = new AudioTrack(
+            audioTrack = new AudioTrack(
             // Stream type
             Stream.Music,
             // Frequency
