@@ -201,13 +201,20 @@ namespace RemoteDesktop.Client.Android.Droid
             callbackThread.Start();
             Handler handler = new Handler(callbackThread.Looper);
 
-            String audioCodecType = "audio/mp4a-latm";
-            mDecoder = MediaCodec.CreateDecoderByType(audioCodecType);
-            mCallbackObj = callback_obj;
+            mDecoder = MediaCodec.CreateDecoderByType("audio/mp4a-latm");
+            var mMediaFormat = MediaFormat.CreateAudioFormat("audio/mp4a-latm", samplingRate, ch);
+            byte[] bytes = new byte[]{(byte) 0x12, (byte)0x12};
+            ByteBuffer bb = ByteBuffer.Wrap(bytes);
+            mMediaFormat.SetByteBuffer("csd-0", bb);
             mDecoder.SetCallback(new AudioDecoderCallback(mDecoder, mCallbackObj, this), handler);
+            mDecoder.Configure(mMediaFormat, null, null, 0);
 
-            MediaFormat format = MediaFormat.CreateAudioFormat(audioCodecType, samplingRate, ch);
-			mDecoder.Configure(format, null, null, 0);
+   //         String audioCodecType = "audio/mp4a-latm";
+   //         mDecoder = MediaCodec.CreateDecoderByType(audioCodecType);
+   //         mCallbackObj = callback_obj;
+   //         mDecoder.SetCallback(new AudioDecoderCallback(mDecoder, mCallbackObj, this), handler);
+   //         MediaFormat format = MediaFormat.CreateAudioFormat(audioCodecType, samplingRate, ch);
+			//mDecoder.Configure(format, null, null, 0);
 
             //mOutputFormat = mDecoder.GetOutputFormat(); // option B
             //inputFormat.SetInteger(MediaFormat.KeyMaxInputSize, width * height);
