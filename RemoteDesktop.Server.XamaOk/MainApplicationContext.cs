@@ -57,9 +57,8 @@ namespace RemoteDesktop.Server
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f s32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -f mp3 -";
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -ab 12K -f mp3 -";
 
-        private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -bsf:a aac_adtstoasc -";
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f mpegts -";
+        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
+        private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -bsf:a aac_adtstoasc -";
         //private string ffmpegForAudioEncodeArgs = "-u F:\\work\\tmp\\yokonagashi.py";
         public static Process ffmpegProc = null;
         private MemoryStream debug_ms = new MemoryStream();
