@@ -473,11 +473,10 @@ namespace RemoteDesktop.Server.XamaOK
 
             //saveIEEE32bitFloatToMP3File(e.Buffer, e.BytesRecorded);
 
-            //if (sdsock.IsConnected() == false)
-            //{
-            //    return;
-            //}
-
+            if (sdsock.IsConnected() == false)
+            {
+                return;
+            }
 
             if (RTPConfiguration.isUseFFMPEG)
             {

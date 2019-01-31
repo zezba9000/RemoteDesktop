@@ -52,7 +52,8 @@ namespace RemoteDesktop.Server
         //private string ffmpegForAudioEncodeArgs = "-loglevel debug -f pcm_32le -ar 48000 -ac 2 -i - -f s16le -ar 8000 -ac 1 -map 0 -codec:a libmp3lame -f mp3 -write_xing 0 -id3v2_version 0 -";
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -f mp3 -write_xing 0 -id3v2_version 0 -";
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f s32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -f mp3 -";
-        private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -ab 12K -f mp3 -";
+        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -ab 12K -f mp3 -";
+        private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
         public static Process ffmpegProc = null;
         private MemoryStream debug_ms = new MemoryStream();
 
@@ -152,13 +153,13 @@ namespace RemoteDesktop.Server
                 char[] char_arr = e.Data.ToCharArray();
                 byte[] byte_arr = Utils.convertCharArrayToByteArray(char_arr);
                 Console.WriteLine("send " + byte_arr.Length.ToString()  + " bytes at useFFMPEGOutputData");
-                debug_ms.Write(byte_arr, 0, byte_arr.Length);
-                if (debug_ms.Length > 512 * 1024)
-                {
-                    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout.mp3");
-                    Environment.Exit(0);
-                }
-                //cap_streamer._AudioOutputWriter.handleDataWithTCP(byte_arr);
+                //debug_ms.Write(byte_arr, 0, byte_arr.Length);
+                //if (debug_ms.Length > 512 * 1024)
+                //{
+                //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout.aac");
+                //    Environment.Exit(0);
+                //}
+                cap_streamer._AudioOutputWriter.handleDataWithTCP(byte_arr);
             }
         }	
 

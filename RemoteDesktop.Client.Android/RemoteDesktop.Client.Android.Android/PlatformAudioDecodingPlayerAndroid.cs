@@ -197,11 +197,11 @@ namespace RemoteDesktop.Client.Android.Droid
         {
             OpenDevice("hoge", samplingRate, 16, ch, 32 * 1024);
 
-            HandlerThread callbackThread = new HandlerThread("MP3DecodingPlayerHandler");
+            HandlerThread callbackThread = new HandlerThread("AACDecodingPlayerHandler");
             callbackThread.Start();
             Handler handler = new Handler(callbackThread.Looper);
 
-            String audioCodecType = "audio/mpeg";
+            String audioCodecType = "audio/mp4a-latm";
             mDecoder = MediaCodec.CreateDecoderByType(audioCodecType);
             mCallbackObj = callback_obj;
             mDecoder.SetCallback(new AudioDecoderCallback(mDecoder, mCallbackObj, this), handler);
