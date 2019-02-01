@@ -454,12 +454,6 @@ namespace RemoteDesktop.Android.Core.Sound
 
 		public void SendRTPPacket(RTPPacket packet, bool compress, int samplePerSecond, short bitsPerSample, short channel, bool isConvertMulaw)		
 		{
-
-//      public int dataSize, soundDataSize;
-//      public int SamplesPerSecond;
-//      public short BitsPerSample;
-//      public short Channels;
-
 			try
 			{
 				// get data length

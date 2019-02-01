@@ -58,7 +58,15 @@ namespace RemoteDesktop.Client.Android.Droid
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
                     inputBuffer.Put(encoded_data);
                     Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, frameCounter * 1000 /* 1FPS */, 0);
+                    if(frameCounter == 0)
+                    {
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
+                    }
+                    else
+                    {
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
+                    }
+                    frameCounter++;
                 }
                 else
                 {
@@ -197,15 +205,16 @@ namespace RemoteDesktop.Client.Android.Droid
         {
             OpenDevice("hoge", samplingRate, 16, ch, 32 * 1024);
 
+            mCallbackObj = callback_obj;
             HandlerThread callbackThread = new HandlerThread("AACDecodingPlayerHandler");
             callbackThread.Start();
             Handler handler = new Handler(callbackThread.Looper);
 
             mDecoder = MediaCodec.CreateDecoderByType("audio/mp4a-latm");
             var mMediaFormat = MediaFormat.CreateAudioFormat("audio/mp4a-latm", samplingRate, ch);
-            byte[] bytes = new byte[]{(byte) 0x12, (byte)0x12};
-            ByteBuffer bb = ByteBuffer.Wrap(bytes);
-            mMediaFormat.SetByteBuffer("csd-0", bb);
+            //byte[] bytes = new byte[]{(byte) 0x12, (byte)0x12};
+            //ByteBuffer bb = ByteBuffer.Wrap(bytes);
+            //mMediaFormat.SetByteBuffer("csd-0", bb);
             mDecoder.SetCallback(new AudioDecoderCallback(mDecoder, mCallbackObj, this), handler);
             mDecoder.Configure(mMediaFormat, null, null, 0);
 

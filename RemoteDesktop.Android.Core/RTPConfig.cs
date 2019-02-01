@@ -28,11 +28,11 @@ namespace RemoteDesktop.Android.Core
 			public int SoundServerPort = 10000;
             public static int ImageServerPort = 8889;
 
-            public static int SamplesPerSecond = 8000;
+            //public static int SamplesPerSecond = 8000;
             //public static int SamplesPerSecond = 44100;
-            //public static int SamplesPerSecond = 24000;
+            public static int SamplesPerSecond = 24000;
             //public int SamplesPerSecond = 48000; // sound card native
-            public short BitsPerSample = 8;
+            public short BitsPerSample = 16;
             //public short BitsPerSample = 32;  // sound card native
             public short Channels = 1;
 			public Int32 PacketSize = 4096; //使われていない
@@ -49,7 +49,7 @@ namespace RemoteDesktop.Android.Core
             public static float h264EncoderKeyframeInterval = 60.0f;
             public static bool isStdOutOff = false;
             public static bool isUseFFMPEG = true;
-            public static bool isUseSoundDecoder = false;
+            public static bool isUseSoundDecoder = true;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";

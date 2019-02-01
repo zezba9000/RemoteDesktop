@@ -28,8 +28,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteDesktop.Client.Window
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinSound", "SoundRTPMulticasting\WinSound\WinSound\WinSound.csproj", "{28120D29-4F6E-4C3B-AB6A-900A26420B9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MulticastStreamerXama", "SoundRTPMulticasting\MulticastStreamerXama\MulticastStreamerXama\MulticastStreamerXama.csproj", "{C46CB47E-7DC2-4BA0-B15A-009618628CA2}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenH264Sample", "OpenH264Lib\OpenH264Sample.csproj", "{055C6F93-F112-4368-BF35-DFC3767669FC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4ECBDB10-8923-46EB-B3A9-33016DDFB774} = {4ECBDB10-8923-46EB-B3A9-33016DDFB774}
@@ -183,14 +181,6 @@ Global
 		{28120D29-4F6E-4C3B-AB6A-900A26420B9C}.Release|x64.Build.0 = Release|Any CPU
 		{28120D29-4F6E-4C3B-AB6A-900A26420B9C}.Release|x86.ActiveCfg = Release|Any CPU
 		{28120D29-4F6E-4C3B-AB6A-900A26420B9C}.Release|x86.Build.0 = Release|Any CPU
-		{C46CB47E-7DC2-4BA0-B15A-009618628CA2}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{C46CB47E-7DC2-4BA0-B15A-009618628CA2}.Debug|x64.ActiveCfg = Debug|x86
-		{C46CB47E-7DC2-4BA0-B15A-009618628CA2}.Debug|x86.ActiveCfg = Debug|x86
-		{C46CB47E-7DC2-4BA0-B15A-009618628CA2}.Debug|x86.Build.0 = Debug|x86
-		{C46CB47E-7DC2-4BA0-B15A-009618628CA2}.Release|Any CPU.ActiveCfg = Release|x86
-		{C46CB47E-7DC2-4BA0-B15A-009618628CA2}.Release|x64.ActiveCfg = Release|x86
-		{C46CB47E-7DC2-4BA0-B15A-009618628CA2}.Release|x86.ActiveCfg = Release|x86
-		{C46CB47E-7DC2-4BA0-B15A-009618628CA2}.Release|x86.Build.0 = Release|x86
 		{055C6F93-F112-4368-BF35-DFC3767669FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{055C6F93-F112-4368-BF35-DFC3767669FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{055C6F93-F112-4368-BF35-DFC3767669FC}.Debug|x64.ActiveCfg = Debug|Any CPU
