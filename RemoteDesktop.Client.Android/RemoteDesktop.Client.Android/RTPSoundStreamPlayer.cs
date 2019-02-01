@@ -21,20 +21,24 @@ namespace RemoteDesktop.Client.Android
 			Init();
 		}
 
-		RTPReceiver m_Receiver;
+		//RTPReceiver m_Receiver;
         SoundDataSocket sdsock;
 		SoundManager.Player m_Player;
 		public RTPConfiguration config = new RTPConfiguration();
-		private SoundManager.Stopwatch m_Stopwatch = new SoundManager.Stopwatch();
+		//private SoundManager.Stopwatch m_Stopwatch = new SoundManager.Stopwatch();
         private AudioDecodingPlayerManager m_DPlayer;
         private MemoryStream mp3data_ms;
 
         private void Init()
 		{
             //WinSoundServer
-			//m_Player = new SoundManager.Player();
+            if (!RTPConfiguration.isUseSoundDecoder)
+            {
+                m_Player = new SoundManager.Player();
+            }
 		}
 
+/*
         private void OnDataReceivedUDP(RTPReceiver rtr, Byte[] bytes)
 		{
 			try
@@ -96,6 +100,7 @@ namespace RemoteDesktop.Client.Android
 				m_Receiver.Connect(RTPConfiguration.ServerAddress, config.SoundServerPort);
 			}
         }
+*/
 
         public void togglePlayingTCP()
         {
@@ -107,7 +112,10 @@ namespace RemoteDesktop.Client.Android
 			}
 			else
 			{
-                //m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                if (!RTPConfiguration.isUseSoundDecoder)
+                {
+                    m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                }
 
                 sdsock = new SoundDataSocket(NetworkTypes.Client);
                 sdsock.ConnectedCallback += Socket_ConnectedCallback;
@@ -123,61 +131,72 @@ namespace RemoteDesktop.Client.Android
         private void Socket_StartDataRecievedCallback(PacketHeader pktHdr)
         {
             Console.WriteLine("Socket_StartDataRecievedCallback called compressed data size is " + pktHdr.dataSize.ToString() + " bytes");
-            // TCPの場合のみこのタイミングまでサウンドデバイスのOpenを遅らせる
-            RTPConfiguration.SamplesPerSecond = pktHdr.SamplesPerSecond;
-            config.BitsPerSample = pktHdr.BitsPerSample;
-            config.Channels = pktHdr.Channels;
-            config.isConvertMulaw = pktHdr.isConvertMulaw;
-            if (m_DPlayer == null)
+            if (RTPConfiguration.isUseSoundDecoder)
             {
-                //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
-                m_DPlayer = new AudioDecodingPlayerManager();
-                m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1);
-                Console.WriteLine("sound device opened.");
-            }
-            
-            if(mp3data_ms == null)
-            {
-                mp3data_ms = new MemoryStream();
+                // TCPの場合のみこのタイミングまでサウンドデバイスのOpenを遅らせる
+                RTPConfiguration.SamplesPerSecond = pktHdr.SamplesPerSecond;
+                config.BitsPerSample = pktHdr.BitsPerSample;
+                config.Channels = pktHdr.Channels;
+                config.isConvertMulaw = pktHdr.isConvertMulaw;
+                if (m_DPlayer == null)
+                {
+                    //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                    m_DPlayer = new AudioDecodingPlayerManager();
+                    m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1);
+                    Console.WriteLine("sound device opened.");
+                }
+
+                if (mp3data_ms == null)
+                {
+                    mp3data_ms = new MemoryStream();
+                }
+                else
+                {
+                    mp3data_ms.Position = 0;
+                }
             }
             else
             {
-                mp3data_ms.Position = 0;
+                //Device.BeginInvokeOnMainThread(() =>
+                //{
+                //    if (!m_Player.Opened)
+                //    {
+                //        m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                //    }
+                //});
             }
-
-            //Device.BeginInvokeOnMainThread(() =>
-            //{
-            //    if (!m_Player.Opened)
-            //    {
-            //        m_Player.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
-            //    }
-
-            //});
         }
 
 
         private void Socket_EndDataRecievedCallback()
         {
-            var data = mp3data_ms.ToArray();
-            Console.WriteLine("Socket_EndDataRecievedCallback and addEncodeSamplesData " + data.Length.ToString() + " bytes");
-            m_DPlayer.mCallback.addEncodedSamplesData(data, data.Length);
+            if (RTPConfiguration.isUseSoundDecoder)
+            {
+                var data = mp3data_ms.ToArray();
+                Console.WriteLine("Socket_EndDataRecievedCallback and addEncodeSamplesData " + data.Length.ToString() + " bytes");
+                m_DPlayer.mCallback.addEncodedSamplesData(data, data.Length);
+            }
         }
 
 
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
         {
             Console.WriteLine("Socket_DataRecievedCallback: recieved sound data = " + dataSize.ToString());
-            /*
-            Byte[] justSound_buf = new byte[dataSize];
-            Array.Copy(data, 0, justSound_buf, 0, dataSize);
-            Byte[] linearBytes = justSound_buf;
-            if (config.isConvertMulaw)
+            if (RTPConfiguration.isUseSoundDecoder)
             {
-                linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
+                mp3data_ms.Write(data, offset, dataSize);
             }
-            m_Player.PlayData(linearBytes, false);
-            */
-            mp3data_ms.Write(data, offset, dataSize);
+            else
+            {
+                Byte[] justSound_buf = new byte[dataSize];
+                Array.Copy(data, 0, justSound_buf, 0, dataSize);
+                Byte[] linearBytes = justSound_buf;
+                if (config.isConvertMulaw)
+                {
+                    linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
+                }
+                m_Player.PlayData(linearBytes, false);
+            }
         }
 
         private void Socket_ConnectionFailedCallback(string error)

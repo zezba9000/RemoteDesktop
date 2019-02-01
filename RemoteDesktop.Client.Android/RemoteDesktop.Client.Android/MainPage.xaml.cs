@@ -321,20 +321,14 @@ namespace RemoteDesktop.Client.Android
 
         protected override void OnDisappearing()
         {
-            player.togglePlayingUDP();
+            //player.togglePlayingUDP();
+            player.togglePlayingTCP();
         }
 
         public void connectToSoundServer()
         {
             player = new RTPSoundStreamPlayer();
-            if (player.config.protcol_mode == RTPConfiguration.ProtcolMode.TCP)
-            {
-                player.togglePlayingTCP();
-            }
-            else
-            {
-                player.togglePlayingUDP();
-            }
+            player.togglePlayingTCP();
         }
 
         protected override bool OnBackButtonPressed()

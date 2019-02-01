@@ -52,7 +52,7 @@ namespace RemoteDesktop.Client.Android.Droid
             // Stream type
             Stream.Music,
             // Frequency
-            24000, //samplesPerSecond,
+            samplesPerSecond, //samplesPerSecond,
             // Mono or stereo
             ch,
             // Audio encoding

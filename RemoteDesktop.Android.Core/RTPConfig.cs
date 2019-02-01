@@ -36,7 +36,7 @@ namespace RemoteDesktop.Android.Core
             //public short BitsPerSample = 32;  // sound card native
             public short Channels = 1;
 			public Int32 PacketSize = 4096; //使われていない
-			public Int32 BufferCount = 1024 * 16; // AndroidのAudioTrackに指定するバッファ長
+			public Int32 BufferCount = 1024 * 256; // AndroidのAudioTrackに指定するバッファ長
 			public uint JitterBuffer = 20; // max buffering num of RTPPacket at jitter buffer
             public uint JitterBufferTimerPeriodMsec = 20; // time period of jitter buffer (msec)
             public bool UseJitterBuffer = true;
@@ -49,6 +49,7 @@ namespace RemoteDesktop.Android.Core
             public static float h264EncoderKeyframeInterval = 60.0f;
             public static bool isStdOutOff = false;
             public static bool isUseFFMPEG = true;
+            public static bool isUseSoundDecoder = false;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";
