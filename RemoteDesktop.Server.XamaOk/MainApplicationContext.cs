@@ -15,6 +15,7 @@ using WindowsInput;
 using WindowsInput.Native;
 using OpenH264.Encoder;
 using NAudio.MediaFoundation;
+using System.Threading.Tasks;
 
 namespace RemoteDesktop.Server
 {
@@ -59,7 +60,7 @@ namespace RemoteDesktop.Server
 
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -bsf:a aac_adtstoasc -";
-        private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -";
+        private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u8 -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -";
         //private string ffmpegForAudioEncodeArgs = "-u F:\\work\\tmp\\yokonagashi.py";
         public static Process ffmpegProc = null;
         private MemoryStream debug_ms = new MemoryStream();
@@ -136,7 +137,7 @@ namespace RemoteDesktop.Server
             ffmpegProc = new Process();	
             ffmpegProc.StartInfo = startInfo;	
             // リダイレクトした標準出力・標準エラーの内容を受信するイベントハンドラを設定する	
-            ffmpegProc.OutputDataReceived += useFFMPEGOutputData;	
+            //ffmpegProc.OutputDataReceived += useFFMPEGOutputData;	
             ffmpegProc.ErrorDataReceived  += PrintFFMPEGErrorData;	
 
             ffmpegProc.Start();	
@@ -145,7 +146,7 @@ namespace RemoteDesktop.Server
             Thread.Sleep(3000);	
 
              // 標準出力・標準エラーの非同期読み込みを開始する	
-            ffmpegProc.BeginOutputReadLine();	
+            //ffmpegProc.BeginOutputReadLine();	
             ffmpegProc.BeginErrorReadLine();
 
             //BufferedStream bs = new BufferedStream(new FileStream("C:\\Users\\ryo\\Desktop\\hoge_8000Hz_16bit.mp3", FileMode.Open));
@@ -153,29 +154,48 @@ namespace RemoteDesktop.Server
             //bs.Read(buf, 0, buf.Length);
             //ffmpegProc.StandardInput.BaseStream.Write(buf, 0, buf.Length);
             //ffmpegProc.StandardInput.BaseStream.Flush();
-        }	
 
-        private void useFFMPEGOutputData(object sender, DataReceivedEventArgs e)	
-        {
-            Process p = (Process)sender;
-            Console.WriteLine("useFFMPEGOutputData called!");
-
-            if (!string.IsNullOrEmpty(e.Data))
+            var task = Task.Run(() =>
             {
-                //Console.WriteLine("[{0}2;stdout] {1}", p.ProcessName, e.Data);
-                char[] char_arr = e.Data.ToCharArray();
-                byte[] byte_arr = Utils.convertCharArrayToByteArray(char_arr);
-                Console.WriteLine("send " + byte_arr.Length.ToString()  + " bytes at useFFMPEGOutputData");
-                debug_ms.Write(byte_arr, 0, byte_arr.Length);
-                //if (debug_ms.Length >= 28 * 1024)
-                //{
-                //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout.aac");
-                //    //Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\hoge_8000Hz_16bit.mp3");
-                //    Environment.Exit(0);
-                //}
-                cap_streamer._AudioOutputWriter.handleDataWithTCP(byte_arr);
-            }
+                byte[] ffmpegStdout_buf = new byte[2048];
+                int readedBytes = 0;
+                while (!ffmpegProc.StandardOutput.EndOfStream)
+                {
+                    readedBytes = ffmpegProc.StandardOutput.BaseStream.Read(ffmpegStdout_buf, 0, ffmpegStdout_buf.Length);
+                    if (readedBytes > 0 && this.cap_streamer != null && this.cap_streamer._AudioOutputWriter != null)
+                    {
+                        byte[] tmp_buf = new byte[readedBytes];
+                        Array.Copy(ffmpegStdout_buf, 0, tmp_buf, 0, readedBytes);
+                        Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client");
+                        this.cap_streamer._AudioOutputWriter.handleDataWithTCP(tmp_buf);
+                    }
+                }
+            });
         }	
+
+        
+        //private void useFFMPEGOutputData(object sender, DataReceivedEventArgs e)	
+        //{
+        //    Process p = (Process)sender;
+        //    Console.WriteLine("useFFMPEGOutputData called!");
+
+        //    //if (!string.IsNullOrEmpty(e.Data))
+        //    if (e.Data != null && e.Data.Length > 0)
+        //    {
+        //        //Console.WriteLine("[{0}2;stdout] {1}", p.ProcessName, e.Data);
+        //        char[] char_arr = e.Data.ToCharArray();
+        //        byte[] byte_arr = Utils.convertCharArrayToByteArray(char_arr);
+        //        Console.WriteLine("send " + byte_arr.Length.ToString()  + " bytes at useFFMPEGOutputData");
+        //        //debug_ms.Write(byte_arr, 0, byte_arr.Length);
+        //        //if (debug_ms.Length >= 28 * 1024)
+        //        //{
+        //        //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout.aac");
+        //        //    //Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\hoge_8000Hz_16bit.mp3");
+        //        //    Environment.Exit(0);
+        //        //}
+        //        cap_streamer._AudioOutputWriter.handleDataWithTCP(byte_arr);
+        //    }
+        //}	
 
         private void PrintFFMPEGErrorData(object sender, DataReceivedEventArgs e)	
         {
