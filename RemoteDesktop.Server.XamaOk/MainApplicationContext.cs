@@ -155,6 +155,13 @@ namespace RemoteDesktop.Server
                 while (!ffmpegProc.StandardOutput.EndOfStream)
                 {
                     readedBytes = ffmpegProc.StandardOutput.BaseStream.Read(ffmpegStdout_buf, 0, ffmpegStdout_buf.Length);
+                    //debug_ms.Write(ffmpegStdout_buf, 0, readedBytes);
+                    //if(debug_ms.Length > 4 * 1024)
+                    //{
+                    //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpet_stdout_PCM_fixed.aac");
+                    //    Environment.Exit(0);
+                    //}
+                    //continue;
                     if (readedBytes > 0 && this.cap_streamer != null && this.cap_streamer._AudioOutputWriter != null)
                     {
                         byte[] tmp_buf = new byte[readedBytes];

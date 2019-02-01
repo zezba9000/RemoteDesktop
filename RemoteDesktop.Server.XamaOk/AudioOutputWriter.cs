@@ -40,6 +40,8 @@ namespace RemoteDesktop.Server.XamaOK
         private uint m_JitterBufferCount = 20; // max buffering num of RTPPacket at jitter buffer
         private uint m_Milliseconds = 20; // time period of jitter buffer (msec)
         private MemoryStream debug_ms = new MemoryStream();
+        private MemoryStream captured_buf = new MemoryStream();
+        //byte[] ffmpeg_stdin_buf = new byte[480000L * 2 * 4 * 1024];
 
         #endregion
 
@@ -236,8 +238,27 @@ namespace RemoteDesktop.Server.XamaOK
 
             if (RTPConfiguration.isUseFFMPEG)
             {
-                MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);
-                MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
+                captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
+                // 1024サンプル分溜まったら書き込む
+                if(captured_buf.Length / (4 * 2) >= 1024)
+                {
+                    captured_buf.Position = 0;
+                    byte[] tmp_buf = new byte[4 * 2 * 1024];
+                    captured_buf.Read(tmp_buf, 0, tmp_buf.Length);
+                    MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
+                    MemoryStream new_ms = new MemoryStream();
+
+                    // 残ったデータの処理
+                    captured_buf.Position = 4 * 2 * 1024;
+                    byte[] left_data_buf = new byte[captured_buf.Length - 4 * 2 * 1024L];
+                    captured_buf.Read(left_data_buf, 0, left_data_buf.Length);
+                    captured_buf.Position = 0;
+                    captured_buf.SetLength(0);
+                    captured_buf.Write(left_data_buf, 0, left_data_buf.Length);
+
+                    //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);
+                    MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();                    
+                }
             }
             else
             {

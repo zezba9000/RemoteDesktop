@@ -133,19 +133,10 @@ namespace RemoteDesktop.Client.Android
             Console.WriteLine("Socket_StartDataRecievedCallback called compressed data size is " + pktHdr.dataSize.ToString() + " bytes");
             if (RTPConfiguration.isUseSoundDecoder)
             {
-                // TCPの場合のみこのタイミングまでサウンドデバイスのOpenを遅らせる
                 RTPConfiguration.SamplesPerSecond = pktHdr.SamplesPerSecond;
                 config.BitsPerSample = pktHdr.BitsPerSample;
                 config.Channels = pktHdr.Channels;
                 config.isConvertMulaw = pktHdr.isConvertMulaw;
-                if (m_DPlayer == null)
-                {
-                    //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
-                    m_DPlayer = new AudioDecodingPlayerManager();
-                    m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1);
-                    Console.WriteLine("sound device opened.");
-                }
-
                 if (mp3data_ms == null)
                 {
                     mp3data_ms = new MemoryStream();
@@ -172,9 +163,28 @@ namespace RemoteDesktop.Client.Android
         {
             if (RTPConfiguration.isUseSoundDecoder)
             {
-                var data = mp3data_ms.ToArray();
-                Console.WriteLine("Socket_EndDataRecievedCallback and addEncodeSamplesData " + data.Length.ToString() + " bytes");
-                m_DPlayer.mCallback.addEncodedSamplesData(data, data.Length);
+                //var data = mp3data_ms.ToArray();
+
+                mp3data_ms.Position = 0;
+                if (m_DPlayer == null)
+                {
+                    mp3data_ms.Position = 0;
+                    byte[] csd0_data = new byte[2];
+                    mp3data_ms.Read(csd0_data, 0, 2);
+
+                    //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                    m_DPlayer = new AudioDecodingPlayerManager();
+                    m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd0_data);
+                    Console.WriteLine("sound device opened.");
+                    if(!(mp3data_ms.Length > 2))
+                    {
+                        return;
+                    }
+                }
+                byte[] data_buf = new byte[mp3data_ms.Length - mp3data_ms.Position];
+                mp3data_ms.Read(data_buf, 0, data_buf.Length);
+                Console.WriteLine("Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
+                m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
             }
         }
 

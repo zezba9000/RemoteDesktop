@@ -46,7 +46,7 @@ namespace RemoteDesktop.Client.Android
 
     public interface IPlatformAudioDecodingPlayer
     {
-        bool setup(AudioDecodingPlayerCallback callback_ob, int samplingRate, int ch, int bitrate);
+        bool setup(AudioDecodingPlayerCallback callback_ob, int samplingRate, int ch, int bitrate, byte[] csd0_data);
         void Close();
     }
 
@@ -62,12 +62,12 @@ namespace RemoteDesktop.Client.Android
             return DependencyService.Get<IPlatformAudioDecodingPlayer>();
         }
 
-        public bool setup(int samplingRate, int ch, int bitrate)
+        public bool setup(int samplingRate, int ch, int bitrate, byte[] csd0_data)
         {
             mADP = getInstance();
             isOpened = true;
             mCallback = new AudioDecodingPlayerCallback(new Queue<byte[]>());
-            return mADP.setup(mCallback, samplingRate, ch, bitrate);
+            return mADP.setup(mCallback, samplingRate, ch, bitrate, csd0_data);
         }
 
         public void Close()

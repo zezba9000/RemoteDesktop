@@ -58,14 +58,14 @@ namespace RemoteDesktop.Client.Android.Droid
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
                     inputBuffer.Put(encoded_data);
                     Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                    //if(frameCounter == 0)
-                    //{
-                    //    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
-                    //}
-                    //else
-                    //{
+                    if (frameCounter == 0)
+                    {
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
+                    }
+                    else
+                    {
                         mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
-                    //}
+                    }
                     frameCounter++;
                 }
                 else
@@ -201,7 +201,7 @@ namespace RemoteDesktop.Client.Android.Droid
             return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
-        public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate)
+        public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate, byte[] csd0_data)
         {
             OpenDevice("hoge", samplingRate, 16, ch, 32 * 1024);
 
@@ -212,8 +212,8 @@ namespace RemoteDesktop.Client.Android.Droid
 
             mDecoder = MediaCodec.CreateDecoderByType("audio/mp4a-latm");
             var mMediaFormat = MediaFormat.CreateAudioFormat("audio/mp4a-latm", samplingRate, ch);
-            byte[] bytes = new byte[] { (byte)0x12, (byte)0x12 };
-            ByteBuffer bb = ByteBuffer.Wrap(bytes);
+            //byte[] bytes = new byte[] { (byte)0x12, (byte)0x12 };
+            ByteBuffer bb = ByteBuffer.Wrap(csd0_data);
             mMediaFormat.SetByteBuffer("csd-0", bb);
             mDecoder.SetCallback(new AudioDecoderCallback(mDecoder, mCallbackObj, this), handler);
             mDecoder.Configure(mMediaFormat, null, null, 0);
