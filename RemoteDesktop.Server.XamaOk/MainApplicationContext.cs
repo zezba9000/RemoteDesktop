@@ -50,18 +50,10 @@ namespace RemoteDesktop.Server
         private int timestamp = 0; // equal frame number
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
-        //private string ffmpegPath = "C:\\Python27\\python.exe";
-
-
-        //private string ffmpegForAudioEncodeArgs = "-loglevel debug -f pcm_32le -ar 48000 -ac 2 -i - -f s16le -ar 8000 -ac 1 -map 0 -codec:a libmp3lame -f mp3 -write_xing 0 -id3v2_version 0 -";
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -f mp3 -write_xing 0 -id3v2_version 0 -";
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f s32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -f mp3 -";
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libmp3lame -ab 12K -f mp3 -";
 
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -bsf:a aac_adtstoasc -";
         private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u8 -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -";
-        //private string ffmpegForAudioEncodeArgs = "-u F:\\work\\tmp\\yokonagashi.py";
         public static Process ffmpegProc = null;
         private MemoryStream debug_ms = new MemoryStream();
 
@@ -105,7 +97,6 @@ namespace RemoteDesktop.Server
             //// init input simulation
             //input = new InputSimulator();
 
-            //var rtspsrc = new Media.Rtsp.Server. RtspSource();
 
             //// start TCP socket listen for image server
             //socket = new DataSocket(NetworkTypes.Server);
@@ -149,12 +140,6 @@ namespace RemoteDesktop.Server
             //ffmpegProc.BeginOutputReadLine();	
             ffmpegProc.BeginErrorReadLine();
 
-            //BufferedStream bs = new BufferedStream(new FileStream("C:\\Users\\ryo\\Desktop\\hoge_8000Hz_16bit.mp3", FileMode.Open));
-            //byte[] buf = new byte[66384];
-            //bs.Read(buf, 0, buf.Length);
-            //ffmpegProc.StandardInput.BaseStream.Write(buf, 0, buf.Length);
-            //ffmpegProc.StandardInput.BaseStream.Flush();
-
             var task = Task.Run(() =>
             {
                 byte[] ffmpegStdout_buf = new byte[2048];
@@ -182,18 +167,6 @@ namespace RemoteDesktop.Server
         //    //if (!string.IsNullOrEmpty(e.Data))
         //    if (e.Data != null && e.Data.Length > 0)
         //    {
-        //        //Console.WriteLine("[{0}2;stdout] {1}", p.ProcessName, e.Data);
-        //        char[] char_arr = e.Data.ToCharArray();
-        //        byte[] byte_arr = Utils.convertCharArrayToByteArray(char_arr);
-        //        Console.WriteLine("send " + byte_arr.Length.ToString()  + " bytes at useFFMPEGOutputData");
-        //        //debug_ms.Write(byte_arr, 0, byte_arr.Length);
-        //        //if (debug_ms.Length >= 28 * 1024)
-        //        //{
-        //        //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout.aac");
-        //        //    //Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\hoge_8000Hz_16bit.mp3");
-        //        //    Environment.Exit(0);
-        //        //}
-        //        cap_streamer._AudioOutputWriter.handleDataWithTCP(byte_arr);
         //    }
         //}	
 
@@ -401,9 +374,6 @@ namespace RemoteDesktop.Server
                 lock (this)
                 {
                         if (isDisposed) return;
-                        //encoder = new ExtractedH264Encoder(540, 960, 20 * 1024 * 8, 1.0f, 60.0f);
-                        //encoder = new ExtractedH264Encoder(540, 960, 1 * 1024 * 8, 1.0f, 60.0f);
-                        //encoder = new ExtractedH264Encoder(540, 960, 1 * 1024 * 8, 1.0f, 60.0f);
                         if (isFixedParamUse)
                         {
                             encoder = new ExtractedH264Encoder((int)(screenRect.Height * fixedResolutionScale), (int)(screenRect.Width * fixedResolutionScale), 
@@ -568,11 +538,9 @@ namespace RemoteDesktop.Server
 		{
             lock (this)
             {
-                if (bitmap == null || bitmap.PixelFormat != format) // || screenIndex != currentScreenIndex) // || compress != currentCompress) // || resolutionScale != currentResolutionScale)
+                if (bitmap == null || bitmap.PixelFormat != format)
                 {
                     currentScreenIndex = screenIndex;
-                    //currentCompress = compress;
-                    //currentResolutionScale = resolutionScale;
 
                     // get screen to catpure
                     var screens = Screen.AllScreens;

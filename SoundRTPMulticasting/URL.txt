@@ -1,2 +1,0 @@
-Play or Capture Audio Sound. Send and Receive as Multicast (RTP)
-https://www.codeproject.com/Articles/394890/Play-or-Capture-Audio-Sound-Send-and-Receive-as-Mu
