@@ -168,20 +168,20 @@ namespace RemoteDesktop.Client.Android
                 mp3data_ms.Position = 0;
                 if (m_DPlayer == null)
                 {
-                    mp3data_ms.Position = 0;
-                    byte[] csd0_data = new byte[2];
-                    mp3data_ms.Read(csd0_data, 0, 2);
+                    //mp3data_ms.Position = 0;
+                    //byte[] csd0_data = new byte[2];
+                    //mp3data_ms.Read(csd0_data, 0, 2);
 
                     //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
                     m_DPlayer = new AudioDecodingPlayerManager();
-                    m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd0_data);
-                    //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);
+                    //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd0_data);
+                    m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);
                     Console.WriteLine("sound device opened.");
-                    m_DPlayer.mCallback.addEncodedSamplesData(csd0_data, csd0_data.Length);
-                    if (!(mp3data_ms.Length > 2))
-                    {
-                        return;
-                    }
+                    //m_DPlayer.mCallback.addEncodedSamplesData(csd0_data, csd0_data.Length);
+                    //if (!(mp3data_ms.Length > 2))
+                    //{
+                    //    return;
+                    //}
                 }
                 byte[] data_buf = new byte[mp3data_ms.Length - mp3data_ms.Position];
                 mp3data_ms.Read(data_buf, 0, data_buf.Length);

@@ -59,23 +59,23 @@ namespace RemoteDesktop.Client.Android.Droid
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
                     inputBuffer.Position(0);
 
-                    //inputBuffer.Put(encoded_data);
+                    inputBuffer.Put(encoded_data);
                     Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
                     if (frameCounter == 0)
                     {
                         //inputBuffer.Put(CSD0);
                         inputBuffer.Put(encoded_data);
-                        // 最初のフレームはcds-0の2byteになるようにしてある
+                        // 最初のフレームはcds-0の2byteになるようにしてある <- 今はADTSフレームの一番目が来る。データもくっついている。
                         mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
                     }
                     else
                     {
                         // remove adts header
-                        inputBuffer.Put(encoded_data, 9, encoded_data.Length - 9);
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 9, 0, 0);
+                        //inputBuffer.Put(encoded_data, 9, encoded_data.Length - 9);
+                        //mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 9, 0, 0);
 
-                        //inputBuffer.Put(encoded_data);
-                        //mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
+                        inputBuffer.Put(encoded_data);
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
                     }
                     frameCounter++;
                 }

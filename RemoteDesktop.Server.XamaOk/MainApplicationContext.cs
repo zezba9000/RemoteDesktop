@@ -160,9 +160,9 @@ namespace RemoteDesktop.Server
                 {
                     readedBytes = ffmpegProc.StandardOutput.BaseStream.Read(ffmpegStdout_buf, 0, ffmpegStdout_buf.Length);
                     //debug_ms.Write(ffmpegStdout_buf, 0, readedBytes);
-                    //if(debug_ms.Length > 4 * 1024)
+                    //if (debug_ms.Length > 4 * 1024)
                     //{
-                    //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpet_stdout_PCM_fixed.aac");
+                    //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout_encoded_adts_0202_1110.aac");
                     //    Environment.Exit(0);
                     //}
                     //continue;
