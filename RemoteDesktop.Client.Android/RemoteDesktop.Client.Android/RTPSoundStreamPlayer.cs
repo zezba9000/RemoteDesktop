@@ -182,6 +182,8 @@ namespace RemoteDesktop.Client.Android
                     {
                         return;
                     }
+                    //最初のフレームのヘッダは取り除かずに流す
+                    mp3data_ms.Position = 0;
                 }
                 byte[] data_buf = new byte[mp3data_ms.Length - mp3data_ms.Position];
                 mp3data_ms.Read(data_buf, 0, data_buf.Length);
