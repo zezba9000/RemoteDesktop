@@ -59,23 +59,24 @@ namespace RemoteDesktop.Client.Android.Droid
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
                     inputBuffer.Position(0);
 
-                    Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                    //if (frameCounter == 0)
-                    //{
-                    //    inputBuffer.Put(CSD0);
-                    //    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
-                    //}
-                    //else
-                    //{
-
-                    // remove adts header
-                    inputBuffer.Put(encoded_data, 9, encoded_data.Length - 9);
                     //inputBuffer.Put(encoded_data);
+                    Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
+                    if (frameCounter == 0)
+                    {
+                        //inputBuffer.Put(CSD0);
+                        inputBuffer.Put(encoded_data);
+                        // 最初のフレームはcds-0の2byteになるようにしてある
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
+                    }
+                    else
+                    {
+                        // remove adts header
+                        inputBuffer.Put(encoded_data, 7, encoded_data.Length - 7);
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 7, 0, 0);
 
-                    mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 9, 0, 0);
-
-                    //mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
-                    //}
+                        //inputBuffer.Put(encoded_data);
+                        //mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
+                    }
                     frameCounter++;
                 }
                 else
@@ -83,7 +84,6 @@ namespace RemoteDesktop.Client.Android.Droid
                     Console.WriteLine("QueueInputBuffer set MediaCodec.BufferFlagEndOfStream");
                     mDecoder.QueueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
                 }
-                frameCounter++;
             }
         }
 
@@ -223,10 +223,10 @@ namespace RemoteDesktop.Client.Android.Droid
             mDecoder = MediaCodec.CreateDecoderByType("audio/mp4a-latm");
             var mMediaFormat = MediaFormat.CreateAudioFormat("audio/mp4a-latm", samplingRate, ch);
             //byte[] bytes = new byte[] { (byte)0x12, (byte)0x12 };
-            ByteBuffer bb = ByteBuffer.Wrap(csd0_data);
-            mMediaFormat.SetByteBuffer("csd-0", bb);
+            //ByteBuffer bb = ByteBuffer.Wrap(csd0_data);
+            //mMediaFormat.SetByteBuffer("csd-0", bb);
             var cbk = new AudioDecoderCallback(mDecoder, mCallbackObj, this);
-            cbk.CSD0 = csd0_data;
+            //cbk.CSD0 = csd0_data;
             mDecoder.SetCallback(cbk, handler);
             mDecoder.Configure(mMediaFormat, null, null, 0);
 

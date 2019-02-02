@@ -175,8 +175,10 @@ namespace RemoteDesktop.Client.Android
                     //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
                     m_DPlayer = new AudioDecodingPlayerManager();
                     m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd0_data);
+                    //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);
                     Console.WriteLine("sound device opened.");
-                    if(!(mp3data_ms.Length > 2))
+                    m_DPlayer.mCallback.addEncodedSamplesData(csd0_data, csd0_data.Length);
+                    if (!(mp3data_ms.Length > 2))
                     {
                         return;
                     }

@@ -55,6 +55,10 @@ namespace RemoteDesktop.Server
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -bsf:a aac_adtstoasc -";
 
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
+
+        // dont send first 2byte header???
+        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
+
         private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
 
         // send Raw PCM data
