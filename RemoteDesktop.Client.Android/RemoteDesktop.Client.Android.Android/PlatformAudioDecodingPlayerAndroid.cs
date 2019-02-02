@@ -59,24 +59,24 @@ namespace RemoteDesktop.Client.Android.Droid
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
                     inputBuffer.Position(0);
 
-                    inputBuffer.Put(encoded_data);
+                    //inputBuffer.Put(encoded_data);
                     Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                    if (frameCounter == 0)
-                    {
-                        //inputBuffer.Put(CSD0);
-                        inputBuffer.Put(encoded_data);
-                        // 最初のフレームはcds-0の2byteになるようにしてある <- 今はADTSフレームの一番目が来る。データもくっついている。
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
-                    }
-                    else
-                    {
+                    //if (frameCounter == 0)
+                    //{
+                    //    //inputBuffer.Put(CSD0);
+                    //    inputBuffer.Put(encoded_data);
+                    //    // 最初のフレームはcds-0の2byteになるようにしてある <- 今はADTSフレームの一番目が来る。データもくっついている。
+                    //    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
+                    //}
+                    //else
+                    //{
                         // remove adts header
                         //inputBuffer.Put(encoded_data, 9, encoded_data.Length - 9);
                         //mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 9, 0, 0);
 
                         inputBuffer.Put(encoded_data);
                         mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
-                    }
+                    //}
                     frameCounter++;
                 }
                 else
@@ -211,7 +211,7 @@ namespace RemoteDesktop.Client.Android.Droid
             return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
-        public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate, byte[] csd0_data)
+        public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate, byte[] csd_data)
         {
             OpenDevice("hoge", samplingRate, 16, ch, 32 * 1024);
 
@@ -225,6 +225,17 @@ namespace RemoteDesktop.Client.Android.Droid
             //byte[] bytes = new byte[] { (byte)0x12, (byte)0x12 };
             //ByteBuffer bb = ByteBuffer.Wrap(csd0_data);
             //mMediaFormat.SetByteBuffer("csd-0", bb);
+
+            int profile = (csd_data[2] & 0xC0) >> 6;
+            int srate = (csd_data[2] & 0x3C) >> 2;
+            int channel = ((csd_data[2] & 0x01) << 2) | ((csd_data[3] & 0xC0) >> 6);
+
+            ByteBuffer csd = ByteBuffer.Allocate(2);
+            csd.Put(0, (sbyte)(((profile + 1) << 3) | srate >> 1));
+            csd.Put(1, (sbyte)(((srate << 7) & 0x80) | channel << 3));
+            mMediaFormat.SetInteger(MediaFormat.KeyIsAdts, 1);
+            mMediaFormat.SetByteBuffer("csd-0", csd);
+
             var cbk = new AudioDecoderCallback(mDecoder, mCallbackObj, this);
             //cbk.CSD0 = csd0_data;
             mDecoder.SetCallback(cbk, handler);
