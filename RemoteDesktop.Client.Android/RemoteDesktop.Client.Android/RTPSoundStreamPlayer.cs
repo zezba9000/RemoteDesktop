@@ -27,7 +27,7 @@ namespace RemoteDesktop.Client.Android
 		public RTPConfiguration config = new RTPConfiguration();
 		//private SoundManager.Stopwatch m_Stopwatch = new SoundManager.Stopwatch();
         private AudioDecodingPlayerManager m_DPlayer;
-        private MemoryStream mp3data_ms;
+        private MemoryStream encoded_frame_ms;
 
         private void Init()
 		{
@@ -137,13 +137,14 @@ namespace RemoteDesktop.Client.Android
                 config.BitsPerSample = pktHdr.BitsPerSample;
                 config.Channels = pktHdr.Channels;
                 config.isConvertMulaw = pktHdr.isConvertMulaw;
-                if (mp3data_ms == null)
+                if (encoded_frame_ms == null)
                 {
-                    mp3data_ms = new MemoryStream();
+                    encoded_frame_ms = new MemoryStream();
                 }
                 else
                 {
-                    mp3data_ms.Position = 0;
+                    encoded_frame_ms.Position = 0;
+                    encoded_frame_ms.SetLength(0);
                 }
             }
             else
@@ -165,11 +166,11 @@ namespace RemoteDesktop.Client.Android
             {
                 //var data = mp3data_ms.ToArray();
 
-                mp3data_ms.Position = 0;
+                encoded_frame_ms.Position = 0;
                 if (m_DPlayer == null)
                 {
                     byte[] csd_data = new byte[7];
-                    mp3data_ms.Read(csd_data, 0, 7);
+                    encoded_frame_ms.Read(csd_data, 0, 7);
                     //byte[] csd_data = new byte[2];
                     //mp3data_ms.Read(csd_data, 0, 2);
 
@@ -183,15 +184,15 @@ namespace RemoteDesktop.Client.Android
 
 
                     //if (!(mp3data_ms.Length > 2))
-                    if (!(mp3data_ms.Length > 7))
+                    if (!(encoded_frame_ms.Length > 7))
                     {
                         return;
                     }
                     //最初のフレームのヘッダは取り除かずに流す (rdts形式の場合)
-                    mp3data_ms.Position = 0;
+                    encoded_frame_ms.Position = 0;
                 }
-                byte[] data_buf = new byte[mp3data_ms.Length - mp3data_ms.Position];
-                mp3data_ms.Read(data_buf, 0, data_buf.Length);
+                byte[] data_buf = new byte[encoded_frame_ms.Length - encoded_frame_ms.Position];
+                encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
                 Console.WriteLine("Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
                 m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
             }
@@ -203,7 +204,7 @@ namespace RemoteDesktop.Client.Android
             Console.WriteLine("Socket_DataRecievedCallback: recieved sound data = " + dataSize.ToString());
             if (RTPConfiguration.isUseSoundDecoder)
             {
-                mp3data_ms.Write(data, offset, dataSize);
+                encoded_frame_ms.Write(data, offset, dataSize);
             }
             else
             {
