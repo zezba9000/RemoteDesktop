@@ -230,9 +230,16 @@ namespace RemoteDesktop.Client.Android.Droid
             int srate = (csd_data[2] & 0x3C) >> 2;
             int channel = ((csd_data[2] & 0x01) << 2) | ((csd_data[3] & 0xC0) >> 6);
 
-            ByteBuffer csd = ByteBuffer.Allocate(2);
-            csd.Put(0, (sbyte)(((profile + 1) << 3) | srate >> 1));
-            csd.Put(1, (sbyte)(((srate << 7) & 0x80) | channel << 3));
+            sbyte csd0_0s = (sbyte)(((profile + 1) << 3) | srate >> 1);
+            sbyte csd0_1s = (sbyte)(((profile + 1) << 3) | srate >> 1);
+            byte csd0_0 = (byte)(((profile + 1) << 3) | srate >> 1);
+            byte csd0_1 = (byte)(((profile + 1) << 3) | srate >> 1);
+            byte[] bytes = new byte[] { csd0_0, csd0_1 };
+            ByteBuffer csd = ByteBuffer.Wrap(bytes);
+
+            //ByteBuffer csd = ByteBuffer.Allocate(2);
+            //csd.Put(0, csd0_0s);
+            //csd.Put(1, csd0_1s);
             mMediaFormat.SetInteger(MediaFormat.KeyIsAdts, 1);
             mMediaFormat.SetByteBuffer("csd-0", csd);
 

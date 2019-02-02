@@ -59,7 +59,8 @@ namespace RemoteDesktop.Server
         // dont send first 2byte header???
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
 
-        private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
+        private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -f adts -";
+        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K  -";
 
         // send Raw PCM data
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u8 -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -";
@@ -162,7 +163,7 @@ namespace RemoteDesktop.Server
                     //debug_ms.Write(ffmpegStdout_buf, 0, readedBytes);
                     //if (debug_ms.Length > 4 * 1024)
                     //{
-                    //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout_encoded_adts_0202_1110.aac");
+                    //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout_encoded_no_adts_option_0202_1541.aac");
                     //    Environment.Exit(0);
                     //}
                     //continue;
