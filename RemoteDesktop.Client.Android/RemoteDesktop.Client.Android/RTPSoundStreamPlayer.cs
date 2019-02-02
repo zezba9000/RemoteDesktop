@@ -168,8 +168,10 @@ namespace RemoteDesktop.Client.Android
                 mp3data_ms.Position = 0;
                 if (m_DPlayer == null)
                 {
-                    byte[] csd_data = new byte[7];
-                    mp3data_ms.Read(csd_data, 0, 7);
+                    //byte[] csd_data = new byte[7];
+                    //mp3data_ms.Read(csd_data, 0, 7);
+                    byte[] csd_data = new byte[2];
+                    mp3data_ms.Read(csd_data, 0, 2);
 
                     //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
                     m_DPlayer = new AudioDecodingPlayerManager();
@@ -178,12 +180,14 @@ namespace RemoteDesktop.Client.Android
                     //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);
                     Console.WriteLine("sound device opened.");
                     //m_DPlayer.mCallback.addEncodedSamplesData(csd_data, csd_data.Length);
-                    if (!(mp3data_ms.Length > 7))
+
+                    //if (!(mp3data_ms.Length > 7))
+                    if (!(mp3data_ms.Length > 2))
                     {
                         return;
                     }
-                    //最初のフレームのヘッダは取り除かずに流す
-                    mp3data_ms.Position = 0;
+                    //最初のフレームのヘッダは取り除かずに流す (rdts形式の場合)
+                    //mp3data_ms.Position = 0;
                 }
                 byte[] data_buf = new byte[mp3data_ms.Length - mp3data_ms.Position];
                 mp3data_ms.Read(data_buf, 0, data_buf.Length);
