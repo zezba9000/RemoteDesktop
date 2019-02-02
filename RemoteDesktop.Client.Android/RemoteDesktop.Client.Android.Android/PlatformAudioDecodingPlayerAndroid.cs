@@ -28,6 +28,7 @@ namespace RemoteDesktop.Client.Android.Droid
         AudioDecodingPlayerCallback mCallbackObj;
         PlatformAudioDecodingPlayerAndroid mADP;
         int frameCounter = 0;
+        public byte[] CSD0;
 
         public event DecodedBitmapHandler encodedDataGenerated;
 
@@ -56,16 +57,19 @@ namespace RemoteDesktop.Client.Android.Droid
                 if (sampleSize > 0)
                 {
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
-                    inputBuffer.Put(encoded_data);
+                    //inputBuffer.Position(0);
+
                     Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                    if (frameCounter == 0)
-                    {
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
-                    }
-                    else
-                    {
+                    //if (frameCounter == 0)
+                    //{
+                    //    inputBuffer.Put(CSD0);
+                    //    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
+                    //}
+                    //else
+                    //{
+                        inputBuffer.Put(encoded_data);
                         mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
-                    }
+                    //}
                     frameCounter++;
                 }
                 else
@@ -215,7 +219,9 @@ namespace RemoteDesktop.Client.Android.Droid
             //byte[] bytes = new byte[] { (byte)0x12, (byte)0x12 };
             ByteBuffer bb = ByteBuffer.Wrap(csd0_data);
             mMediaFormat.SetByteBuffer("csd-0", bb);
-            mDecoder.SetCallback(new AudioDecoderCallback(mDecoder, mCallbackObj, this), handler);
+            var cbk = new AudioDecoderCallback(mDecoder, mCallbackObj, this);
+            cbk.CSD0 = csd0_data;
+            mDecoder.SetCallback(cbk, handler);
             mDecoder.Configure(mMediaFormat, null, null, 0);
 
    //         String audioCodecType = "audio/mp4a-latm";
