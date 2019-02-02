@@ -71,8 +71,8 @@ namespace RemoteDesktop.Client.Android.Droid
                     else
                     {
                         // remove adts header
-                        inputBuffer.Put(encoded_data, 7, encoded_data.Length - 7);
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 7, 0, 0);
+                        inputBuffer.Put(encoded_data, 9, encoded_data.Length - 9);
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 9, 0, 0);
 
                         //inputBuffer.Put(encoded_data);
                         //mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
