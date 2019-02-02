@@ -213,7 +213,7 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate, byte[] csd_data)
         {
-            OpenDevice("hoge", samplingRate, 8, ch, 128 * 1024);
+            OpenDevice("hoge", samplingRate, 16, ch, 128 * 1024);
 
             mCallbackObj = callback_obj;
             HandlerThread callbackThread = new HandlerThread("AACDecodingPlayerHandler");
