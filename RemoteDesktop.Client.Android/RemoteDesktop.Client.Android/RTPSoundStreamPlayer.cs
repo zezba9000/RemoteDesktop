@@ -193,7 +193,7 @@ namespace RemoteDesktop.Client.Android
                 }
                 byte[] data_buf = new byte[encoded_frame_ms.Length - encoded_frame_ms.Position];
                 encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
-                Console.WriteLine("Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
+                Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
                 m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
             }
         }

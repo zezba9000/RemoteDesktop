@@ -48,7 +48,7 @@ namespace RemoteDesktop.Client.Android.Droid
             byte[] encoded_data = null;
             while ((encoded_data = mCallbackObj.getEncodedSamplesData()) == null)
             {
-                Thread.Sleep(100);
+                Thread.Sleep(1);
             }
             Console.WriteLine("OnInputBufferAvailable: got encoded data!");
             
@@ -152,17 +152,19 @@ namespace RemoteDesktop.Client.Android.Droid
         //private MediaFormat mOutputFormat; // member variable
         //private MediaFormat inputFormat;
         private AudioDecodingPlayerCallback mCallbackObj;
+        int samplesPerSecond;
 
         AudioTrack audioTrack;
 
         public void PlayData(byte[] data, bool flag)
         {
-            Console.WriteLine(" " + DateTime.Now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " call PlayData: " + data.Length.ToString() + " bytes, " + (data.Length / 24000.0 / 2.0).ToString() + " sec at playing time");
+            Console.WriteLine(" " + DateTime.Now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " call PlayData: " + data.Length.ToString() + " bytes, " + ((float)data.Length / (float)samplesPerSecond / 2.0).ToString() + " sec at playing time");
             audioTrack.Write(data, 0, data.Length);
         }
 
         public bool OpenDevice(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
         {
+            this.samplesPerSecond = samplesPerSecond;
             Encoding depthBits = Encoding.Pcm16bit;
             if (bitsPerSample == 16)
             {
