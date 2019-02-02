@@ -60,16 +60,22 @@ namespace RemoteDesktop.Client.Android.Droid
                     inputBuffer.Position(0);
 
                     Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                    if (frameCounter == 0)
-                    {
-                        inputBuffer.Put(CSD0);
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
-                    }
-                    else
-                    {
-                        inputBuffer.Put(encoded_data);
-                        mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
-                    }
+                    //if (frameCounter == 0)
+                    //{
+                    //    inputBuffer.Put(CSD0);
+                    //    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
+                    //}
+                    //else
+                    //{
+
+                    // remove adts header
+                    inputBuffer.Put(encoded_data, 7, encoded_data.Length - 7);
+                    //inputBuffer.Put(encoded_data);
+
+                    mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 7, 0, 0);
+
+                    //mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
+                    //}
                     frameCounter++;
                 }
                 else
@@ -217,8 +223,8 @@ namespace RemoteDesktop.Client.Android.Droid
             mDecoder = MediaCodec.CreateDecoderByType("audio/mp4a-latm");
             var mMediaFormat = MediaFormat.CreateAudioFormat("audio/mp4a-latm", samplingRate, ch);
             //byte[] bytes = new byte[] { (byte)0x12, (byte)0x12 };
-            //ByteBuffer bb = ByteBuffer.Wrap(csd0_data);
-            //mMediaFormat.SetByteBuffer("csd-0", bb);
+            ByteBuffer bb = ByteBuffer.Wrap(csd0_data);
+            mMediaFormat.SetByteBuffer("csd-0", bb);
             var cbk = new AudioDecoderCallback(mDecoder, mCallbackObj, this);
             cbk.CSD0 = csd0_data;
             mDecoder.SetCallback(cbk, handler);
