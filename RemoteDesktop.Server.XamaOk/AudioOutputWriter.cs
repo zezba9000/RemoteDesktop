@@ -231,7 +231,7 @@ namespace RemoteDesktop.Server.XamaOK
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
 
-            if (sdsock.IsConnected() == false)
+            if (RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false && sdsock.IsConnected() == false)
             {
                 return;
             }

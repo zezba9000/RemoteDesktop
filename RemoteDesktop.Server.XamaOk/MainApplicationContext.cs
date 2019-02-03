@@ -16,6 +16,7 @@ using WindowsInput.Native;
 using OpenH264.Encoder;
 using NAudio.MediaFoundation;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace RemoteDesktop.Server
 {
@@ -178,12 +179,42 @@ namespace RemoteDesktop.Server
                     //}
                     //continue;
                     if (readedBytes > 0 && this.cap_streamer != null && this.cap_streamer._AudioOutputWriter != null)
-                    {
-                        aac_adts_frame_cnt++;
+                    {                        
                         byte[] tmp_buf = new byte[readedBytes];
                         Array.Copy(ffmpegStdout_buf, 0, tmp_buf, 0, readedBytes);
+                        if (RTPConfiguration.isCheckAdtsFrameNum)
+                        {
+                            int frame_length = ((tmp_buf[3] & 0b11) << 11) | (tmp_buf[4] << 3) | (tmp_buf[5] >> 5);
+
+                            // ffmpegから読みだしたstdoutに複数のrdtsフレームが含まれていた場合
+                            if (frame_length != readedBytes)
+                            {
+                                Console.WriteLine("At ffmpeg stdout handling: data contains multi adts frames. readedBytes = " + readedBytes.ToString());
+                                int cur_base_pos = 0;
+                                while(cur_base_pos != readedBytes)
+                                {
+                                    aac_adts_frame_cnt++;
+                                    frame_length = ((tmp_buf[cur_base_pos + 3] & 0b11) << 11) | (tmp_buf[cur_base_pos + 4] << 3) | (tmp_buf[cur_base_pos + 5] >> 5);
+                                    Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client inner frame " + frame_length.ToString() + " bytes. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
+                                    if (RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
+                                    {
+                                        byte[] buf = new byte[frame_length];
+                                        Array.Copy(tmp_buf, cur_base_pos, buf, 0, frame_length);
+                                        this.cap_streamer._AudioOutputWriter.handleDataWithTCP(buf);
+                                        cur_base_pos += frame_length;
+                                    }                                    
+                                }
+
+                                continue; // stdout の readへ戻る
+                            }
+                        }
+
+                        aac_adts_frame_cnt++;
                         Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
-                        this.cap_streamer._AudioOutputWriter.handleDataWithTCP(tmp_buf);
+                        if(RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
+                        {
+                            this.cap_streamer._AudioOutputWriter.handleDataWithTCP(tmp_buf);
+                        }
                     }
                 }
             });
