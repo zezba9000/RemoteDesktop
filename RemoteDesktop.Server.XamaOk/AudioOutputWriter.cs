@@ -239,7 +239,7 @@ namespace RemoteDesktop.Server.XamaOK
             if (RTPConfiguration.isUseFFMPEG)
             {
                 captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
-                int needed_samples =  // 10241024 * 100; //1024;
+                int needed_samples =  1024 * 100; //1024;
                 // 100フレーム分分溜まったら書き込む (1フレーム = 1024サンプル)
                 if(captured_buf.Length / (4 * 2) >= needed_samples)
                 {
