@@ -13,6 +13,7 @@ using System.IO;
 using Android.OS;
 using System.Threading.Tasks;
 using Stream = Android.Media.Stream;
+using System.Collections.Generic;
 
 [assembly: Dependency(typeof(PlatformAudioDecodingPlayerAndroid))]
 
@@ -29,6 +30,10 @@ namespace RemoteDesktop.Client.Android.Droid
         PlatformAudioDecodingPlayerAndroid mADP;
         int frameCounter = 0;
         public byte[] CSD0;
+
+        private Queue<DateTime> debug_time_Q = new Queue<DateTime>();
+        private int total_decode_msec = 0;
+        private int decoded_frame_conter = 0;
 
         public event DecodedBitmapHandler encodedDataGenerated;
 
@@ -50,12 +55,15 @@ namespace RemoteDesktop.Client.Android.Droid
             {
                 Thread.Sleep(1);
             }
+
             Console.WriteLine("OnInputBufferAvailable: got encoded data!");
             
             if (encoded_data != null) {
                 int sampleSize = encoded_data.Length;
                 if (sampleSize > 0)
                 {
+                    debug_time_Q.Enqueue(DateTime.Now);
+
                     ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
                     inputBuffer.Position(0);
 
@@ -107,6 +115,19 @@ namespace RemoteDesktop.Client.Android.Droid
 
             // bufferFormat is equivalent to mOutputFormat
             // outputBuffer is ready to be processed or rendered.
+
+            if(debug_time_Q.Count > 0)
+            {
+                decoded_frame_conter++;
+                DateTime now = DateTime.Now;
+                TimeSpan ts = DateTime.Now - debug_time_Q.Dequeue();
+                total_decode_msec += ts.Milliseconds;
+                Console.WriteLine(now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " DEBUG: current decode speed is " + ((total_decode_msec / 1000.0) / (float)decoded_frame_conter).ToString() + " fps. total decoded frame = " + decoded_frame_conter.ToString());
+            }
+            else
+            {
+                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " DEBUG: debug_time_Q is empty at OnOutputBufferAvailable. decoded_frame_counter = " + decoded_frame_conter.ToString());
+            }
 
             Console.WriteLine("OnOutputBufferAvailable: outputBufferId = " + outputBufferId.ToString());
             byte[] decoded_data = new byte[info.Size];
@@ -215,7 +236,7 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate, byte[] csd_data)
         {
-            OpenDevice("hoge", (int)(samplingRate / 2), 16, ch, 128 * 1024);
+            OpenDevice("hoge", samplingRate, 16, ch, 128 * 1024);
 
             mCallbackObj = callback_obj;
             HandlerThread callbackThread = new HandlerThread("AACDecodingPlayerHandler");

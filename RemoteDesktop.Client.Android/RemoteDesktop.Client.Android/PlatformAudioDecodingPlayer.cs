@@ -36,7 +36,7 @@ namespace RemoteDesktop.Client.Android
                 }
                 catch (InvalidOperationException ex)
                 {
-                    Console.WriteLine("encoded frame deque missed.");
+                    //Console.WriteLine("encoded frame deque missed.");
                     return null;
                 }
             }
