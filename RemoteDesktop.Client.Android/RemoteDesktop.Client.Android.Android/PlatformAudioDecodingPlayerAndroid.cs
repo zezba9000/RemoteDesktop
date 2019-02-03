@@ -158,7 +158,7 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public void PlayData(byte[] data, bool flag)
         {
-            Console.WriteLine(" " + DateTime.Now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " call PlayData: " + data.Length.ToString() + " bytes, " + ((float)data.Length / (float)samplesPerSecond / 2.0).ToString() + " sec at playing time");
+            Console.WriteLine(" " + DateTime.Now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " call PlayData: " + data.Length.ToString() + " bytes, " + ((float)data.Length / ((float)samplesPerSecond * 2.0)).ToString() + " sec at playing time");
             audioTrack.Write(data, 0, data.Length);
         }
 
