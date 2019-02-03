@@ -50,7 +50,7 @@ namespace RemoteDesktop.Server
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
         private int aac_adts_frame_cnt = 1;
-        //public static long aac_encoding_start = 0;
+        public static long aac_encoding_start = 0;
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
 
@@ -165,12 +165,6 @@ namespace RemoteDesktop.Server
                 {
                     readedBytes = ffmpegProc.StandardOutput.BaseStream.Read(ffmpegStdout_buf, 0, ffmpegStdout_buf.Length);
                     //Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: read tabun one frames " + readedBytes.ToString() + " bytes");
-                    //if(aac_adts_frame_cnt % 100 == 0)
-                    //{
-                    //    Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: current encoding speed " + ((Utils.getUnixTime() - aac_encoding_start) / (float)aac_adts_frame_cnt).ToString() + " fps");
-                    //}
-
-                    //continue;
                     //debug_ms.Write(ffmpegStdout_buf, 0, readedBytes);
                     //if (debug_ms.Length > 4 * 1024)
                     //{
@@ -201,8 +195,8 @@ namespace RemoteDesktop.Server
                                         byte[] buf = new byte[frame_length];
                                         Array.Copy(tmp_buf, cur_base_pos, buf, 0, frame_length);
                                         this.cap_streamer._AudioOutputWriter.handleDataWithTCP(buf);
-                                        cur_base_pos += frame_length;
-                                    }                                    
+                                    }
+                                    cur_base_pos += frame_length;
                                 }
 
                                 continue; // stdout の readへ戻る
@@ -211,6 +205,14 @@ namespace RemoteDesktop.Server
 
                         aac_adts_frame_cnt++;
                         Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
+
+                        if (aac_adts_frame_cnt % 100 == 0)
+                        {
+                            Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: current encoding speed " + ((Utils.getUnixTime() - aac_encoding_start) / (float)aac_adts_frame_cnt).ToString() + " sec/frame");
+                        }
+                        //continue;
+
+                        
                         if(RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
                         {
                             this.cap_streamer._AudioOutputWriter.handleDataWithTCP(tmp_buf);

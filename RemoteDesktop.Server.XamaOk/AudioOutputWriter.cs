@@ -243,10 +243,10 @@ namespace RemoteDesktop.Server.XamaOK
                 // 100フレーム分分溜まったら書き込む (1フレーム = 1024サンプル)
                 if(captured_buf.Length / (4 * 2) >= needed_samples)
                 {
-                    //if(MainApplicationContext.aac_encoding_start == 0)
-                    //{
-                    //    MainApplicationContext.aac_encoding_start = Utils.getUnixTime();
-                    //}
+                    if (MainApplicationContext.aac_encoding_start == 0)
+                    {
+                        MainApplicationContext.aac_encoding_start = Utils.getUnixTime();
+                    }
                     Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + needed_samples.ToString() + " samples to ffmpeg");
                     captured_buf.Position = 0;
                     byte[] tmp_buf = new byte[4 * 2 * needed_samples];
@@ -262,7 +262,6 @@ namespace RemoteDesktop.Server.XamaOK
                     captured_buf.SetLength(0);
                     captured_buf.Write(left_data_buf, 0, left_data_buf.Length);
 
-                    //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);
                     MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();                    
                 }
             }
