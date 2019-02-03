@@ -48,6 +48,8 @@ namespace RemoteDesktop.Server
 
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
+        private int aac_adts_frame_cnt = 1;
+        public static long aac_encoding_start = 0;
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
 
@@ -163,6 +165,13 @@ namespace RemoteDesktop.Server
                 while (!ffmpegProc.StandardOutput.EndOfStream)
                 {
                     readedBytes = ffmpegProc.StandardOutput.BaseStream.Read(ffmpegStdout_buf, 0, ffmpegStdout_buf.Length);
+                    Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: read tabun one frames " + readedBytes.ToString() + " bytes");
+                    if(aac_adts_frame_cnt % 100 == 0)
+                    {
+                        Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: current encoding speed " + ((Utils.getUnixTime() - aac_encoding_start) / (float)aac_adts_frame_cnt).ToString() + " fps");
+                    }
+                    aac_adts_frame_cnt++;
+                    continue;
                     //debug_ms.Write(ffmpegStdout_buf, 0, readedBytes);
                     //if (debug_ms.Length > 4 * 1024)
                     //{
