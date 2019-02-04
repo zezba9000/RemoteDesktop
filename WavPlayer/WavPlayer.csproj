@@ -36,6 +36,9 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>WavPlayer.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="LumiSoft.Net, Version=2.0.2771.36169, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

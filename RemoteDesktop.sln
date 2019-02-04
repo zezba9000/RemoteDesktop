@@ -33,6 +33,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenH264Sample", "OpenH264L
 		{4ECBDB10-8923-46EB-B3A9-33016DDFB774} = {4ECBDB10-8923-46EB-B3A9-33016DDFB774}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OriginalDpcmMain", "OriginalDpcmMain\OriginalDpcmMain.csproj", "{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WavPlayer", "WavPlayer\WavPlayer.csproj", "{A529ECB4-E537-49B1-BC71-A940CA2491A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -193,6 +197,30 @@ Global
 		{055C6F93-F112-4368-BF35-DFC3767669FC}.Release|x64.Build.0 = Release|Any CPU
 		{055C6F93-F112-4368-BF35-DFC3767669FC}.Release|x86.ActiveCfg = Release|Any CPU
 		{055C6F93-F112-4368-BF35-DFC3767669FC}.Release|x86.Build.0 = Release|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Debug|x64.Build.0 = Debug|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Debug|x86.Build.0 = Debug|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Release|x64.ActiveCfg = Release|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Release|x64.Build.0 = Release|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Release|x86.ActiveCfg = Release|Any CPU
+		{572B15B8-14FB-4B17-B78F-1438AD0BA2F3}.Release|x86.Build.0 = Release|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Debug|x64.Build.0 = Debug|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Debug|x86.Build.0 = Debug|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Release|x64.ActiveCfg = Release|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Release|x64.Build.0 = Release|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Release|x86.ActiveCfg = Release|Any CPU
+		{A529ECB4-E537-49B1-BC71-A940CA2491A9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
