@@ -47,12 +47,15 @@ namespace RemoteDesktop.Android.Core
             public ProtcolMode protcol_mode = ProtcolMode.TCP;
             public bool compress = false;
             public bool isConvertMulaw = false;
+            public bool isDecodeDPCM = false;
+            public static bool isEncodeWithPdcmOrRawPCM = true; // flag for server
+            public static int caputuedPcmBufferSamples = 50; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
             public static int h246EncoderBitPerSec = 5 * 1024 * 8;
             //public static float h264EncoderFrameRate = 1.0f;
             public static float h264EncoderKeyframeInterval = 60.0f;
             public static bool isStdOutOff = false;
             public static bool isUseFFMPEG = true;
-            public static bool isUseSoundDecoder = true;
+            public static bool isUseSoundDecoder = false;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";

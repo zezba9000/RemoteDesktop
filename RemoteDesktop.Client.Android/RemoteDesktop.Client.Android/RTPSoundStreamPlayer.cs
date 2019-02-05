@@ -196,6 +196,21 @@ namespace RemoteDesktop.Client.Android
                 Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
                 m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
             }
+            else
+            {
+                Byte[] justSound_buf = encoded_frame_ms.ToArray();
+                Byte[] linearBytes = justSound_buf;
+                if (config.isConvertMulaw)
+                {
+                    linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
+                }
+                if (config.isDecodeDPCM)
+                {
+                    var dpcmDecoder = new MyDpcmCodec();
+                    linearBytes = dpcmDecoder.Decode(linearBytes);
+                }
+                m_Player.PlayData(linearBytes, false);
+            }
         }
 
 
@@ -208,14 +223,15 @@ namespace RemoteDesktop.Client.Android
             }
             else
             {
-                Byte[] justSound_buf = new byte[dataSize];
-                Array.Copy(data, 0, justSound_buf, 0, dataSize);
-                Byte[] linearBytes = justSound_buf;
-                if (config.isConvertMulaw)
-                {
-                    linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
-                }
-                m_Player.PlayData(linearBytes, false);
+                encoded_frame_ms.Write(data, offset, dataSize);
+                //Byte[] justSound_buf = new byte[dataSize];
+                //Array.Copy(data, 0, justSound_buf, 0, dataSize);
+                //Byte[] linearBytes = justSound_buf;
+                //if (config.isConvertMulaw)
+                //{
+                //    linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
+                //}
+                //m_Player.PlayData(linearBytes, false);
             }
         }
 

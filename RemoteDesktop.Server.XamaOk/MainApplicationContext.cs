@@ -64,6 +64,7 @@ namespace RemoteDesktop.Server
 
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -profile aac_low -aac_coder fast -q:a 0.1 -f adts -";
         private string ffmpegForAudioEncodeArgs = "-f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -profile aac_low -aac_coder fast -q:a 0.1 -f adts -";
+        private string ffmpegForPCMConvertArgs = "-f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -";
 
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -f adts -";
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -";
@@ -137,9 +138,17 @@ namespace RemoteDesktop.Server
             startInfo.RedirectStandardError = true;	
             startInfo.RedirectStandardInput = true;	
             startInfo.CreateNoWindow = true;	
-            startInfo.FileName = ffmpegPath;	
+            startInfo.FileName = ffmpegPath;
 
-             startInfo.Arguments = ffmpegForAudioEncodeArgs;	
+            if (RTPConfiguration.isEncodeWithPdcmOrRawPCM)
+            {
+                startInfo.Arguments = ffmpegForPCMConvertArgs;
+            }
+            else
+            {
+                startInfo.Arguments = ffmpegForAudioEncodeArgs;
+            }
+
             //startInfo.Arguments = ffmpegForDirectStreamingArgs;	
 
             ffmpegProc = new Process();	

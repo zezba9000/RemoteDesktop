@@ -239,8 +239,8 @@ namespace RemoteDesktop.Server.XamaOK
             if (RTPConfiguration.isUseFFMPEG)
             {
                 captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
-                int needed_samples =  1024 * 100; //1024;
-                // 100フレーム分分溜まったら書き込む (1フレーム = 1024サンプル)
+                int needed_samples = RTPConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
+                // 指定されたサンプル数が溜まったら書き込む (adtsでは 1フレーム = 1024サンプル)
                 if(captured_buf.Length / (4 * 2) >= needed_samples)
                 {
                     if (MainApplicationContext.aac_encoding_start == 0)

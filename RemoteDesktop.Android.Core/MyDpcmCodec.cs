@@ -4,11 +4,11 @@ using System.Text;
 
 namespace RemoteDesktop.Android.Core
 {
-    class MyDpcmCodec
+    public class MyDpcmCodec
     {
         private byte[] origSamples;
         private byte[] pastDecodedSamples;
-
+        /*
         private byte[] getPosValueForEncoder(int x)
         {
             int posA = x - 1;
@@ -48,6 +48,7 @@ namespace RemoteDesktop.Android.Core
         public byte[] Encode(byte[] samples)
         {
             origSamples = samples;
+            // TODO: 4bit値を扱えるようにしないとダメ
             int[] errorArray = new int[origPix.length];
 
 
@@ -76,7 +77,7 @@ namespace RemoteDesktop.Android.Core
             }
             return errorArray;
         }
-
+*/
         private byte[] getPastDecodedValueForDecoder(int x)
         {
             int posA = x - 1;
@@ -113,21 +114,22 @@ namespace RemoteDesktop.Android.Core
         // adaptive
         public byte[] Decode(byte[] encoded_data)
         {
+            pastDecodedSamples = new byte[encoded_data.Length * 2]; // 4bitで1サンプルなので1byteに2サンプル入っている
+            // TODO: 4bit値を扱えるようにしないとダメ
+            byte[] errorArray = encoded_data;
 
-            int[] errorArray = errorPix;
-
-            for (int x = 0; x < endPix.length; x++)
+            for (int x = 0; x < pastDecodedSamples.Length; x++)
             {
-                int[] posValues = getPosValue(x);
-                int a = posValues[0];
-                int b = posValues[1];
-                int c = posValues[2];
+                byte[] posValues = getPastDecodedValueForDecoder(x);
+                byte a = posValues[0];
+                byte b = posValues[1];
+                byte c = posValues[2];
 
                 int error = errorArray[x];
 
                 int prevPix;
 
-                if (Math.abs(a - c) < Math.abs(b - c))
+                if (Math.Abs(a - c) < Math.Abs(b - c))
                 {
                     prevPix = posValues[1];
                 }
@@ -138,10 +140,11 @@ namespace RemoteDesktop.Android.Core
 
                 int pixel = prevPix + error;
 
-                endPix[x] = (0xFF << 24) | (pixel << 16) | (pixel << 8) | pixel;
+                // TODO: modification for 4bit is needed
+                pastDecodedSamples[x] = (byte)((0xFF << 24) | (pixel << 16) | (pixel << 8) | pixel);
             }
 
-            return endPix;
+            return pastDecodedSamples;
         }
 
     }
