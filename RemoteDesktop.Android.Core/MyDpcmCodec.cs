@@ -142,7 +142,7 @@ namespace RemoteDesktop.Android.Core
                 byte b = posValues[1];
                 byte c = posValues[2];
 
-                byte error = errorArray[x];
+                byte error = errorArray[arr_idx];
                 if(x % 2 == 0)
                 {
                     error = (byte) (error >> 4);

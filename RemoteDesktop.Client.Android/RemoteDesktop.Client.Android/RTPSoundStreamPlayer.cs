@@ -28,6 +28,7 @@ namespace RemoteDesktop.Client.Android
 		//private SoundManager.Stopwatch m_Stopwatch = new SoundManager.Stopwatch();
         private AudioDecodingPlayerManager m_DPlayer;
         private MemoryStream encoded_frame_ms;
+        private MyDpcmCodec dpcmDecoder;
 
         private void Init()
 		{
@@ -131,12 +132,12 @@ namespace RemoteDesktop.Client.Android
         private void Socket_StartDataRecievedCallback(PacketHeader pktHdr)
         {
             Console.WriteLine("Socket_StartDataRecievedCallback called compressed data size is " + pktHdr.dataSize.ToString() + " bytes");
-            if (RTPConfiguration.isUseSoundDecoder)
+            RTPConfiguration.SamplesPerSecond = pktHdr.SamplesPerSecond;
+            config.BitsPerSample = pktHdr.BitsPerSample;
+            config.Channels = pktHdr.Channels;
+            config.isConvertMulaw = pktHdr.isConvertMulaw;
+            if (RTPConfiguration.isUseSoundDecoder || RTPConfiguration.isUseDPCM)
             {
-                RTPConfiguration.SamplesPerSecond = pktHdr.SamplesPerSecond;
-                config.BitsPerSample = pktHdr.BitsPerSample;
-                config.Channels = pktHdr.Channels;
-                config.isConvertMulaw = pktHdr.isConvertMulaw;
                 if (encoded_frame_ms == null)
                 {
                     encoded_frame_ms = new MemoryStream();
@@ -206,7 +207,11 @@ namespace RemoteDesktop.Client.Android
                 }
                 if (RTPConfiguration.isUseDPCM)
                 {
-                    var dpcmDecoder = new MyDpcmCodec();
+                    if(dpcmDecoder == null)
+                    {
+                        dpcmDecoder = new MyDpcmCodec();
+                    }
+
                     linearBytes = dpcmDecoder.Decode(linearBytes);
                 }
                 m_Player.PlayData(linearBytes, false);
