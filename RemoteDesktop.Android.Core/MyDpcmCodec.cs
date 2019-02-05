@@ -8,7 +8,7 @@ namespace RemoteDesktop.Android.Core
     {
         private byte[] origSamples;
         private byte[] pastDecodedSamples;
-        /*
+
         private byte[] getPosValueForEncoder(int x)
         {
             int posA = x - 1;
@@ -49,20 +49,20 @@ namespace RemoteDesktop.Android.Core
         {
             origSamples = samples;
             // TODO: 4bit値を扱えるようにしないとダメ
-            int[] errorArray = new int[origPix.length];
+            byte[] errorArray = new byte[samples.Length / 2];
 
 
-            for (int x = 0; x < origPix.length; x++)
+            for (int x = 0; x < samples.Length; x++)
             {
-                int[] posValues = getPosValue(x);
-                int a = posValues[0];
-                int b = posValues[1];
-                int c = posValues[2];
+                byte[] posValues = getPosValueForEncoder(x);
+                byte a = posValues[0];
+                byte b = posValues[1];
+                byte c = posValues[2];
 
-                int currPix = (origPix[x] >> 16) & 0xFF;
-                int prevPix;
+                byte currPix = samples[x];
+                byte prevPix;
 
-                if (Math.abs(a - c) < Math.abs(b - c))
+                if (Math.Abs(a - c) < Math.Abs(b - c))
                 {
                     prevPix = posValues[1];
                 }
@@ -71,13 +71,13 @@ namespace RemoteDesktop.Android.Core
                     prevPix = posValues[0];
                 }
 
-                int error = currPix - prevPix;
+                byte error = (byte) (currPix - prevPix);
 
                 errorArray[x] = error;
             }
             return errorArray;
         }
-*/
+
         private byte[] getPastDecodedValueForDecoder(int x)
         {
             int posA = x - 1;

@@ -75,6 +75,8 @@ namespace RemoteDesktop.Server
         public static Process ffmpegProc = null;
         private MemoryStream debug_ms = new MemoryStream();
 
+        private MyDpcmCodec dpcm_encoder;
+
         public MainApplicationContext()
 		{
 			// init tray icon
@@ -140,9 +142,13 @@ namespace RemoteDesktop.Server
             startInfo.CreateNoWindow = true;	
             startInfo.FileName = ffmpegPath;
 
-            if (RTPConfiguration.isEncodeWithPdcmOrRawPCM)
+            if (RTPConfiguration.isEncodeWithDpcmOrUseRawPCM)
             {
                 startInfo.Arguments = ffmpegForPCMConvertArgs;
+                if (RTPConfiguration.isUseDPCM)
+                {
+                    dpcm_encoder = new MyDpcmCodec();
+                }
             }
             else
             {
@@ -181,46 +187,52 @@ namespace RemoteDesktop.Server
                     //    Environment.Exit(0);
                     //}
                     //continue;
-                    if (readedBytes > 0 && this.cap_streamer != null && this.cap_streamer._AudioOutputWriter != null)
-                    {                        
+                    if (readedBytes > 0){
                         byte[] tmp_buf = new byte[readedBytes];
-                        Array.Copy(ffmpegStdout_buf, 0, tmp_buf, 0, readedBytes);
-                        if (RTPConfiguration.isCheckAdtsFrameNum)
+
+                        if (RTPConfiguration.isUseDPCM)
                         {
-                            int frame_length = ((tmp_buf[3] & 0b11) << 11) | (tmp_buf[4] << 3) | (tmp_buf[5] >> 5);
+                            Console.WriteLine("run dpcm encoding " + readedBytes.ToString() + " bytes");
+                            tmp_buf = dpcm_encoder.Encode(tmp_buf);
+                        }else if (RTPConfiguration.isEncodeWithAAC && this.cap_streamer != null && this.cap_streamer._AudioOutputWriter != null)
+                        {
 
-                            // ffmpegから読みだしたstdoutに複数のrdtsフレームが含まれていた場合
-                            if (frame_length != readedBytes)
+                            Array.Copy(ffmpegStdout_buf, 0, tmp_buf, 0, readedBytes);
+                            if (RTPConfiguration.isCheckAdtsFrameNum)
                             {
-                                Console.WriteLine("At ffmpeg stdout handling: data contains multi adts frames. readedBytes = " + readedBytes.ToString());
-                                int cur_base_pos = 0;
-                                while(cur_base_pos != readedBytes)
-                                {
-                                    aac_adts_frame_cnt++;
-                                    frame_length = ((tmp_buf[cur_base_pos + 3] & 0b11) << 11) | (tmp_buf[cur_base_pos + 4] << 3) | (tmp_buf[cur_base_pos + 5] >> 5);
-                                    Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client inner frame " + frame_length.ToString() + " bytes. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
-                                    if (RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
-                                    {
-                                        byte[] buf = new byte[frame_length];
-                                        Array.Copy(tmp_buf, cur_base_pos, buf, 0, frame_length);
-                                        this.cap_streamer._AudioOutputWriter.handleDataWithTCP(buf);
-                                    }
-                                    cur_base_pos += frame_length;
-                                }
+                                int frame_length = ((tmp_buf[3] & 0b11) << 11) | (tmp_buf[4] << 3) | (tmp_buf[5] >> 5);
 
-                                continue; // stdout の readへ戻る
+                                // ffmpegから読みだしたstdoutに複数のrdtsフレームが含まれていた場合
+                                if (frame_length != readedBytes)
+                                {
+                                    Console.WriteLine("At ffmpeg stdout handling: data contains multi adts frames. readedBytes = " + readedBytes.ToString());
+                                    int cur_base_pos = 0;
+                                    while (cur_base_pos != readedBytes)
+                                    {
+                                        aac_adts_frame_cnt++;
+                                        frame_length = ((tmp_buf[cur_base_pos + 3] & 0b11) << 11) | (tmp_buf[cur_base_pos + 4] << 3) | (tmp_buf[cur_base_pos + 5] >> 5);
+                                        Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client inner frame " + frame_length.ToString() + " bytes. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
+                                        if (RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
+                                        {
+                                            byte[] buf = new byte[frame_length];
+                                            Array.Copy(tmp_buf, cur_base_pos, buf, 0, frame_length);
+                                            this.cap_streamer._AudioOutputWriter.handleDataWithTCP(buf);
+                                        }
+                                        cur_base_pos += frame_length;
+                                    }
+
+                                    continue; // stdout の readへ戻る
+                                }
+                            }
+
+                            aac_adts_frame_cnt++;
+                            Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
+
+                            if (aac_adts_frame_cnt % 100 == 0)
+                            {
+                                Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: current encoding speed " + ((Utils.getUnixTime() - aac_encoding_start) / (float)aac_adts_frame_cnt).ToString() + " sec/frame");
                             }
                         }
-
-                        aac_adts_frame_cnt++;
-                        Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
-
-                        if (aac_adts_frame_cnt % 100 == 0)
-                        {
-                            Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: current encoding speed " + ((Utils.getUnixTime() - aac_encoding_start) / (float)aac_adts_frame_cnt).ToString() + " sec/frame");
-                        }
-                        //continue;
-
                         
                         if(RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
                         {

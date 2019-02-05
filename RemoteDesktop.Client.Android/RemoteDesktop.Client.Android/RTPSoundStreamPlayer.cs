@@ -204,7 +204,7 @@ namespace RemoteDesktop.Client.Android
                 {
                     linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
                 }
-                if (config.isDecodeDPCM)
+                if (RTPConfiguration.isUseDPCM)
                 {
                     var dpcmDecoder = new MyDpcmCodec();
                     linearBytes = dpcmDecoder.Decode(linearBytes);
