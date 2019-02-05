@@ -52,8 +52,7 @@ namespace RemoteDesktop.Android.Core
             // TODO: 4bit値を扱えるようにしないとダメ
             byte[] errorArray = new byte[samples.Length / 2];
 
-
-            byte encoded_sample = 0;
+            byte encoded_sample = 0; ;
             for (int x = 0; x < samples.Length; x++)
             {
                 byte[] posValues = getPosValueForEncoder(x);
@@ -81,6 +80,7 @@ namespace RemoteDesktop.Android.Core
                 byte encodedMag = tmpMag > 7 ? (byte) 7 : tmpMag;
                 if(x % 2 == 0)
                 {
+                    encoded_sample = 0;
                     encoded_sample += (byte) (sign << 7);
                     encoded_sample += (byte) (encodedMag << 4);
                     continue;
