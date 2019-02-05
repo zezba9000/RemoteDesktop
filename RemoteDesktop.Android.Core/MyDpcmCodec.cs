@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -52,6 +53,7 @@ namespace RemoteDesktop.Android.Core
             byte[] errorArray = new byte[samples.Length / 2];
 
 
+            byte encoded_sample = 0;
             for (int x = 0; x < samples.Length; x++)
             {
                 byte[] posValues = getPosValueForEncoder(x);
@@ -71,9 +73,24 @@ namespace RemoteDesktop.Android.Core
                     prevPix = posValues[0];
                 }
 
-                byte error = (byte) (currPix - prevPix);
+                int error = currPix - prevPix;
+                byte sign = error >= 0 ? (byte)0 : (byte)1;
 
-                errorArray[x] = error;
+
+                byte tmpMag = (byte) Math.Abs(error);
+                byte encodedMag = tmpMag > 7 ? (byte) 7 : tmpMag;
+                if(x % 2 == 0)
+                {
+                    encoded_sample += (byte) (sign << 7);
+                    encoded_sample += (byte) (encodedMag << 4);
+                    continue;
+                }
+                else
+                {
+                    encoded_sample += (byte)(sign << 3);
+                    encoded_sample += encodedMag;
+                }
+                errorArray[x/2] = encoded_sample;
             }
             return errorArray;
         }
@@ -118,17 +135,35 @@ namespace RemoteDesktop.Android.Core
             // TODO: 4bit値を扱えるようにしないとダメ
             byte[] errorArray = encoded_data;
 
-            for (int x = 0; x < pastDecodedSamples.Length; x++)
+            for (int x = 0, arr_idx = 0; x < pastDecodedSamples.Length; x++)
             {
                 byte[] posValues = getPastDecodedValueForDecoder(x);
                 byte a = posValues[0];
                 byte b = posValues[1];
                 byte c = posValues[2];
 
-                int error = errorArray[x];
+                byte error = errorArray[x];
+                if(x % 2 == 0)
+                {
+                    error = (byte) (error >> 4);
+                }
+                else
+                {
+                    arr_idx++;
+                }
+
+                int int_4bit = 0;
+                if((error & 0b1000) > 0)
+                {
+                    int_4bit -= error & 0b0111;
+                }
+                else
+                {
+                    int_4bit += error & 0b0111;
+                }
+
 
                 int prevPix;
-
                 if (Math.Abs(a - c) < Math.Abs(b - c))
                 {
                     prevPix = posValues[1];
@@ -138,10 +173,9 @@ namespace RemoteDesktop.Android.Core
                     prevPix = posValues[0];
                 }
 
-                int pixel = prevPix + error;
+                byte sample = (byte) (prevPix + error);
 
-                // TODO: modification for 4bit is needed
-                pastDecodedSamples[x] = (byte)((0xFF << 24) | (pixel << 16) | (pixel << 8) | pixel);
+                pastDecodedSamples[x] = sample;
             }
 
             return pastDecodedSamples;
