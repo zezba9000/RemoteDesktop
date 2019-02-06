@@ -13,7 +13,7 @@ namespace OriginalDpcmMain
         static void Main(string[] args)
         {
             String input_path = "F:\\work\\tmp\\capturedPCM_8000Hz_8bit_mono.raw";
-            String output_path = "F:\\work\\tmp\\capturedPCM_8000Hz_8bit_mono_my8bitDPCM_en_de_code_pass.raw";
+            String output_path = "F:\\work\\tmp\\capturedPCM_8000Hz_8bit_mono_my8bitDPCM_en_de_code_pass_use_sbyte.raw";
             MemoryStream ms = new MemoryStream();
             byte[] buf = new byte[1024];
 

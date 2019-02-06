@@ -10,7 +10,17 @@ namespace RemoteDesktop.Android.Core
         private byte[] origSamples;
         private byte[] pastDecodedSamples;
 
-        private byte[] getPosValueForEncoder(int x)
+        private sbyte convertByteToSbyte(byte val)
+        {
+            return (sbyte) (val - 128);
+        }
+
+        private byte convertSbyteToByte(sbyte val)
+        {
+            return (byte) (val + 128);
+        }
+
+        private sbyte[] getPosValueForEncoder(int x)
         {
             int posA = x - 1;
             int posB = x - 2;
@@ -40,7 +50,7 @@ namespace RemoteDesktop.Android.Core
 
             }
 
-            byte[] abc = { a, b, c };
+            sbyte[] abc = { convertByteToSbyte(a), convertByteToSbyte(b), convertByteToSbyte(c) };
 
             return abc;
         }
@@ -55,13 +65,13 @@ namespace RemoteDesktop.Android.Core
             byte encoded_sample = 0; ;
             for (int x = 0; x < samples.Length; x++)
             {
-                byte[] posValues = getPosValueForEncoder(x);
-                byte a = posValues[0];
-                byte b = posValues[1];
-                byte c = posValues[2];
+                sbyte[] posValues = getPosValueForEncoder(x);
+                sbyte a = posValues[0];
+                sbyte b = posValues[1];
+                sbyte c = posValues[2];
 
-                byte currPix = samples[x];
-                byte prevPix;
+                sbyte currPix = convertByteToSbyte(samples[x]);
+                sbyte prevPix;
 
                 if (Math.Abs(a - c) < Math.Abs(b - c))
                 {
@@ -95,7 +105,7 @@ namespace RemoteDesktop.Android.Core
             return errorArray;
         }
 
-        private byte[] getPastDecodedValueForDecoder(int x)
+        private sbyte[] getPastDecodedValueForDecoder(int x)
         {
             int posA = x - 1;
             int posB = x - 2;
@@ -123,7 +133,7 @@ namespace RemoteDesktop.Android.Core
                 c = pastDecodedSamples[posC];
             }
 
-            byte[] abc = { a, b, c };
+            sbyte[] abc = { convertByteToSbyte(a), convertByteToSbyte(b), convertByteToSbyte(c) };
 
             return abc;
         }
@@ -137,10 +147,10 @@ namespace RemoteDesktop.Android.Core
 
             for (int x = 0, arr_idx = 0; x < pastDecodedSamples.Length; x++)
             {
-                byte[] posValues = getPastDecodedValueForDecoder(x);
-                byte a = posValues[0];
-                byte b = posValues[1];
-                byte c = posValues[2];
+                sbyte[] posValues = getPastDecodedValueForDecoder(x);
+                sbyte a = posValues[0];
+                sbyte b = posValues[1];
+                sbyte c = posValues[2];
 
                 byte error = errorArray[arr_idx];
                 if(x % 2 == 0)
@@ -152,18 +162,18 @@ namespace RemoteDesktop.Android.Core
                     arr_idx++;
                 }
 
-                int int_4bit = 0;
+                sbyte signed_error = 0;
                 if((error & 0b1000) > 0)
                 {
-                    int_4bit -= error & 0b0111;
+                    signed_error -= (sbyte) (error & 0b0111);
                 }
                 else
                 {
-                    int_4bit += error & 0b0111;
+                    signed_error += (sbyte) (error & 0b0111);
                 }
 
 
-                int prevPix;
+                sbyte prevPix;
                 if (Math.Abs(a - c) < Math.Abs(b - c))
                 {
                     prevPix = posValues[1];
@@ -173,7 +183,7 @@ namespace RemoteDesktop.Android.Core
                     prevPix = posValues[0];
                 }
 
-                byte sample = (byte) (prevPix + error);
+                byte sample = convertSbyteToByte((sbyte)(prevPix + signed_error));
 
                 pastDecodedSamples[x] = sample;
             }
