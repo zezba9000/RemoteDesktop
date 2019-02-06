@@ -12,7 +12,7 @@ namespace RemoteDesktop.Client.Android.Droid
     {
         AudioTrack audioTrack;
 
-        public void PlayData(byte[] data, bool flag)
+        public void WriteData(byte[] data, bool flag)
         {
             audioTrack.Write(data, 0, data.Length);
             //int len = data.Length / 4;
@@ -24,6 +24,19 @@ namespace RemoteDesktop.Client.Android.Droid
             //}
             //const int WRITE_BLOCKING = 0x00000000;
             //audioTrack.Write(fdata, 0, len, WRITE_BLOCKING);
+        }
+
+        public bool Play()
+        {
+            if(audioTrack != null)
+            {
+                audioTrack.Play();
+                return true;
+            }
+            else
+            {
+                throw new Exception("audioTrack is not opend");
+            }
         }
 
         public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
@@ -65,7 +78,7 @@ namespace RemoteDesktop.Client.Android.Droid
             // Mode. Stream or static.
             AudioTrackMode.Stream);
 #pragma warning restore CS0618 // Type or member is obsolete
-            audioTrack.Play();
+            
             return true;
         }
 

@@ -238,31 +238,42 @@ namespace RemoteDesktop.Server.XamaOK
 
             if (RTPConfiguration.isUseFFMPEG)
             {
-                captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
-                int needed_samples = RTPConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
-                // 指定されたサンプル数が溜まったら書き込む (adtsでは 1フレーム = 1024サンプル)
-                if(captured_buf.Length / (4 * 2) >= needed_samples)
+                if (MainApplicationContext.aac_encoding_start == 0)
                 {
-                    if (MainApplicationContext.aac_encoding_start == 0)
+                    MainApplicationContext.aac_encoding_start = Utils.getUnixTime();
+                }
+                if (RTPConfiguration.caputuedPcmBufferSamples == 0)
+                {
+                    if(e.BytesRecorded > 0)
                     {
-                        MainApplicationContext.aac_encoding_start = Utils.getUnixTime();
+                        MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);
+                        MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
                     }
-                    Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + needed_samples.ToString() + " samples to ffmpeg");
-                    captured_buf.Position = 0;
-                    byte[] tmp_buf = new byte[4 * 2 * needed_samples];
-                    captured_buf.Read(tmp_buf, 0, tmp_buf.Length);
-                    MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
-                    MemoryStream new_ms = new MemoryStream();
+                }
+                else
+                {
+                    captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
+                    int needed_samples = RTPConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
+                                                                                    // 指定されたサンプル数が溜まったら書き込む (adtsでは 1フレーム = 1024サンプル)
+                    if (captured_buf.Length / (4 * 2) >= needed_samples)
+                    {
+                        Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + needed_samples.ToString() + " samples to ffmpeg");
+                        captured_buf.Position = 0;
+                        byte[] tmp_buf = new byte[4 * 2 * needed_samples];
+                        captured_buf.Read(tmp_buf, 0, tmp_buf.Length);
+                        MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
+                        MemoryStream new_ms = new MemoryStream();
 
-                    // 残ったデータの処理
-                    captured_buf.Position = 4 * 2 * needed_samples;
-                    byte[] left_data_buf = new byte[captured_buf.Length - 4 * 2 * needed_samples];
-                    captured_buf.Read(left_data_buf, 0, left_data_buf.Length);
-                    captured_buf.Position = 0;
-                    captured_buf.SetLength(0);
-                    captured_buf.Write(left_data_buf, 0, left_data_buf.Length);
+                        // 残ったデータの処理
+                        captured_buf.Position = 4 * 2 * needed_samples;
+                        byte[] left_data_buf = new byte[captured_buf.Length - 4 * 2 * needed_samples];
+                        captured_buf.Read(left_data_buf, 0, left_data_buf.Length);
+                        captured_buf.Position = 0;
+                        captured_buf.SetLength(0);
+                        captured_buf.Write(left_data_buf, 0, left_data_buf.Length);
 
-                    MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();                    
+                        MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
+                    }
                 }
             }
             else

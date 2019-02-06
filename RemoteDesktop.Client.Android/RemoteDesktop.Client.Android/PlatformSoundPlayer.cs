@@ -8,8 +8,9 @@ namespace RemoteDesktop.Client.Android
 
     public interface IPlatformSoundPlayer
     {
-        void PlayData(byte[] data, bool flag);
+        void WriteData(byte[] data, bool flag);
         bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount);
+        bool Play();
         void Close();
     }
 

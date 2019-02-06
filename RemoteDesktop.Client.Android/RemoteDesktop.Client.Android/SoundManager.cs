@@ -13,6 +13,7 @@ namespace RemoteDesktop.Client.Android
         public class Player
         {
             public bool Opened = false;
+            public bool isPlayingStarted = false;
             IPlatformSoundPlayer pplayer;
 
             public Player()
@@ -20,9 +21,9 @@ namespace RemoteDesktop.Client.Android
                 pplayer = SoundPlayerFactory.getInstance();
             }
 
-            public void PlayData(byte[] data, bool flag)
+            public void WriteData(byte[] data, bool flag)
             {
-                pplayer.PlayData(data, flag);
+                pplayer.WriteData(data, flag);
             }
 
             public bool Open(string waveOutDeviceName, int samplesPerSecond, int bitsPerSample, int channels, int bufferCount)
@@ -30,6 +31,12 @@ namespace RemoteDesktop.Client.Android
                 pplayer.Open(waveOutDeviceName, samplesPerSecond, bitsPerSample, channels, bufferCount);
                 Opened = true;
                 return true;
+            }
+
+            public bool Play()
+            {
+                isPlayingStarted = true;
+                return pplayer.Play();
             }
 
             public void Close()

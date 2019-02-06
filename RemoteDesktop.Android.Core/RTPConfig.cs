@@ -39,7 +39,7 @@ namespace RemoteDesktop.Android.Core
             //public short BitsPerSample = 32;  // sound card native
             public short Channels = 1;
 			public Int32 PacketSize = 4096; //使われていない
-			public Int32 BufferCount = 1024 * 8; // AndroidのAudioTrackに指定するバッファ長
+			public Int32 BufferCount = 1024 * 128; // AndroidのAudioTrackに指定するバッファ長
 			public uint JitterBuffer = 20; // max buffering num of RTPPacket at jitter buffer
             public uint JitterBufferTimerPeriodMsec = 20; // time period of jitter buffer (msec)
             public bool UseJitterBuffer = true;
@@ -50,7 +50,7 @@ namespace RemoteDesktop.Android.Core
             public static bool isUseDPCM = true; // flag for server and client
             public static bool isEncodeWithDpcmOrUseRawPCM = true; // flag for server
             public static bool isEncodeWithAAC = false; // flag for server
-            public static int caputuedPcmBufferSamples = 128; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
+            public static int caputuedPcmBufferSamples = 0; //128; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
             public static int h246EncoderBitPerSec = 5 * 1024 * 8;
             //public static float h264EncoderFrameRate = 1.0f;
             public static float h264EncoderKeyframeInterval = 60.0f;

@@ -29,6 +29,7 @@ namespace RemoteDesktop.Client.Android
         private AudioDecodingPlayerManager m_DPlayer;
         private MemoryStream encoded_frame_ms;
         private MyDpcmCodec dpcmDecoder;
+        //private long totalWroteSoundData = 0;
 
         private void Init()
 		{
@@ -113,11 +114,6 @@ namespace RemoteDesktop.Client.Android
 			}
 			else
 			{
-                if (!RTPConfiguration.isUseSoundDecoder)
-                {
-                    m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
-                }
-
                 sdsock = new SoundDataSocket(NetworkTypes.Client);
                 sdsock.ConnectedCallback += Socket_ConnectedCallback;
                 sdsock.DisconnectedCallback += Socket_DisconnectedCallback;
@@ -201,6 +197,10 @@ namespace RemoteDesktop.Client.Android
             {
                 Byte[] justSound_buf = encoded_frame_ms.ToArray();
                 Byte[] linearBytes = justSound_buf;
+                //if (!RTPConfiguration.isUseSoundDecoder && m_Player.Opened == false)
+                //{
+                //    m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                //}
                 if (config.isConvertMulaw)
                 {
                     linearBytes = SoundUtils.MuLawToLinear(justSound_buf, config.BitsPerSample, config.Channels);
@@ -214,7 +214,17 @@ namespace RemoteDesktop.Client.Android
 
                     linearBytes = dpcmDecoder.Decode(linearBytes);
                 }
-                m_Player.PlayData(linearBytes, false);
+                if (!RTPConfiguration.isUseSoundDecoder && m_Player.Opened == false)
+                {
+                    m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                    m_Player.Play();
+                }
+                m_Player.WriteData(linearBytes, false);
+                //totalWroteSoundData += linearBytes.Length;
+                //if(totalWroteSoundData > config.BufferCount && m_Player.isPlayingStarted == false)
+                //{
+                //    m_Player.Play();
+                //}
             }
         }
 

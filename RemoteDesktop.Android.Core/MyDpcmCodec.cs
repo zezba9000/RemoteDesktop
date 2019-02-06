@@ -59,11 +59,13 @@ namespace RemoteDesktop.Android.Core
         public byte[] Encode(byte[] samples)
         {
             origSamples = samples;
-            // TODO: 4bit値を扱えるようにしないとダメ
-            byte[] errorArray = new byte[samples.Length / 2];
+            int toNotOdd = samples.Length % 2 == 0 ? 0 : 1;
+            int sampleLength = samples.Length - toNotOdd;
+            int resultLength = sampleLength / 2;
+            byte[] errorArray = new byte[resultLength];
 
             byte encoded_sample = 0; ;
-            for (int x = 0; x < samples.Length; x++)
+            for (int x = 0; x < sampleLength; x++)
             {
                 sbyte[] posValues = getPosValueForEncoder(x);
                 sbyte a = posValues[0];
