@@ -50,7 +50,7 @@ namespace RemoteDesktop.Android.Core
             public static bool isUseDPCM = true; // flag for server and client
             public static bool isEncodeWithDpcmOrUseRawPCM = true; // flag for server
             public static bool isEncodeWithAAC = false; // flag for server
-            public static int caputuedPcmBufferSamples = 1024; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
+            public static int caputuedPcmBufferSamples = 128; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
             public static int h246EncoderBitPerSec = 5 * 1024 * 8;
             //public static float h264EncoderFrameRate = 1.0f;
             public static float h264EncoderKeyframeInterval = 60.0f;
