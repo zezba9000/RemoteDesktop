@@ -181,9 +181,9 @@ namespace RemoteDesktop.Server
                     readedBytes = ffmpegProc.StandardOutput.BaseStream.Read(ffmpegStdout_buf, 0, ffmpegStdout_buf.Length);
                     //Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: read tabun one frames " + readedBytes.ToString() + " bytes");
                     //debug_ms.Write(ffmpegStdout_buf, 0, readedBytes);
-                    //if (debug_ms.Length > 4 * 1024)
+                    //if (debug_ms.Length > 8000 * 120)
                     //{
-                    //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\ffmpeg_stdout_encoded_no_adts_option_0202_1541.aac");
+                    //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\capturedPCM_ffmpeg_stdout_converted_8000Hz_u8bit_1ch_120sec.raw");
                     //    Environment.Exit(0);
                     //}
                     //continue;
