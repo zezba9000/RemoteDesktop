@@ -41,6 +41,7 @@ namespace RemoteDesktop.Server.XamaOK
         private uint m_Milliseconds = 20; // time period of jitter buffer (msec)
         private MemoryStream debug_ms = new MemoryStream();
         private MemoryStream captured_buf = new MemoryStream();
+        private OpusEncoderManager m_opusEncoder;
         //byte[] ffmpeg_stdin_buf = new byte[480000L * 2 * 4 * 1024];
 
         #endregion
@@ -111,6 +112,11 @@ namespace RemoteDesktop.Server.XamaOK
             this._WaveIn.StopRecording();
             this._WaveIn.Dispose();
             this._WaveIn = null;
+            if(RTPConfiguration.isEncodeWithOpus && m_opusEncoder != null)
+            {
+                m_opusEncoder.Dispose();
+                m_opusEncoder = null;
+            }
 
             //------
 
@@ -330,34 +336,18 @@ namespace RemoteDesktop.Server.XamaOK
             }
             else if (RTPConfiguration.isEncodeWithOpus)
             {
-                if (RTPConfiguration.caputuedPcmBufferSamples == 0)
+                //captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
+                //int needed_samples = RTPConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
+
+                if (m_opusEncoder == null)
                 {
-                    convert32bitFloat48000HzStereoPCMTo16bitMonoPCM
-                } else {
-                    captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
-                    int needed_samples = RTPConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
-                                                                                    // 指定されたサンプル数が溜まったら書き込む (adtsでは 1フレーム = 1024サンプル)
-                    if (captured_buf.Length / (4 * 2) >= needed_samples)
-                    {
-                        Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + needed_samples.ToString() + " samples to ffmpeg");
-                        captured_buf.Position = 0;
-                        byte[] tmp_buf = new byte[4 * 2 * needed_samples];
-                        captured_buf.Read(tmp_buf, 0, tmp_buf.Length);
-
-                        convert32bitFloat48000HzStereoPCMTo16bitMonoPCM
-                        //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
-
-                        // 残ったデータの処理
-                        captured_buf.Position = 4 * 2 * needed_samples;
-                        byte[] left_data_buf = new byte[captured_buf.Length - 4 * 2 * needed_samples];
-                        captured_buf.Read(left_data_buf, 0, left_data_buf.Length);
-                        captured_buf.Position = 0;
-                        captured_buf.SetLength(0);
-                        captured_buf.Write(left_data_buf, 0, left_data_buf.Length);
-
-                        //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
-                    }
+                    m_opusEncoder = new OpusEncoderManager(this, RTPConfiguration.SamplesPerSecond);
                 }
+                Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + e.Buffer.ToString() + " bytes to opus encoder");
+                byte[] conved_pcm = convert32bitFloat48000HzStereoPCMTo16bitMonoPCM(e, RTPConfiguration.SamplesPerSecond);
+
+                // エンコーダクラスが流量制御をして送信まで行う
+                m_opusEncoder.addPCMSamples(conved_pcm, conved_pcm.Length);
             }
             else
             {

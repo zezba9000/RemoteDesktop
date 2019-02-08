@@ -28,13 +28,13 @@ namespace RemoteDesktop.Android.Core
 			public int SoundServerPort = 10000;
             public static int ImageServerPort = 8889;
 
-            public static bool isRunCapturedSoundDataHndlingWithoutConn = true;
+            public static bool isRunCapturedSoundDataHndlingWithoutConn = false;
             public static int SamplesPerSecond = 8000;
             public static bool isCheckAdtsFrameNum = true;
             //public static int SamplesPerSecond = 44100;
             //public static int SamplesPerSecond = 24000;
             //public int SamplesPerSecond = 48000; // sound card native
-            public short BitsPerSample = 8;
+            public short BitsPerSample = 16;
             //public short BitsPerSample = 16;
             //public short BitsPerSample = 32;  // sound card native
             public short Channels = 1;
