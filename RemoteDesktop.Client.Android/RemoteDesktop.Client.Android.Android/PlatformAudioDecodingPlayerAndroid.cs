@@ -176,8 +176,9 @@ namespace RemoteDesktop.Client.Android.Droid
         private AudioDecodingPlayerCallback mCallbackObj;
         int samplesPerSecond;
 
-        AudioTrack audioTrack;
-        Stopwatch sw = new Stopwatch();
+        private AudioTrack audioTrack;
+        private Stopwatch sw = new Stopwatch();
+        private MediaFormat mMediaFormat;
 
         public void PlayData(byte[] data, bool flag)
         {
@@ -243,7 +244,7 @@ namespace RemoteDesktop.Client.Android.Droid
             return (long)(new TimeSpan(DateTime.UtcNow.Ticks).TotalMilliseconds);
         }
 
-        public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate, byte[] csd_data)
+        public bool setup(AudioDecodingPlayerCallback callback_obj, int samplingRate, int ch, int bitrate, byte[] csd_data, String codec)
         {
             OpenDevice("hoge", samplingRate, 8, ch, 128 * 1024);
 
@@ -252,44 +253,39 @@ namespace RemoteDesktop.Client.Android.Droid
             callbackThread.Start();
             Handler handler = new Handler(callbackThread.Looper);
 
-            mDecoder = MediaCodec.CreateDecoderByType("audio/mp4a-latm");
-            var mMediaFormat = MediaFormat.CreateAudioFormat("audio/mp4a-latm", samplingRate, ch);
-            //byte[] bytes = new byte[] { (byte)0x12, (byte)0x12 };
-            //ByteBuffer csd = ByteBuffer.Wrap(csd_data);
-            //mMediaFormat.SetByteBuffer("csd-0", csd);
-            //mMediaFormat.SetInteger(MediaFormat.KeyIsAdts, 0);
+            if(codec == "aac")
+            {
+                mDecoder = MediaCodec.CreateDecoderByType("audio/mp4a-latm");
+                mMediaFormat = MediaFormat.CreateAudioFormat("audio/mp4a-latm", samplingRate, ch);
+                //byte[] bytes = new byte[] { (byte)0x12, (byte)0x12 };
 
-            int profile = (csd_data[2] & 0xC0) >> 6;
-            int srate = (csd_data[2] & 0x3C) >> 2;
-            int channel = ((csd_data[2] & 0x01) << 2) | ((csd_data[3] & 0xC0) >> 6);
-            sbyte csd0_0s = (sbyte)(((profile + 1) << 3) | srate >> 1);
-            sbyte csd0_1s = (sbyte)(((srate << 7) & 0x80) | channel << 3 );
-            byte csd0_0 = (byte)(((profile + 1) << 3) | srate >> 1);
-            byte csd0_1 = (byte)(((srate << 7) & 0x80) | channel << 3 );
-            byte[] bytes = new byte[] { csd0_0, csd0_1 };
-            ByteBuffer csd = ByteBuffer.Wrap(bytes);
-            mMediaFormat.SetInteger(MediaFormat.KeyIsAdts, 1);
-
-            //ByteBuffer csd = ByteBuffer.Allocate(2);
-            //csd.Put(0, csd0_0s);
-            //csd.Put(1, csd0_1s);
-            mMediaFormat.SetByteBuffer("csd-0", csd);
+                int profile = (csd_data[2] & 0xC0) >> 6;
+                int srate = (csd_data[2] & 0x3C) >> 2;
+                int channel = ((csd_data[2] & 0x01) << 2) | ((csd_data[3] & 0xC0) >> 6);
+                sbyte csd0_0s = (sbyte)(((profile + 1) << 3) | srate >> 1);
+                sbyte csd0_1s = (sbyte)(((srate << 7) & 0x80) | channel << 3 );
+                byte csd0_0 = (byte)(((profile + 1) << 3) | srate >> 1);
+                byte csd0_1 = (byte)(((srate << 7) & 0x80) | channel << 3 );
+                byte[] bytes = new byte[] { csd0_0, csd0_1 };
+                ByteBuffer csd0 = ByteBuffer.Wrap(bytes);
+                mMediaFormat.SetInteger(MediaFormat.KeyIsAdts, 1);
+                mMediaFormat.SetByteBuffer("csd-0", csd0);
+            }
+            else if(codec == "opus")
+            {
+                ByteBuffer csd0 = ByteBuffer.Wrap(csd_data);
+                mMediaFormat.SetByteBuffer("csd-0", csd0);
+                mMediaFormat.SetByteBuffer("csd-1", (ByteBuffer.Allocate(8).PutLong(0)));
+                mMediaFormat.SetByteBuffer("csd-2", (ByteBuffer.Allocate(8).PutLong(0)));
+            }
+            else
+            {
+                throw new Exception("unsupported coded by RemoteDeskto Client app.");
+            }
 
             var cbk = new AudioDecoderCallback(mDecoder, mCallbackObj, this);
-            //cbk.CSD0 = csd0_data;
             mDecoder.SetCallback(cbk, handler);
             mDecoder.Configure(mMediaFormat, null, null, 0);
-
-   //         String audioCodecType = "audio/mp4a-latm";
-   //         mDecoder = MediaCodec.CreateDecoderByType(audioCodecType);
-   //         mCallbackObj = callback_obj;
-   //         mDecoder.SetCallback(new AudioDecoderCallback(mDecoder, mCallbackObj, this), handler);
-   //         MediaFormat format = MediaFormat.CreateAudioFormat(audioCodecType, samplingRate, ch);
-			//mDecoder.Configure(format, null, null, 0);
-
-            //mOutputFormat = mDecoder.GetOutputFormat(); // option B
-            //inputFormat.SetInteger(MediaFormat.KeyMaxInputSize, width * height);
-            //inputFormat.SetInteger("durationUs", 63446722);
 
             Console.WriteLine("before mDecoder.Start()");
             mDecoder.Start();

@@ -46,7 +46,7 @@ namespace RemoteDesktop.Client.Android
 
     public interface IPlatformAudioDecodingPlayer
     {
-        bool setup(AudioDecodingPlayerCallback callback_ob, int samplingRate, int ch, int bitrate, byte[] csd_data);
+        bool setup(AudioDecodingPlayerCallback callback_ob, int samplingRate, int ch, int bitrate, byte[] csd_data, String codec);
         void Close();
     }
 
@@ -63,12 +63,12 @@ namespace RemoteDesktop.Client.Android
         }
 
         // csd_data is first adts frame header
-        public bool setup(int samplingRate, int ch, int bitrate, byte[] csd_data)
+        public bool setup(int samplingRate, int ch, int bitrate, byte[] csd_data, String codec)
         {
             mADP = getInstance();
             isOpened = true;
             mCallback = new AudioDecodingPlayerCallback(new Queue<byte[]>());
-            return mADP.setup(mCallback, samplingRate, ch, bitrate, csd_data);
+            return mADP.setup(mCallback, samplingRate, ch, bitrate, csd_data, codec);
         }
 
         public void Close()

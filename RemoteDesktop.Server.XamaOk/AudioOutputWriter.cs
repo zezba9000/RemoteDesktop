@@ -132,6 +132,52 @@ namespace RemoteDesktop.Server.XamaOK
         {
         }
 
+        private byte[] convert32bitFloat48000HzStereoPCMTo16bitMonoPCM(WaveInEventArgs e, int sampleRate)
+        {
+            byte[] recorded_buf = e.Buffer;
+            int recorded_length = e.BytesRecorded;
+
+            byte[] result_buf = null;
+            int result_len = -1;
+
+            try
+            {
+                //// 生データを再生可能なデータに変換
+                var waveBufferResample = new BufferedWaveProvider(this._WaveIn.WaveFormat);
+                waveBufferResample.DiscardOnBufferOverflow = true;
+                waveBufferResample.ReadFully = false;  // leave a buffer?
+                waveBufferResample.BufferLength = recorded_length;
+                var sampleStream = new WaveToSampleProvider(waveBufferResample);
+
+                // Downsample
+                var resamplingProvider = new WdlResamplingSampleProvider(sampleStream, sampleRate);
+
+                // Stereo to mono
+                var monoProvider = new StereoToMonoSampleProvider(resamplingProvider)
+                {
+                    LeftVolume = 1f,
+                    RightVolume = 1f
+                };
+
+                // Convert to 32bit float to 16bit PCM
+                var ieeeToPcm = new SampleToWaveProvider16(monoProvider);
+
+                waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
+
+                result_len = recorded_length / (2 * (48000 / sampleRate) * 2); // depth conv and sampling and ch conv
+                result_buf = new byte[result_len];
+                ieeeToPcm.Read(result_buf, 0, result_len);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                Console.WriteLine("exit...");
+                System.Windows.Forms.Application.Exit();
+            }
+
+            return result_buf;
+        }
+
         private byte[] convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(WaveInEventArgs e)
         {
             byte[] recorded_buf = e.Buffer;
@@ -236,6 +282,12 @@ namespace RemoteDesktop.Server.XamaOK
                 return;
             }
 
+            if (e.BytesRecorded == 0)
+            {
+                return;
+            }
+
+
             if (RTPConfiguration.isUseFFMPEG)
             {
                 if (MainApplicationContext.aac_encoding_start == 0)
@@ -244,7 +296,7 @@ namespace RemoteDesktop.Server.XamaOK
                 }
                 if (RTPConfiguration.caputuedPcmBufferSamples == 0)
                 {
-                    if(e.BytesRecorded > 0)
+                    if (e.BytesRecorded > 0)
                     {
                         MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(e.Buffer, 0, e.BytesRecorded);
                         MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
@@ -276,10 +328,41 @@ namespace RemoteDesktop.Server.XamaOK
                     }
                 }
             }
+            else if (RTPConfiguration.isEncodeWithOpus)
+            {
+                if (RTPConfiguration.caputuedPcmBufferSamples == 0)
+                {
+                    convert32bitFloat48000HzStereoPCMTo16bitMonoPCM
+                } else {
+                    captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
+                    int needed_samples = RTPConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
+                                                                                    // 指定されたサンプル数が溜まったら書き込む (adtsでは 1フレーム = 1024サンプル)
+                    if (captured_buf.Length / (4 * 2) >= needed_samples)
+                    {
+                        Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + needed_samples.ToString() + " samples to ffmpeg");
+                        captured_buf.Position = 0;
+                        byte[] tmp_buf = new byte[4 * 2 * needed_samples];
+                        captured_buf.Read(tmp_buf, 0, tmp_buf.Length);
+
+                        convert32bitFloat48000HzStereoPCMTo16bitMonoPCM
+                        //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Write(tmp_buf, 0, tmp_buf.Length);
+
+                        // 残ったデータの処理
+                        captured_buf.Position = 4 * 2 * needed_samples;
+                        byte[] left_data_buf = new byte[captured_buf.Length - 4 * 2 * needed_samples];
+                        captured_buf.Read(left_data_buf, 0, left_data_buf.Length);
+                        captured_buf.Position = 0;
+                        captured_buf.SetLength(0);
+                        captured_buf.Write(left_data_buf, 0, left_data_buf.Length);
+
+                        //MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
+                    }
+                }
+            }
             else
             {
                 byte[] mp3_buf = convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(e);
-                if(mp3_buf == null)
+                if (mp3_buf == null)
                 {
                     return;
                 }

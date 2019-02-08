@@ -28,7 +28,7 @@ namespace RemoteDesktop.Android.Core
 			public int SoundServerPort = 10000;
             public static int ImageServerPort = 8889;
 
-            public static bool isRunCapturedSoundDataHndlingWithoutConn = false;
+            public static bool isRunCapturedSoundDataHndlingWithoutConn = true;
             public static int SamplesPerSecond = 8000;
             public static bool isCheckAdtsFrameNum = true;
             //public static int SamplesPerSecond = 44100;
@@ -47,16 +47,17 @@ namespace RemoteDesktop.Android.Core
             public ProtcolMode protcol_mode = ProtcolMode.TCP;
             public bool compress = false;
             public bool isConvertMulaw = false;
-            public static bool isUseDPCM = true; // flag for server and client
-            public static bool isEncodeWithDpcmOrUseRawPCM = true; // flag for server
+            public static bool isUseDPCM = false; // flag for server and client
+            public static bool isEncodeWithDpcmOrUseRawPCM = false; // flag for server
             public static bool isEncodeWithAAC = false; // flag for server
+            public static bool isEncodeWithOpus = true;
             public static int caputuedPcmBufferSamples = 0; //128; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
             public static int h246EncoderBitPerSec = 5 * 1024 * 8;
             //public static float h264EncoderFrameRate = 1.0f;
             public static float h264EncoderKeyframeInterval = 60.0f;
             public static bool isStdOutOff = false;
-            public static bool isUseFFMPEG = true;
-            public static bool isUseSoundDecoder = false;
+            public static bool isUseFFMPEG = false;
+            public static bool isUseLossySoundDecoder = true;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";

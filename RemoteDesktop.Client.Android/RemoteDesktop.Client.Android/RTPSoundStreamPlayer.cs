@@ -34,7 +34,7 @@ namespace RemoteDesktop.Client.Android
         private void Init()
 		{
             //WinSoundServer
-            if (!RTPConfiguration.isUseSoundDecoder)
+            if (!RTPConfiguration.isUseLossySoundDecoder)
             {
                 m_Player = new SoundManager.Player();
             }
@@ -132,7 +132,7 @@ namespace RemoteDesktop.Client.Android
             config.BitsPerSample = pktHdr.BitsPerSample;
             config.Channels = pktHdr.Channels;
             config.isConvertMulaw = pktHdr.isConvertMulaw;
-            if (RTPConfiguration.isUseSoundDecoder || RTPConfiguration.isUseDPCM)
+            if (RTPConfiguration.isUseLossySoundDecoder || RTPConfiguration.isUseDPCM)
             {
                 if (encoded_frame_ms == null)
                 {
@@ -159,21 +159,40 @@ namespace RemoteDesktop.Client.Android
 
         private void Socket_EndDataRecievedCallback()
         {
-            if (RTPConfiguration.isUseSoundDecoder)
+            if (RTPConfiguration.isEncodeWithAAC)
             {
                 //var data = mp3data_ms.ToArray();
 
                 encoded_frame_ms.Position = 0;
                 if (m_DPlayer == null)
                 {
-                    byte[] csd_data = new byte[7];
-                    encoded_frame_ms.Read(csd_data, 0, 7);
+
                     //byte[] csd_data = new byte[2];
                     //mp3data_ms.Read(csd_data, 0, 2);
 
                     //m_DPlayer.Open("hoge", config.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
                     m_DPlayer = new AudioDecodingPlayerManager();
-                    m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_data);
+                    if (RTPConfiguration.isEncodeWithAAC)
+                    {
+                        byte[] csd_data = new byte[7];
+                        encoded_frame_ms.Read(csd_data, 0, 7);
+                        m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_data, "aac");
+                    }else if (RTPConfiguration.isEncodeWithOpus)
+                    {
+                        // little endian
+                        byte[] csd_0 = new byte[19] {
+                            (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
+                            (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
+                            (byte) 0x34, (byte) 0x00, (byte) 0x40, (byte) 0x1F, (byte) 0x00,
+                            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
+                        };
+                        m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_0, "opus");
+                    }
+                    else
+                    {
+                        throw new Exception("illigal flag setting on RTPConfiguration.");
+                    }
+
 
                     //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);
                     Console.WriteLine("sound device opened.");
@@ -214,7 +233,7 @@ namespace RemoteDesktop.Client.Android
 
                     linearBytes = dpcmDecoder.Decode(linearBytes);
                 }
-                if (!RTPConfiguration.isUseSoundDecoder && m_Player.Opened == false)
+                if (!RTPConfiguration.isUseLossySoundDecoder && m_Player.Opened == false)
                 {
                     m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
                     m_Player.Play();
@@ -232,7 +251,7 @@ namespace RemoteDesktop.Client.Android
         private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
         {
             Console.WriteLine("Socket_DataRecievedCallback: recieved sound data = " + dataSize.ToString());
-            if (RTPConfiguration.isUseSoundDecoder)
+            if (RTPConfiguration.isUseLossySoundDecoder)
             {
                 encoded_frame_ms.Write(data, offset, dataSize);
             }
