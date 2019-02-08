@@ -55,9 +55,9 @@ namespace RemoteDesktop.Server.XamaOK
         {
             this.aout = aout;
             _bytesSent = 0;
-            _segmentFrames = 960;
+            _segmentFrames = 960; //1024; //960;
             mEncoder = OpusEncoder.Create(sampleRate, 1, FragLabs.Audio.Codecs.Opus.Application.Voip);
-            mEncoder.Bitrate = 512 * 8; //8192;
+            mEncoder.Bitrate = 8192; //1024 * 8; //8192;
             _bytesPerSegment = mEncoder.FrameByteCount(_segmentFrames);
         }
 
@@ -97,6 +97,7 @@ namespace RemoteDesktop.Server.XamaOK
                 int len;
                 byte[] buf = mEncoder.Encode(segment, segment.Length, out len);
 
+                Console.WriteLine("opus encode finished and get encoded data " + buf.Length.ToString() + " bytes. sent this data to client.");
                 aout.handleDataWithTCP(buf);
 
                 _bytesSent += (ulong)len;
