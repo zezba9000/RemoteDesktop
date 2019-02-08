@@ -323,4 +323,72 @@ namespace RemoteDesktop.Android.Core
             return ms.ToArray();
         }
     }
+
+    public static class EndianReverser
+    {
+        // .NETはintは32bitという風にサイズが固定で変化しない
+
+        // 共通化できるものは処理を移譲する
+        public static char   Reverse(char value)   => (char)Reverse((ushort)value);
+        public static short  Reverse(short value)  => (short)Reverse((ushort)value);
+        public static int    Reverse(int value)    => (int)Reverse((uint)value);
+        public static long   Reverse(long value)   => (long)Reverse((ulong)value);
+
+        public static void uint16_bytes_reverse(byte[] data)
+        {
+            ushort val = 0;
+            byte[] conved_data;
+            for(int ii = 0; ii < data.Length; ii += 2)
+            {
+                val = BitConverter.ToUInt16(data, ii);
+                conved_data = BitConverter.GetBytes(Reverse(val));
+                data[ii] = conved_data[0];
+                data[ii + 1] = conved_data[1];
+            }
+        }
+
+        // 伝統的な16ビット入れ替え処理16bit
+        public static ushort Reverse(ushort value)
+        {
+            return (ushort)((value & 0xFF) << 8 | (value >> 8) & 0xFF);
+        }
+
+        // 伝統的な16ビット入れ替え処理32bit
+        public static uint Reverse(uint value)
+        {
+            return (value & 0xFF) << 24 |
+                    ((value >> 8) & 0xFF) << 16 |
+                    ((value >> 16) & 0xFF) << 8 |
+                    ((value >> 24) & 0xFF);
+        }
+
+        // 伝統的な16ビット入れ替え処理64bit
+        public static ulong Reverse(ulong value)
+        {
+            return (value & 0xFF) << 56 |
+                    ((value >>  8) & 0xFF) << 48 |
+                    ((value >> 16) & 0xFF) << 40 |
+                    ((value >> 24) & 0xFF) << 32 |
+                    ((value >> 32) & 0xFF) << 24 |
+                    ((value >> 40) & 0xFF) << 16 |
+                    ((value >> 48) & 0xFF) << 8 |
+                    ((value >> 56) & 0xFF);
+        }
+
+        // 浮動小数点はちょっと効率悪いけどライブラリでできる操作でカバーする
+        public static float Reverse(float value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value); // これ以上いい処理が思いつかない
+            Array.Reverse(bytes);
+            return BitConverter.ToSingle(bytes, 0);
+        }
+
+        public static double Reverse(double value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            Array.Reverse(bytes);
+            return BitConverter.ToDouble(bytes, 0);
+        }
+    }
+
 }

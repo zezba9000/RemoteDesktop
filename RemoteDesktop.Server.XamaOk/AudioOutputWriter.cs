@@ -343,8 +343,9 @@ namespace RemoteDesktop.Server.XamaOK
                 {
                     m_opusEncoder = new OpusEncoderManager(this, RTPConfiguration.SamplesPerSecond);
                 }
-                Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + e.Buffer.ToString() + " bytes to opus encoder");
+
                 byte[] conved_pcm = convert32bitFloat48000HzStereoPCMTo16bitMonoPCM(e, RTPConfiguration.SamplesPerSecond);
+                Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + conved_pcm.Length.ToString() + " bytes to opus encoder");
 
                 // エンコーダクラスが流量制御をして送信まで行う
                 m_opusEncoder.addPCMSamples(conved_pcm, conved_pcm.Length);

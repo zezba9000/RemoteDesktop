@@ -159,7 +159,7 @@ namespace RemoteDesktop.Client.Android
 
         private void Socket_EndDataRecievedCallback()
         {
-            if (RTPConfiguration.isEncodeWithAAC)
+            if (RTPConfiguration.isUseLossySoundDecoder)
             {
                 //var data = mp3data_ms.ToArray();
 
@@ -177,7 +177,8 @@ namespace RemoteDesktop.Client.Android
                         byte[] csd_data = new byte[7];
                         encoded_frame_ms.Read(csd_data, 0, 7);
                         m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_data, "aac");
-                    }else if (RTPConfiguration.isEncodeWithOpus)
+                    }
+                    else if (RTPConfiguration.isEncodeWithOpus)
                     {
                         // little endian
                         byte[] csd_0 = new byte[19] {
@@ -197,8 +198,10 @@ namespace RemoteDesktop.Client.Android
                     //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);
                     Console.WriteLine("sound device opened.");
                     //m_DPlayer.mCallback.addEncodedSamplesData(csd_data, csd_data.Length);
+                }
 
-
+                if (RTPConfiguration.isEncodeWithAAC)
+                {
                     //if (!(mp3data_ms.Length > 2))
                     if (!(encoded_frame_ms.Length > 7))
                     {
@@ -207,6 +210,7 @@ namespace RemoteDesktop.Client.Android
                     //最初のフレームのヘッダは取り除かずに流す (rdts形式の場合)
                     encoded_frame_ms.Position = 0;
                 }
+
                 byte[] data_buf = new byte[encoded_frame_ms.Length - encoded_frame_ms.Position];
                 encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
                 Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");

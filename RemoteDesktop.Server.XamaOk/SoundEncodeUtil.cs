@@ -1,6 +1,7 @@
 ﻿using FragLabs.Audio.Codecs;
 using NAudio.MediaFoundation;
 using NAudio.Wave;
+using RemoteDesktop.Android.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -56,13 +57,17 @@ namespace RemoteDesktop.Server.XamaOK
             _bytesSent = 0;
             _segmentFrames = 960;
             mEncoder = OpusEncoder.Create(sampleRate, 1, FragLabs.Audio.Codecs.Opus.Application.Voip);
-            mEncoder.Bitrate = 8192;
+            mEncoder.Bitrate = 512 * 8; //8192;
             _bytesPerSegment = mEncoder.FrameByteCount(_segmentFrames);
         }
 
 
         public void addPCMSamples(byte[] pcm_data, int data_len)
         {
+            //// エンディアンを反転
+            //// 引数のデータを書き換えてしまう
+            //EndianReverser.uint16_bytes_reverse(pcm_data);
+
             byte[] soundBuffer = new byte[data_len + _notEncodedBuffer.Length];
             for (int i = 0; i < _notEncodedBuffer.Length; i++)
                 soundBuffer[i] = _notEncodedBuffer[i];
@@ -77,6 +82,11 @@ namespace RemoteDesktop.Server.XamaOK
             for (int i = 0; i < notEncodedCount; i++)
             {
                 _notEncodedBuffer[i] = soundBuffer[segmentsEnd + i];
+            }
+
+            if(segmentCount == 0)
+            {
+                return;
             }
 
             for (int i = 0; i < segmentCount; i++)

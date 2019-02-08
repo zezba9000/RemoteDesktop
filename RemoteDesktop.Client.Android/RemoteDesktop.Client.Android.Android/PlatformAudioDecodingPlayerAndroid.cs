@@ -273,6 +273,8 @@ namespace RemoteDesktop.Client.Android.Droid
             }
             else if(codec == "opus")
             {
+                mDecoder = MediaCodec.CreateDecoderByType("audio/opus");
+                mMediaFormat = MediaFormat.CreateAudioFormat("audio/opus", samplingRate, ch);
                 ByteBuffer csd0 = ByteBuffer.Wrap(csd_data);
                 mMediaFormat.SetByteBuffer("csd-0", csd0);
                 mMediaFormat.SetByteBuffer("csd-1", (ByteBuffer.Allocate(8).PutLong(0)));
