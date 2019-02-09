@@ -523,7 +523,7 @@ namespace RemoteDesktop.Android.Core.Sound
             MemoryStream ms = new MemoryStream();
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(ms, pktHdr);
-            byte[] buf = ms.GetBuffer();
+            byte[] buf = ms.ToArray();
             if(pktHdrSize != ms.Length)
             {
                 throw new Exception("serialized PacketHeader binary size is not constant...");
