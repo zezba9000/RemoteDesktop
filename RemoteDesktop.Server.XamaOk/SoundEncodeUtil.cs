@@ -97,8 +97,10 @@ namespace RemoteDesktop.Server.XamaOK
                 int len;
                 byte[] buf = mEncoder.Encode(segment, segment.Length, out len);
 
-                Console.WriteLine("opus encode finished and get encoded data " + buf.Length.ToString() + " bytes. sent this data to client.");
-                aout.handleDataWithTCP(buf);
+                byte[] encoded_buf = new byte[len];
+                Array.Copy(buf, 0, encoded_buf, 0, len);
+                Console.WriteLine("opus encode finished and get encoded data " + len.ToString() + " bytes. sent this data to client.");
+                aout.handleDataWithTCP(encoded_buf);
 
                 _bytesSent += (ulong)len;
             }
