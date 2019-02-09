@@ -23,26 +23,82 @@ namespace RemoteDesktop.Client.Android.Droid
 
     public delegate void DecodedPCMHandler(byte[] decoded_data);
 
+    public class OggOpusLiveStreamingMediaDataSource : MediaDataSource
+    {
+        private AudioDecodingPlayerCallback cbk;
+        private ByteFifo bfifo = new ByteFifo();
+        private long currentPosition = 0;
+        private long allPassedDataBytes = 0;
+        
+
+        public OggOpusLiveStreamingMediaDataSource(AudioDecodingPlayerCallback cbk)
+        {
+            this.cbk = cbk;
+        }
+
+        public override long Size
+        {
+            get {
+                return long.MaxValue;
+            }
+        }
+
+        public override void Close()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int ReadAt(long position, byte[] buffer, int offset, int size)
+        {
+            var currentHaveFirst = bfifo.Count;
+            byte[] ret_buf;
+            if(currentHaveFirst >= size)
+            {
+                ret_buf = bfifo.Pop(size);
+                currentPosition += size;
+                Array.Copy(ret_buf, 0, buffer, offset, size);
+                return size;
+            }
+
+            byte[] encoded_data = null;
+            while ((encoded_data = cbk.getEncodedSamplesData()) == null)
+            {
+                Thread.Sleep(1);
+            }
+            allPassedDataBytes += encoded_data.Length;
+            bfifo.Push(encoded_data);
+            var currentHaveAfterRead = bfifo.Count;
+            var ret_size = currentHaveAfterRead >= size ? size : currentHaveAfterRead;
+            ret_buf = bfifo.Pop(ret_size);
+            currentPosition += ret_size;
+            Array.Copy(ret_buf, 0, buffer, offset, ret_size);
+            return ret_size;
+        }
+    }
+
+
     public class AudioDecoderCallback : MediaCodec.Callback
     {
         MediaCodec mDecoder;
         MediaFormat mOutputFormat;
         AudioDecodingPlayerCallback mCallbackObj;
         PlatformAudioDecodingPlayerAndroid mADP;
+        MediaExtractor mExtractor;
         int frameCounter = 0;
         public byte[] CSD0;
 
-        private Queue<DateTime> debug_time_Q = new Queue<DateTime>();
+        //private Queue<DateTime> debug_time_Q = new Queue<DateTime>();
         private int total_decode_msec = 0;
         private int decoded_frame_conter = 0;
 
         public event DecodedBitmapHandler encodedDataGenerated;
 
-        public AudioDecoderCallback(MediaCodec decoder, AudioDecodingPlayerCallback callback_obj, PlatformAudioDecodingPlayerAndroid parent)
+        public AudioDecoderCallback(MediaCodec decoder, AudioDecodingPlayerCallback callback_obj, PlatformAudioDecodingPlayerAndroid parent, MediaExtractor extractor)
         {
             mCallbackObj = callback_obj;
             mDecoder = decoder;
             mADP = parent;
+            mExtractor = extractor;
         }
         public override void OnError(MediaCodec codec, CodecException e)
         {
@@ -52,48 +108,76 @@ namespace RemoteDesktop.Client.Android.Droid
         private void OnInputBufferAvailableInner(MediaCodec mc, int inputBufferId)
         {
             byte[] encoded_data = null;
-            while ((encoded_data = mCallbackObj.getEncodedSamplesData()) == null)
+            int sampleSize = -1;
+            if(mExtractor != null) // ogg_opus
             {
-                Thread.Sleep(1);
-            }
-
-            Console.WriteLine("OnInputBufferAvailable: got encoded data!");
-            
-            if (encoded_data != null) {
-                int sampleSize = encoded_data.Length;
-                if (sampleSize > 0)
+                ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
+                inputBuffer.Position(0);
+                sampleSize = mExtractor.ReadSampleData(inputBuffer, 0);
+                if (sampleSize < 0)
                 {
-                    debug_time_Q.Enqueue(DateTime.Now);
+                    // We shouldn't stop the playback at this point, just pass the EOS
+                    // flag to decoder, we will get it again from the
+                    // dequeueOutputBuffer
+                    Console.WriteLine("InputBuffer BUFFER_FLAG_END_OF_STREAM");
+                    mDecoder.QueueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+                }
+                else
+                {
+                    Console.WriteLine("added encoded data got from MediaExtractor " + sampleSize.ToString() + "bytes");
+                    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, mExtractor.SampleTime, 0);
+                    mExtractor.Advance();
+                    frameCounter++;
+                }
+            }
+            else
+            {
+                while ((encoded_data = mCallbackObj.getEncodedSamplesData()) == null)
+                {
+                    Thread.Sleep(1);
+                }
 
-                    ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
-                    inputBuffer.Position(0);
+                Console.WriteLine("OnInputBufferAvailable: got encoded data!");
 
-                    //inputBuffer.Put(encoded_data);
-                    Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
-                    //if (frameCounter == 0)
-                    //{
-                    //    //inputBuffer.Put(CSD0);
-                    //    inputBuffer.Put(encoded_data);
-                    //    // 最初のフレームはcds-0の2byteになるようにしてある <- 今はADTSフレームの一番目が来る。データもくっついている。
-                    //    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
-                    //}
-                    //else
-                    //{
+                if (encoded_data != null)
+                {
+                    sampleSize = encoded_data.Length;
+                    if (sampleSize > 0)
+                    {
+                        //debug_time_Q.Enqueue(DateTime.Now);
+
+                        ByteBuffer inputBuffer = mDecoder.GetInputBuffer(inputBufferId);
+                        inputBuffer.Position(0);
+
+                        //inputBuffer.Put(encoded_data);
+                        Console.WriteLine("QueueInputBuffer inputIndex=" + inputBufferId.ToString());
+                        //if (frameCounter == 0)
+                        //{
+                        //    //inputBuffer.Put(CSD0);
+                        //    inputBuffer.Put(encoded_data);
+                        //    // 最初のフレームはcds-0の2byteになるようにしてある <- 今はADTSフレームの一番目が来る。データもくっついている。
+                        //    mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, MediaCodec.BufferFlagCodecConfig);
+                        //}
+                        //else
+                        //{
                         // remove adts header
                         //inputBuffer.Put(encoded_data, 9, encoded_data.Length - 9);
                         //mDecoder.QueueInputBuffer(inputBufferId, 0, encoded_data.Length - 9, 0, 0);
 
                         inputBuffer.Put(encoded_data);
                         mDecoder.QueueInputBuffer(inputBufferId, 0, sampleSize, 0, 0);
-                    //}
-                    frameCounter++;
-                }
-                else
-                {
-                    Console.WriteLine("QueueInputBuffer set MediaCodec.BufferFlagEndOfStream");
-                    mDecoder.QueueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+                        //}
+                        frameCounter++;
+                    }
+                    else
+                    {
+                        Console.WriteLine("QueueInputBuffer set MediaCodec.BufferFlagEndOfStream");
+                        mDecoder.QueueInputBuffer(inputBufferId, 0, 0, 0, MediaCodec.BufferFlagEndOfStream);
+                    }
                 }
             }
+
+
         }
 
         override public void OnInputBufferAvailable(MediaCodec mc, int inputBufferId)
@@ -117,18 +201,18 @@ namespace RemoteDesktop.Client.Android.Droid
             // bufferFormat is equivalent to mOutputFormat
             // outputBuffer is ready to be processed or rendered.
 
-            if(debug_time_Q.Count > 0)
-            {
-                decoded_frame_conter++;
-                DateTime now = DateTime.Now;
-                TimeSpan ts = DateTime.Now - debug_time_Q.Dequeue();
-                total_decode_msec += ts.Milliseconds;
-                Console.WriteLine(now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " DEBUG: current decode speed is " + ((total_decode_msec / 1000.0) / (float)decoded_frame_conter).ToString() + " fps. total decoded frame = " + decoded_frame_conter.ToString());
-            }
-            else
-            {
+            //if(debug_time_Q.Count > 0)
+            //{
+            //    decoded_frame_conter++;
+            //    DateTime now = DateTime.Now;
+            //    TimeSpan ts = DateTime.Now - debug_time_Q.Dequeue();
+            //    total_decode_msec += ts.Milliseconds;
+            //    Console.WriteLine(now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " DEBUG: current decode speed is " + ((total_decode_msec / 1000.0) / (float)decoded_frame_conter).ToString() + " fps. total decoded frame = " + decoded_frame_conter.ToString());
+            //}
+            //else
+            //{
                 Console.WriteLine(DateTime.Now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " DEBUG: debug_time_Q is empty at OnOutputBufferAvailable. decoded_frame_counter = " + decoded_frame_conter.ToString());
-            }
+            //}
 
             Console.WriteLine("OnOutputBufferAvailable: outputBufferId = " + outputBufferId.ToString());
             byte[] decoded_data = new byte[info.Size];
@@ -252,6 +336,7 @@ namespace RemoteDesktop.Client.Android.Droid
             HandlerThread callbackThread = new HandlerThread("AACDecodingPlayerHandler");
             callbackThread.Start();
             Handler handler = new Handler(callbackThread.Looper);
+            MediaExtractor extractor = null;
 
             if(codec == "aac")
             {
@@ -282,12 +367,33 @@ namespace RemoteDesktop.Client.Android.Droid
                 //mMediaFormat.SetLong("csd-1", 0);
                 //mMediaFormat.SetLong("csd-2", 0);
             }
+            else if (codec == "ogg_opus")
+            {
+			    extractor = new MediaExtractor();
+			    extractor.SetDataSource(new OggOpusLiveStreamingMediaDataSource(callback_obj));
+
+			    for (int ii = 0; ii < extractor.TrackCount; ii++) {
+				    mMediaFormat = extractor.GetTrackFormat(ii);
+				    String mime = mMediaFormat.GetString(MediaFormat.KeyMime);
+				    if (mime.StartsWith("audio/")) {
+					    extractor.SelectTrack(ii);
+					    mDecoder = MediaCodec.CreateDecoderByType(mime);
+					    //mDecoder.Configure(format, null, null, 0);
+					    break;
+				    }
+			    }
+
+			    if (mDecoder == null) {
+				    Console.WriteLine("Can't find audio info!");
+                    throw new Exception("Can't find audio info!");
+			    }
+            }
             else
             {
-                throw new Exception("unsupported coded by RemoteDeskto Client app.");
+                throw new Exception("unsupported codec by RemoteDeskto Client app.");
             }
 
-            var cbk = new AudioDecoderCallback(mDecoder, mCallbackObj, this);
+            var cbk = new AudioDecoderCallback(mDecoder, mCallbackObj, this, extractor);
             mDecoder.SetCallback(cbk, handler);
             mDecoder.Configure(mMediaFormat, null, null, 0);
 

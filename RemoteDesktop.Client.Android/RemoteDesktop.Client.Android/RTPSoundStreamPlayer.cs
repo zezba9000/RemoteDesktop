@@ -146,10 +146,15 @@ namespace RemoteDesktop.Client.Android
                         //};
                         m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_0, "opus");
                     }
-                    else
+                    else if (RTPConfiguration.isEncodeWithOggOpus)
                     {
-                        throw new Exception("illigal flag setting on RTPConfiguration.");
+                        m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null, "ogg_opus");
+
                     }
+                else
+                {
+                    throw new Exception("illigal flag setting on RTPConfiguration.");
+                }
 
 
                     //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);

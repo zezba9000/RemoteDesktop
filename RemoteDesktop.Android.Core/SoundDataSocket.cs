@@ -7,11 +7,12 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.InteropServices;
 
 namespace RemoteDesktop.Android.Core.Sound
 {
 
-    [Serializable()]
+    //[Serializable()]
     public enum PacketTypes
 	{
 		NotifySetting,
@@ -20,8 +21,8 @@ namespace RemoteDesktop.Android.Core.Sound
 		Reserved2
 	}
 
-    //[StructLayout(LayoutKind.Sequential)]
-    [Serializable()]
+    //[Serializable()]
+    [StructLayout(LayoutKind.Sequential)]
 	public struct PacketHeader
 	{
 		public PacketTypes type;
@@ -69,11 +70,12 @@ namespace RemoteDesktop.Android.Core.Sound
 
 			receiveBuffer = new byte[BUF_SIZE];
 			sendBuffer = new byte[BUF_SIZE];
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
-            bf.Serialize(ms, new PacketHeader()); // for get Binary Seriazed data size
-            pktHdrSize = (int) ms.Length;
-            Console.WriteLine("Serialized PacketHeader Class object binary size is berow");
+            //BinaryFormatter bf = new BinaryFormatter();
+            //MemoryStream ms = new MemoryStream();
+            //bf.Serialize(ms, new PacketHeader()); // for get Binary Seriazed data size
+            //pktHdrSize = (int) ms.Length;
+            //Console.WriteLine("Serialized PacketHeader Class object binary size is berow");
+            pktHdrSize = Marshal.SizeOf(new PacketHeader());
             Console.WriteLine(pktHdrSize);
             Console.WriteLine(type);
 			pktHdrBuffer = new byte[1024];
@@ -348,9 +350,13 @@ namespace RemoteDesktop.Android.Core.Sound
 							bytesRead -= count;
 							overflow = bytesRead; // overflow and current bytesRead means bitmap data already read (if value > 0)
 
-                            //debugPrintByteArray4ElemSpan(pktHdrBuffer);
-                            BinaryFormatter bf = new BinaryFormatter();
-                            pktHdr = (PacketHeader) bf.Deserialize(new MemoryStream(pktHdrBuffer));
+                            ////debugPrintByteArray4ElemSpan(pktHdrBuffer);
+                            //BinaryFormatter bf = new BinaryFormatter();
+                            //pktHdr = (PacketHeader) bf.Deserialize(new MemoryStream(pktHdrBuffer));
+                            IntPtr ptr = Marshal.AllocHGlobal(pktHdrSize);
+                            Marshal.Copy(pktHdrBuffer, 0, ptr, pktHdrSize);
+                            pktHdr = (PacketHeader) Marshal.PtrToStructure(ptr, typeof(PacketHeader));
+                            Marshal.FreeHGlobal(ptr);
 
 							//if (pktHdr.dataSize == 0) throw new Exception("Invalid data size");
                             if(pktHdr.dataSize == 0)
@@ -521,15 +527,22 @@ namespace RemoteDesktop.Android.Core.Sound
 		private void SendPacketHeaderInternal(PacketHeader pktHdr)
 		{
             Console.WriteLine("call SendPacketHeaderInternal");
-            MemoryStream ms = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(ms, pktHdr);
-            byte[] buf = ms.ToArray();
-            if(pktHdrSize != ms.Length)
-            {
-                throw new Exception("serialized PacketHeader binary size is not constant...");
-            }
-            SendBinary(buf, pktHdrSize);
+            //MemoryStream ms = new MemoryStream();
+            //BinaryFormatter bf = new BinaryFormatter();
+            //bf.Serialize(ms, pktHdr);
+            //byte[] buf = ms.ToArray();
+            //if(pktHdrSize != ms.Length)
+            //{
+            //    throw new Exception("serialized PacketHeader binary size is not constant...");
+            //}
+            //SendBinary(buf, pktHdrSize);
+
+            byte[] bytes = new byte[pktHdrSize];
+
+            GCHandle gchw = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            Marshal.StructureToPtr(pktHdr, gchw.AddrOfPinnedObject(), false);
+            gchw.Free();
+            SendBinary(bytes, pktHdrSize);
 		}
 
 		public void SendPacketHeader(PacketHeader pktHdr)
