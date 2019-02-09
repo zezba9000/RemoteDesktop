@@ -279,8 +279,8 @@ namespace RemoteDesktop.Client.Android.Droid
                 mMediaFormat.SetByteBuffer("csd-0", csd0);
                 //mMediaFormat.SetByteBuffer("csd-1", (ByteBuffer.Allocate(8).PutLong(0)));
                 //mMediaFormat.SetByteBuffer("csd-2", (ByteBuffer.Allocate(8).PutLong(0)));
-                mMediaFormat.SetLong("csd-1", 0);
-                mMediaFormat.SetLong("csd-2", 0);
+                //mMediaFormat.SetLong("csd-1", 0);
+                //mMediaFormat.SetLong("csd-2", 0);
             }
             else
             {
