@@ -277,7 +277,7 @@ namespace RemoteDesktop.Client.Android.Droid
                 mMediaFormat = MediaFormat.CreateAudioFormat("audio/opus", samplingRate, ch);
                 ByteBuffer csd0 = ByteBuffer.Wrap(csd_data);
                 mMediaFormat.SetByteBuffer("csd-0", csd0);
-                mMediaFormat.SetByteBuffer("csd-1", (ByteBuffer.Allocate(8).PutLong(0)));
+                mMediaFormat.SetByteBuffer("csd-1", (ByteBuffer.Allocate(8).PutLong(298687)));
                 mMediaFormat.SetByteBuffer("csd-2", (ByteBuffer.Allocate(8).PutLong(0)));
             }
             else
