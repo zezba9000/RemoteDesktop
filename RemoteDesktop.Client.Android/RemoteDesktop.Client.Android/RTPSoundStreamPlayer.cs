@@ -124,12 +124,12 @@ namespace RemoteDesktop.Client.Android
                         //    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
                         //};
                         //little endian 48000Hz(pre - skip value is updated from new create ogg file hexdump)
-                        byte[] csd_0 = new byte[19] {
-                            (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
-                            (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
-                            (byte) 0x38, (byte) 0x01, (byte) 0x80, (byte) 0xBB, (byte) 0x00,
-                            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
-                        };
+                        //byte[] csd_0 = new byte[19] {
+                        //    (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
+                        //    (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
+                        //    (byte) 0x38, (byte) 0x01, (byte) 0x80, (byte) 0xBB, (byte) 0x00,
+                        //    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
+                        //};
                         //// big endian 48000Hz
                         //byte[] csd_0 = new byte[19] {
                         //    (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
@@ -137,13 +137,13 @@ namespace RemoteDesktop.Client.Android
                         //    (byte) 0x00, (byte) 0x34, (byte) 0x00, (byte) 0x00, (byte) 0xBB,
                         //    (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00
                         //};
-                        //// little endian 48000Hz (pre-skip value is set to 0)
-                        //byte[] csd_0 = new byte[19] {
-                        //    (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
-                        //    (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
-                        //    (byte) 0x00, (byte) 0x00, (byte) 0x80, (byte) 0xBB, (byte) 0x00,
-                        //    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
-                        //};
+                        // little endian 48000Hz (pre-skip value is set to 0)
+                        byte[] csd_0 = new byte[19] {
+                            (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
+                            (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
+                            (byte) 0x00, (byte) 0x00, (byte) 0x80, (byte) 0xBB, (byte) 0x00,
+                            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
+                        };
                         m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_0, "opus");
                     }
                     else
