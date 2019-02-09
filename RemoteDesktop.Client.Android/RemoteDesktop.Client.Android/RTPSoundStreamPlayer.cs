@@ -137,7 +137,7 @@ namespace RemoteDesktop.Client.Android
                         //    (byte) 0x00, (byte) 0x34, (byte) 0x00, (byte) 0x00, (byte) 0xBB,
                         //    (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00
                         //};
-                        // little endian 48000Hz (pre-skip value is set to 0)
+                        //// little endian 48000Hz (pre-skip value is set to 0)
                         //byte[] csd_0 = new byte[19] {
                         //    (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
                         //    (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
