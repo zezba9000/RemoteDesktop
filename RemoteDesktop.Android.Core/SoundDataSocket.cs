@@ -215,12 +215,13 @@ namespace RemoteDesktop.Android.Core.Sound
 				if (isDisposed) return;
 				disconnected = false;
 
-				StartDisconnectionTimer();
+				//StartDisconnectionTimer();
 
 				// connect
 				if (type == NetworkTypes.Server)
 				{
-					try
+                    StartDisconnectionTimer();
+                    try
 					{
 						socket = listenSocket.EndAccept(ar);
 					}

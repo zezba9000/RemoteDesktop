@@ -40,70 +40,6 @@ namespace RemoteDesktop.Client.Android
             }
 		}
 
-/*
-        private void OnDataReceivedUDP(RTPReceiver rtr, Byte[] bytes)
-		{
-			try
-			{
-				//Wenn der Player gestartet wurde
-				if (m_Player.Opened && m_Receiver.Connected)
-				{
-					//RTP Header auslesen
-					RTPPacket rtp = new RTPPacket(bytes);
-                    Console.WriteLine("RTP Packet received: " + bytes.Length.ToString() + " bytes");
-
-					if (rtp.Data != null)
-					{
-                        Byte[] linearBytes = SoundUtils.MuLawToLinear(rtp.Data, config.BitsPerSample, config.Channels);
-                        //Byte[] linearBytes = rtp.Data;
-
-                        Console.WriteLine("call PlayData func at OnDataReceived: " + linearBytes.Length.ToString() + "bytes");
-                        m_Player.PlayData(linearBytes, false);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-                Console.WriteLine(ex);
-			}
-		}
-
-		/// <summary>
-		/// OnDisconnected
-		/// </summary>
-		private void OnDisconnectedUDP(string reason)
-		{
-			try
-			{
-				m_Player.Close();
-			}
-			catch (Exception ex)
-			{
-                Console.WriteLine(ex);
-			}
-		}
-
-        public void togglePlayingUDP()
-        {
-			if (m_Player.Opened)
-            {
-				m_Receiver.Disconnect();
-				m_Player.Close();
-			}
-			else
-			{
-                m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
-
-                // 1 to 1 Receivr over UDP
-                config.PacketSize = SoundUtils.GetBytesPerInterval((uint)RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels);
-				m_Receiver = new RTPReceiver(config.PacketSize);
-				m_Receiver.DataReceived2 += new RTPReceiver.DelegateDataReceived2(OnDataReceivedUDP);
-				m_Receiver.Disconnected += new RTPReceiver.DelegateDisconnected(OnDisconnectedUDP);
-				m_Receiver.Connect(RTPConfiguration.ServerAddress, config.SoundServerPort);
-			}
-        }
-*/
-
         public void togglePlayingTCP()
         {
 			if (sdsock != null)
@@ -259,16 +195,16 @@ namespace RemoteDesktop.Client.Android
         }
 
 
-        private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
+        private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset /* do not use this value */)
         {
             Console.WriteLine("Socket_DataRecievedCallback: recieved sound data = " + dataSize.ToString());
             if (RTPConfiguration.isUseLossySoundDecoder)
             {
-                encoded_frame_ms.Write(data, offset, dataSize);
+                encoded_frame_ms.Write(data, 0, dataSize);
             }
             else
             {
-                encoded_frame_ms.Write(data, offset, dataSize);
+                encoded_frame_ms.Write(data, 0, dataSize);
                 //Byte[] justSound_buf = new byte[dataSize];
                 //Array.Copy(data, 0, justSound_buf, 0, dataSize);
                 //Byte[] linearBytes = justSound_buf;

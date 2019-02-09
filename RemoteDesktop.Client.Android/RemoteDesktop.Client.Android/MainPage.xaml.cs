@@ -627,7 +627,7 @@ namespace RemoteDesktop.Client.Android
         }
 
 
-        private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset)
+        private void Socket_DataRecievedCallback(byte[] data, int dataSize, int offset /* do not use this value */)
         {
             //var tcs = new TaskCompletionSource<bool>();
             byte[] local_buf = new byte[dataSize];
