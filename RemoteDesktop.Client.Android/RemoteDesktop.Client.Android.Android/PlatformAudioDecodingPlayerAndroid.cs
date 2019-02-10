@@ -29,7 +29,8 @@ namespace RemoteDesktop.Client.Android.Droid
         private ByteFifo bfifo = new ByteFifo();
         private long currentPosition = 0;
         private long allPassedDataBytes = 0;
-        //private bool isFirstFinished = false;
+        private long allReadCount = 0;
+        private long DEBUG_CONTENTS_LENGTH = 1024 * 30;
         
 
         public OggOpusLiveStreamingMediaDataSource(AudioDecodingPlayerCallback cbk)
@@ -43,18 +44,30 @@ namespace RemoteDesktop.Client.Android.Droid
                 Console.WriteLine("OggOpusLiveStreamingMediaDataSource::Size");
                 //return long.MaxValue;
                 //return bfifo.Count;
-                return allPassedDataBytes;
+                //return allPassedDataBytes;
+                //return -1; // size is unknown
+                return DEBUG_CONTENTS_LENGTH;
             }
         }
 
         public override void Close()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public override int ReadAt(long position, byte[] buffer, int offset, int size)
         {
-            Console.WriteLine("OggOpusLiveStreamingMediaDataSource::ReadAt called position = {0}, offset = {1}, size = {2}", position, offset, size);
+            Console.WriteLine("OggOpusLiveStreamingMediaDataSource::ReadAt called position = {0}, offset = {1}, size = {2}, pastReadCount = {3}", position, offset, size, allReadCount);
+            allReadCount++;
+            //if (allReadCount == 20)
+            //{
+            //    return -1; // エンコーダの初期化のためにいったん終わらせる
+            //}
+            if(position + size > DEBUG_CONTENTS_LENGTH) //コンテンツの終わりに見せる
+            {
+                return -1;
+            }
+
             var currentHaveFirst = bfifo.Count;
             byte[] ret_buf;
             if(currentHaveFirst >= size)
@@ -72,6 +85,7 @@ namespace RemoteDesktop.Client.Android.Droid
                 Thread.Sleep(1);
             }
             Console.WriteLine("OggOpusLiveStreamingMediaDataSource::ReadAt after while loop.");
+            Console.Out.Flush();
             allPassedDataBytes += encoded_data.Length;
             bfifo.Push(encoded_data);
             var currentHaveAfterRead = bfifo.Count;
@@ -378,11 +392,13 @@ namespace RemoteDesktop.Client.Android.Droid
             {
 			    extractor = new MediaExtractor();
 			    extractor.SetDataSource(new OggOpusLiveStreamingMediaDataSource(callback_obj));
-			    //extractor.SetDataSourceAsync(new OggOpusLiveStreamingMediaDataSource(callback_obj));
+                //extractor.SetDataSourceAsync(new OggOpusLiveStreamingMediaDataSource(callback_obj));
+                Console.WriteLine("after SetDataSource");
 
 			    for (int ii = 0; ii < extractor.TrackCount; ii++) {
 				    mMediaFormat = extractor.GetTrackFormat(ii);
 				    String mime = mMediaFormat.GetString(MediaFormat.KeyMime);
+                    Console.WriteLine("MediaFormat.KeyMime: " + mime);
 				    if (mime.StartsWith("audio/")) {
 					    extractor.SelectTrack(ii);
 					    mDecoder = MediaCodec.CreateDecoderByType(mime);
