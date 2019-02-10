@@ -84,6 +84,100 @@ namespace RemoteDesktop.Android.Core
         }
     }
 
+    public class ZeroMemoryPipeStream : Stream
+    {
+        public delegate void ZeroMemoryWriteHandler(byte[] buffer, int offset, int count);
+        public event ZeroMemoryWriteHandler writeHandler;
+        private long allWroteBytes = 0;
+
+        public override bool CanRead
+        {
+            get
+            {
+                Console.WriteLine("call CanRead");
+//                Console.Out.Flush();
+                return true;
+            }
+        }
+
+        public override bool CanSeek
+        {
+            get
+            {
+                Console.WriteLine("call CanSeek");
+//                Console.Out.Flush();
+                return true;
+            }
+        }
+
+        public override bool CanWrite
+        {
+            get
+            {
+                Console.WriteLine("call CanWrite");
+//                Console.Out.Flush();
+                return true;
+            }
+        }
+
+        public override long Length
+        {
+            get
+            {
+                Console.WriteLine("call Length. return value is {0}", allWroteBytes);
+//                Console.Out.Flush();
+                return allWroteBytes;
+            }
+        }
+
+        public override long Position
+        {
+            get
+            {
+                Console.WriteLine("call Position. return value is {0}", allWroteBytes);
+//                Console.Out.Flush();
+                return allWroteBytes;
+            }
+            set
+            {
+                Console.WriteLine("call Position");
+//                Console.Out.Flush();
+                throw new NotImplementedException();
+            }
+        }
+
+        public override void Flush()
+        {
+            Console.WriteLine("call Flush");
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            Console.WriteLine("call Read. offset = {0}, count = {1}", offset, count);
+//            Console.Out.Flush();
+            throw new NotImplementedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            Console.WriteLine("call Seek. value = {0}", offset);
+//            Console.Out.Flush();
+            return 0;
+        }
+
+        public override void SetLength(long value)
+        {
+            Console.WriteLine("call SetLength. value = {0}", value);
+///            Console.Out.Flush();
+            throw new NotImplementedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        { 
+            writeHandler(buffer, offset, count);
+        }
+    }
+
     public static class Utils
     {
         private static Dictionary<string, Stopwatch> sw_dic = new Dictionary<string, Stopwatch>();

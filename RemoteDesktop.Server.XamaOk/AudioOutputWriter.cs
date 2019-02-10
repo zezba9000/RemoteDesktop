@@ -15,6 +15,9 @@ using RemoteDesktop.Android.Core.Sound;
 using System.Net;
 using NAudio.MediaFoundation;
 using System.Threading;
+using Concentus.Structs;
+using Concentus.Enums;
+using Concentus.Oggfile;
 
 namespace RemoteDesktop.Server.XamaOK
 {
@@ -42,6 +45,9 @@ namespace RemoteDesktop.Server.XamaOK
         private MemoryStream debug_ms = new MemoryStream();
         private MemoryStream captured_buf = new MemoryStream();
         private OpusEncoderManager m_opusEncoder;
+
+        private OpusEncoder m_csharpOpusEncoder;
+        private OpusOggWriteStream oggOut;
         //byte[] ffmpeg_stdin_buf = new byte[480000L * 2 * 4 * 1024];
 
         #endregion
@@ -333,6 +339,42 @@ namespace RemoteDesktop.Server.XamaOK
                         MainApplicationContext.ffmpegProc.StandardInput.BaseStream.Flush();
                     }
                 }
+            }
+            else if (RTPConfiguration.isEncodeWithOggOpus && RTPConfiguration.isUseOggfilePkg)
+            {
+                if(m_csharpOpusEncoder == null)
+                {
+                    m_csharpOpusEncoder = OpusEncoder.Create(RTPConfiguration.SamplesPerSecond, rtp_config.Channels, OpusApplication.OPUS_APPLICATION_VOIP);
+                    m_csharpOpusEncoder.Bitrate = RTPConfiguration.encoderBps;
+
+                    OpusTags tags = new OpusTags();
+
+                    void pipeWriteHandler(byte[] buffer, int offset, int count){
+                        byte[] tmp_buf = new byte[count];
+                        Array.Copy(buffer, offset, tmp_buf, 0, count);
+                        Console.WriteLine("call pipeWriteHandler buffer.Length = {0}, offset = {1}, count = {2}", buffer.Length, offset, count);
+                        Console.WriteLine("send {0} bytes to client at pipeWriteHandler", count);
+                        var task = Task.Run(() =>
+                        {
+                            lock (this)
+                            {
+                                handleDataWithTCP(tmp_buf);
+                            }
+                        });
+                    }
+
+                    ZeroMemoryPipeStream pipe_stream = new ZeroMemoryPipeStream();
+                    pipe_stream.writeHandler += pipeWriteHandler;
+                    oggOut = new OpusOggWriteStream(m_csharpOpusEncoder, pipe_stream, tags, RTPConfiguration.SamplesPerSecond);
+
+                    //oggOut = new OpusOggWriteStream(m_csharpOpusEncoder, debug_ms, tags, RTPConfiguration.SamplesPerSecond);
+                }
+                byte[] conved_buf = convert32bitFloat48000HzStereoPCMTo16bitMonoPCM(e, RTPConfiguration.SamplesPerSecond);
+                short[] sdata = new short[(int)(conved_buf.Length / 2)];
+                Buffer.BlockCopy(e.Buffer, 0, sdata, 0, conved_buf.Length);
+                oggOut.WriteSamples(sdata, 0, sdata.Length);
+                Console.WriteLine("write {0} bytes to  concentus OpusOggWriteStream", conved_buf.Length);
+                //Console.WriteLine("inner MemoryStream of concentus OpusOggWriteStream Lengh = {0}, Position = {1}", debug_ms.Length, debug_ms.Position);
             }
             else if (RTPConfiguration.isEncodeWithOpus)
             {

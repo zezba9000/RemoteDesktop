@@ -52,12 +52,13 @@ namespace RemoteDesktop.Android.Core
             public static bool isEncodeWithAAC = false; // flag for server
             public static bool isEncodeWithOpus = false;
             public static bool isEncodeWithOggOpus = true;
+            public static bool isUseOggfilePkg = true;
             public static int caputuedPcmBufferSamples = 0; //128; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
             public static int h246EncoderBitPerSec = 5 * 1024 * 8;
             //public static float h264EncoderFrameRate = 1.0f;
             public static float h264EncoderKeyframeInterval = 60.0f;
             public static bool isStdOutOff = false;
-            public static bool isUseFFMPEG = true;
+            public static bool isUseFFMPEG = false;
             public static int ffmpegStdoutFirstSendBytes = 512; //1024 * 8; //1024 * 2; //最初はためて送ってみる
             public static bool isUseLossySoundDecoder = true;
             public static int encoderBps = 8 * 1024;
