@@ -68,8 +68,8 @@ namespace RemoteDesktop.Server
         private string ffmpegForAudioEncodeArgs = "-f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -profile aac_low -aac_coder fast -q:a 0.1 -f adts -";
         private string ffmpegForPCMConvertArgs = "-f f32le -ar 48000 -ac 2 -i - -f u8 -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -";
         //private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() +  " -f ogg -";
-        //private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -c:a pcm_u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() + " -vbr on -compression_level 10 -f ogg -";
-        private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -c:a pcm_u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() + " -vbr on -compression_level 10 -f matroska -live true -";
+        private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -c:a pcm_u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() + " -vbr on -compression_level 10 -f ogg -";
+
 
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -f adts -";
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -";
@@ -250,8 +250,17 @@ namespace RemoteDesktop.Server
                                 {
                                     tmp_buf = ffmpeg_stdout_ms.ToArray();
                                     ffmpeg_stdout_ms = null; // 送信済み
-                                    Utils.saveByteArrayToFile(tmp_buf, "F:\\work\\tmp\\ontimeCapturedPCM_ffmpeg_new_args_server_send_data_opus.ogg");
-                                    Environment.Exit(0);
+                                    byte[] id_header = Utils.readByteArrayFromFile("F:\\work\\RDtop\\OpusIDHeaderFromValidOggFile47B.raw");
+                                    // bitstream_serialの値を合わせる. ただ、CRCの再計算はしていない。
+                                    id_header[14] = tmp_buf[14];
+                                    id_header[15] = tmp_buf[15];
+                                    id_header[16] = tmp_buf[16];
+                                    id_header[17] = tmp_buf[17];
+
+                                    // 無理やり作ったIDヘッダを横から送信する
+                                    this.cap_streamer._AudioOutputWriter.handleDataWithTCP(id_header);
+                                    //Utils.saveByteArrayToFile(tmp_buf, "F:\\work\\tmp\\ontimeCapturedPCM_ffmpeg_new_args_server_send_data_opus.ogg");
+                                    //Environment.Exit(0);
                                 }
                             }
                         }

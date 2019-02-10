@@ -63,7 +63,7 @@ namespace RemoteDesktop.Client.Android.Droid
             //{
             //    return -1; // エンコーダの初期化のためにいったん終わらせる
             //}
-            if(position + size > DEBUG_CONTENTS_LENGTH) //コンテンツの終わりに見せる
+            if (position + size > DEBUG_CONTENTS_LENGTH) //コンテンツの終わりに見せる
             {
                 return -1;
             }
@@ -218,6 +218,7 @@ namespace RemoteDesktop.Client.Android.Droid
             ByteBuffer outputBuffer = mDecoder.GetOutputBuffer(outputBufferId);
             MediaFormat bufferFormat = mDecoder.GetOutputFormat(outputBufferId); // option A
             Console.WriteLine("decoded buffer format:" + bufferFormat.ToString());
+            decoded_frame_conter++;
 
             // bufferFormat is equivalent to mOutputFormat
             // outputBuffer is ready to be processed or rendered.
@@ -232,7 +233,7 @@ namespace RemoteDesktop.Client.Android.Droid
             //}
             //else
             //{
-                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " DEBUG: debug_time_Q is empty at OnOutputBufferAvailable. decoded_frame_counter = " + decoded_frame_conter.ToString());
+                Console.WriteLine(DateTime.Now.ToString("yyyy/MM/ dd hh: mm: ss.fff") + " OnOutputBufferAvailable: decoded_frame_counter = " + decoded_frame_conter.ToString());
             //}
 
             Console.WriteLine("OnOutputBufferAvailable: outputBufferId = " + outputBufferId.ToString());
@@ -392,8 +393,8 @@ namespace RemoteDesktop.Client.Android.Droid
             {
 			    extractor = new MediaExtractor();
                 //extractor.SetDataSourceAsync(new OggOpusLiveStreamingMediaDataSource(callback_obj)); // dame
-                //extractor.SetDataSource(new OggOpusLiveStreamingMediaDataSource(callback_obj));
-                extractor.SetDataSource("http://192.168.0.11/~ryo/hls/CapturedPCM_new_args.ogg");
+                extractor.SetDataSource(new OggOpusLiveStreamingMediaDataSource(callback_obj));
+                //extractor.SetDataSource("http://192.168.0.11/~ryo/hls/CapturedPCM_new_args.ogg");
 
                 Console.WriteLine("after SetDataSource");
 

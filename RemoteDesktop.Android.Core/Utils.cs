@@ -216,6 +216,23 @@ namespace RemoteDesktop.Android.Core
             fs.Close();
         }
 
+        public static byte[] readByteArrayFromFile(string path)
+        {
+            FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            MemoryStream ms = new MemoryStream();
+            byte[] buf = new byte[2048];
+            int len = 0;
+            while((len = fs.Read(buf, 0, buf.Length)) > 0){
+                ms.Write(buf, 0, len);
+            }
+            byte[] ret_data = ms.ToArray();
+            fs.Close();
+            fs.Dispose();
+            ms.Close();
+            ms.Dispose();
+            return ret_data;
+        }
+
         public static void setStdoutOff()
         {
             DoNothingStream dns = new DoNothingStream();
