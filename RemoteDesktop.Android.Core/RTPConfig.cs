@@ -28,7 +28,7 @@ namespace RemoteDesktop.Android.Core
 			public int SoundServerPort = 10000;
             public static int ImageServerPort = 8889;
 
-            public static bool isRunCapturedSoundDataHndlingWithoutConn = false;
+            public static bool isRunCapturedSoundDataHndlingWithoutConn = true;
             //public static int SamplesPerSecond = 8000;
             public static bool isCheckAdtsFrameNum = true;
             //public static int SamplesPerSecond = 44100;
@@ -58,7 +58,7 @@ namespace RemoteDesktop.Android.Core
             public static float h264EncoderKeyframeInterval = 60.0f;
             public static bool isStdOutOff = false;
             public static bool isUseFFMPEG = true;
-            public static int ffmpegStdoutFirstSendBytes = 1024 * 2;
+            public static int ffmpegStdoutFirstSendBytes = 1024 * 8; //1024 * 2; //最初はためて送ってみる
             public static bool isUseLossySoundDecoder = true;
             public static int encoderBps = 8 * 1024;
 

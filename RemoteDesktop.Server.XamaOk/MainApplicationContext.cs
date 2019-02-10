@@ -249,6 +249,8 @@ namespace RemoteDesktop.Server
                                 {
                                     tmp_buf = ffmpeg_stdout_ms.ToArray();
                                     ffmpeg_stdout_ms = null; // 送信済み
+                                    Utils.saveByteArrayToFile(tmp_buf, "F:\\work\\tmp\\ontimeCapturedPCM_ffmpeg_new_args_server_send_data_opus.ogg");
+                                    Environment.Exit(0);
                                 }
                             }
                         }
