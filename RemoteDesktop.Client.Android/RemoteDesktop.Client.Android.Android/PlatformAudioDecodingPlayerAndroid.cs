@@ -391,8 +391,10 @@ namespace RemoteDesktop.Client.Android.Droid
             else if (codec == "ogg_opus")
             {
 			    extractor = new MediaExtractor();
-			    extractor.SetDataSource(new OggOpusLiveStreamingMediaDataSource(callback_obj));
-                //extractor.SetDataSourceAsync(new OggOpusLiveStreamingMediaDataSource(callback_obj));
+                //extractor.SetDataSourceAsync(new OggOpusLiveStreamingMediaDataSource(callback_obj)); // dame
+                //extractor.SetDataSource(new OggOpusLiveStreamingMediaDataSource(callback_obj));
+                extractor.SetDataSource("http://192.168.0.11/~ryo/hls/CapturedPCM_new_args.ogg");
+
                 Console.WriteLine("after SetDataSource");
 
 			    for (int ii = 0; ii < extractor.TrackCount; ii++) {
