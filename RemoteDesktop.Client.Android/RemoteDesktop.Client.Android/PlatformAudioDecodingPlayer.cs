@@ -56,6 +56,10 @@ namespace RemoteDesktop.Client.Android
         public bool isOpened = false;
         public AudioDecodingPlayerCallback mCallback;
 
+        public AudioDecodingPlayerManager()
+        {
+            mCallback = new AudioDecodingPlayerCallback(new Queue<byte[]>());
+        }
 
         private IPlatformAudioDecodingPlayer getInstance()
         {
@@ -66,8 +70,7 @@ namespace RemoteDesktop.Client.Android
         public bool setup(int samplingRate, int ch, int bitrate, byte[] csd_data, String codec)
         {
             mADP = getInstance();
-            isOpened = true;
-            mCallback = new AudioDecodingPlayerCallback(new Queue<byte[]>());
+            isOpened = true;            
             return mADP.setup(mCallback, samplingRate, ch, bitrate, csd_data, codec);
         }
 

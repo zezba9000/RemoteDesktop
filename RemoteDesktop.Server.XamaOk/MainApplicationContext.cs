@@ -79,6 +79,7 @@ namespace RemoteDesktop.Server
         private MemoryStream debug_ms = new MemoryStream();
 
         private MyDpcmCodec dpcm_encoder;
+        private MemoryStream ffmpeg_stdout_ms = new MemoryStream();
 
         public MainApplicationContext()
 		{
@@ -201,11 +202,10 @@ namespace RemoteDesktop.Server
                         {
                             Console.WriteLine("run dpcm encoding " + readedBytes.ToString() + " bytes");
                             tmp_buf = dpcm_encoder.Encode(tmp_buf);
-                        }else if (RTPConfiguration.isEncodeWithAAC && this.cap_streamer != null && this.cap_streamer._AudioOutputWriter != null)
+                        }else if ((RTPConfiguration.isEncodeWithAAC || RTPConfiguration.isEncodeWithOggOpus) && this.cap_streamer != null && this.cap_streamer._AudioOutputWriter != null)
                         {
-
                             Array.Copy(ffmpegStdout_buf, 0, tmp_buf, 0, readedBytes);
-                            if (RTPConfiguration.isCheckAdtsFrameNum)
+                            if (RTPConfiguration.isEncodeWithAAC && RTPConfiguration.isCheckAdtsFrameNum)
                             {
                                 int frame_length = ((tmp_buf[3] & 0b11) << 11) | (tmp_buf[4] << 3) | (tmp_buf[5] >> 5);
 
@@ -228,16 +228,27 @@ namespace RemoteDesktop.Server
                                         cur_base_pos += frame_length;
                                     }
 
-                                    continue; // stdout の readへ戻る
+                                    continue; // stdout の read へ戻る
                                 }
-                            }
+                                aac_adts_frame_cnt++;
+                                Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
 
-                            aac_adts_frame_cnt++;
-                            Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
-
-                            if (aac_adts_frame_cnt % 100 == 0)
+                                if (aac_adts_frame_cnt % 100 == 0)
+                                {
+                                    Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: current encoding speed " + ((Utils.getUnixTime() - aac_encoding_start) / (float)aac_adts_frame_cnt).ToString() + " sec/frame");
+                                }
+                            }else if(RTPConfiguration.isEncodeWithOggOpus && RTPConfiguration.ffmpegStdoutFirstSendBytes != 0 && ffmpeg_stdout_ms != null)
                             {
-                                Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: current encoding speed " + ((Utils.getUnixTime() - aac_encoding_start) / (float)aac_adts_frame_cnt).ToString() + " sec/frame");
+                                ffmpeg_stdout_ms.Write(tmp_buf, 0, readedBytes);
+                                if(ffmpeg_stdout_ms.Length < RTPConfiguration.ffmpegStdoutFirstSendBytes)
+                                {
+                                    continue; // 送信せずに stdout の read に戻る
+                                }
+                                else
+                                {
+                                    tmp_buf = ffmpeg_stdout_ms.ToArray();
+                                    ffmpeg_stdout_ms = null; // 送信済み
+                                }
                             }
                         }
                         

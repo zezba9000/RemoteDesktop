@@ -113,6 +113,17 @@ namespace RemoteDesktop.Client.Android
                         byte[] csd_data = new byte[7];
                         encoded_frame_ms.Read(csd_data, 0, 7);
                         m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_data, "aac");
+
+                        if (!(encoded_frame_ms.Length > 7))
+                        {
+                            return;
+                        }
+                        //最初のフレームのヘッダは取り除かずに流す (rdts形式の場合)
+                        encoded_frame_ms.Position = 0;
+
+                        //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);
+                        Console.WriteLine("sound device opened.");
+                        //m_DPlayer.mCallback.addEncodedSamplesData(csd_data, csd_data.Length);
                     }
                     else if (RTPConfiguration.isEncodeWithOpus)
                     {
@@ -148,35 +159,29 @@ namespace RemoteDesktop.Client.Android
                     }
                     else if (RTPConfiguration.isEncodeWithOggOpus)
                     {
+                        // データを渡しておかないとMediaExtractor生成時に固まるので setup に先立って渡す
+                        byte[] data_buf = new byte[encoded_frame_ms.Length];
+                        encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
+                        Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
+                        m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
+
                         m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null, "ogg_opus");
-
+                        Console.WriteLine("ogg_opus: encoder setuped and sound device opened.");
                     }
-                else
-                {
-                    throw new Exception("illigal flag setting on RTPConfiguration.");
-                }
-
-
-                    //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null);
-                    Console.WriteLine("sound device opened.");
-                    //m_DPlayer.mCallback.addEncodedSamplesData(csd_data, csd_data.Length);
-                }
-
-                if (RTPConfiguration.isEncodeWithAAC)
-                {
-                    //if (!(mp3data_ms.Length > 2))
-                    if (!(encoded_frame_ms.Length > 7))
+                    else
                     {
-                        return;
+                        throw new Exception("illigal flag setting on RTPConfiguration.");
                     }
-                    //最初のフレームのヘッダは取り除かずに流す (rdts形式の場合)
-                    encoded_frame_ms.Position = 0;
                 }
 
-                byte[] data_buf = new byte[encoded_frame_ms.Length - encoded_frame_ms.Position];
-                encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
-                Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
-                m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
+                // ogg_opusの場合は setup の前にデータを渡しておく必要がある
+                if (!RTPConfiguration.isEncodeWithOggOpus)
+                {
+                    byte[] data_buf = new byte[encoded_frame_ms.Length - encoded_frame_ms.Position];
+                    encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
+                    Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
+                    m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
+                }
             }
             else
             {

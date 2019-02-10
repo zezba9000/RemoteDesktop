@@ -58,6 +58,7 @@ namespace RemoteDesktop.Android.Core
             public static float h264EncoderKeyframeInterval = 60.0f;
             public static bool isStdOutOff = false;
             public static bool isUseFFMPEG = true;
+            public static int ffmpegStdoutFirstSendBytes = 1024 * 2;
             public static bool isUseLossySoundDecoder = true;
             public static int encoderBps = 8 * 1024;
 

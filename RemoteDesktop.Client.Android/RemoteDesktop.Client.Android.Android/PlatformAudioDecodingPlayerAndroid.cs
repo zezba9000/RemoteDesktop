@@ -29,6 +29,7 @@ namespace RemoteDesktop.Client.Android.Droid
         private ByteFifo bfifo = new ByteFifo();
         private long currentPosition = 0;
         private long allPassedDataBytes = 0;
+        //private bool isFirstFinished = false;
         
 
         public OggOpusLiveStreamingMediaDataSource(AudioDecodingPlayerCallback cbk)
@@ -39,7 +40,9 @@ namespace RemoteDesktop.Client.Android.Droid
         public override long Size
         {
             get {
-                return long.MaxValue;
+                Console.WriteLine("OggOpusLiveStreamingMediaDataSource::Size");
+                //return long.MaxValue;
+                return bfifo.Count;
             }
         }
 
@@ -50,6 +53,7 @@ namespace RemoteDesktop.Client.Android.Droid
 
         public override int ReadAt(long position, byte[] buffer, int offset, int size)
         {
+            Console.WriteLine("OggOpusLiveStreamingMediaDataSource::ReadAt called position = {0}, offset = {1}, size = {2}", position, offset, size);
             var currentHaveFirst = bfifo.Count;
             byte[] ret_buf;
             if(currentHaveFirst >= size)
@@ -333,7 +337,7 @@ namespace RemoteDesktop.Client.Android.Droid
             OpenDevice("hoge", samplingRate, 16, ch, 128 * 1024);
 
             mCallbackObj = callback_obj;
-            HandlerThread callbackThread = new HandlerThread("AACDecodingPlayerHandler");
+            HandlerThread callbackThread = new HandlerThread("DecodingPlayerHandler");
             callbackThread.Start();
             Handler handler = new Handler(callbackThread.Looper);
             MediaExtractor extractor = null;
@@ -371,6 +375,7 @@ namespace RemoteDesktop.Client.Android.Droid
             {
 			    extractor = new MediaExtractor();
 			    extractor.SetDataSource(new OggOpusLiveStreamingMediaDataSource(callback_obj));
+			    //extractor.SetDataSourceAsync(new OggOpusLiveStreamingMediaDataSource(callback_obj));
 
 			    for (int ii = 0; ii < extractor.TrackCount; ii++) {
 				    mMediaFormat = extractor.GetTrackFormat(ii);
