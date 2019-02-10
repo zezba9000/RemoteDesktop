@@ -10,6 +10,7 @@ using System.IO;
 using RemoteDesktop.Android.Core;
 using RemoteDesktop.Android.Core.Sound;
 using Xamarin.Forms;
+using System.Threading.Tasks;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -160,13 +161,22 @@ namespace RemoteDesktop.Client.Android
                     else if (RTPConfiguration.isEncodeWithOggOpus)
                     {
                         // データを渡しておかないとMediaExtractor生成時に固まるので setup に先立って渡す
-                        byte[] data_buf = new byte[encoded_frame_ms.Length];
-                        encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
-                        Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
-                        m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
+                        byte[] encoded_buf = new byte[encoded_frame_ms.Length];
+                        encoded_frame_ms.Read(encoded_buf, 0, encoded_buf.Length);
+                        Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + encoded_buf.Length.ToString() + " bytes");
+                        m_DPlayer.mCallback.addEncodedSamplesData(encoded_buf, encoded_buf.Length);
 
-                        m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null, "ogg_opus");
-                        Console.WriteLine("ogg_opus: encoder setuped and sound device opened.");
+                        //Device.BeginInvokeOnMainThread(() =>
+                        //{
+                        //    m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null, "ogg_opus");
+                        //    Console.WriteLine("ogg_opus: encoder setuped and sound device opened.");
+                        //});
+                        var task = Task.Run(() =>
+                        {
+                            m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, null, "ogg_opus");
+                            Console.WriteLine("ogg_opus: encoder setuped and sound device opened.");
+                        });
+                        return;
                     }
                     else
                     {
@@ -174,14 +184,10 @@ namespace RemoteDesktop.Client.Android
                     }
                 }
 
-                // ogg_opusの場合は setup の前にデータを渡しておく必要がある
-                if (!RTPConfiguration.isEncodeWithOggOpus)
-                {
-                    byte[] data_buf = new byte[encoded_frame_ms.Length - encoded_frame_ms.Position];
-                    encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
-                    Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
-                    m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
-                }
+                byte[] data_buf = new byte[encoded_frame_ms.Length - encoded_frame_ms.Position];
+                encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
+                Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
+                m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
             }
             else
             {

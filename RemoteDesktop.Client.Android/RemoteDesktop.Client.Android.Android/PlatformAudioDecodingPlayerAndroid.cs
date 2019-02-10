@@ -42,7 +42,8 @@ namespace RemoteDesktop.Client.Android.Droid
             get {
                 Console.WriteLine("OggOpusLiveStreamingMediaDataSource::Size");
                 //return long.MaxValue;
-                return bfifo.Count;
+                //return bfifo.Count;
+                return allPassedDataBytes;
             }
         }
 
@@ -65,10 +66,12 @@ namespace RemoteDesktop.Client.Android.Droid
             }
 
             byte[] encoded_data = null;
+            Console.WriteLine("OggOpusLiveStreamingMediaDataSource::ReadAt before while loop.");
             while ((encoded_data = cbk.getEncodedSamplesData()) == null)
             {
                 Thread.Sleep(1);
             }
+            Console.WriteLine("OggOpusLiveStreamingMediaDataSource::ReadAt after while loop.");
             allPassedDataBytes += encoded_data.Length;
             bfifo.Push(encoded_data);
             var currentHaveAfterRead = bfifo.Count;
