@@ -68,7 +68,8 @@ namespace RemoteDesktop.Server
         private string ffmpegForAudioEncodeArgs = "-f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -profile aac_low -aac_coder fast -q:a 0.1 -f adts -";
         private string ffmpegForPCMConvertArgs = "-f f32le -ar 48000 -ac 2 -i - -f u8 -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -";
         //private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() +  " -f ogg -";
-        private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -c:a pcm_u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() + " -vbr on -compression_level 10 -f ogg -";
+        //private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -c:a pcm_u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() + " -vbr on -compression_level 10 -f ogg -";
+        private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -c:a pcm_u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() + " -vbr on -compression_level 10 -f matroska -live true -";
 
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -f adts -";
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -";
