@@ -55,7 +55,7 @@ namespace RemoteDesktop.Server.XamaOK
         {
             this.aout = aout;
             _bytesSent = 0;
-            _segmentFrames = 960; //1024; //960;
+            _segmentFrames = RTPConfiguration.samplesPerPacket; //1024; //960;
             mEncoder = OpusEncoder.Create(sampleRate, 1, FragLabs.Audio.Codecs.Opus.Application.Voip);
             mEncoder.Bitrate = 8192; //1024 * 8; //8192;
             _bytesPerSegment = mEncoder.FrameByteCount(_segmentFrames);

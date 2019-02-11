@@ -442,20 +442,20 @@ namespace RemoteDesktop.Android.Core
             short[] ret_data = new short[data.Length / 2];
             for(int ii = 0, rslt_idx = 0; ii < data.Length; ii+=2, rslt_idx++)
             {
-                //ret_data[rslt_idx] = (short) (BitConverter.ToInt16(data, ii) - 0b0111111111111111);
                 ret_data[rslt_idx] = BitConverter.ToInt16(data, ii);
             }
 
             return ret_data;
-            //ushort[] sdata = new ushort[(int)(conved_buf.Length / 2)];
-            //    Buffer.BlockCopy(e.Buffer, 0, sdata, 0, conved_buf.Length);            
-            //short[] ret_data = new short[data.Length / 2];
-            //int ii = 0;
-            //for (ii = 0; ii < data.Length; ii++)
-            //{
-            //    ret_data[ii] = (short)(data[ii] - 0b0111111111111111);
-            //}
-            //return ret_data[ii];
+        }
+
+        public static byte[] convertShortArrToBytes(short[] data)
+        {
+            MemoryStream ms = new MemoryStream();
+            foreach(short sht in data)
+            {
+                ms.Write(BitConverter.GetBytes(sht), 0, 2);
+            }
+            return ms.ToArray();
         }
     }
 

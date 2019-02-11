@@ -11,6 +11,7 @@ using RemoteDesktop.Android.Core;
 using RemoteDesktop.Android.Core.Sound;
 using Xamarin.Forms;
 using System.Threading.Tasks;
+using Concentus.Structs;
 
 namespace RemoteDesktop.Client.Android
 {
@@ -30,12 +31,13 @@ namespace RemoteDesktop.Client.Android
         private AudioDecodingPlayerManager m_DPlayer;
         private MemoryStream encoded_frame_ms;
         private MyDpcmCodec dpcmDecoder;
+        private OpusDecoder concentusOpusDecoder;
         //private long totalWroteSoundData = 0;
 
         private void Init()
 		{
             //WinSoundServer
-            if (!RTPConfiguration.isUseLossySoundDecoder)
+            if (!RTPConfiguration.isUseLossySoundDecoder || RTPConfiguration.isEncodeWithOpus)
             {
                 m_Player = new SoundManager.Player();
             }
@@ -128,35 +130,14 @@ namespace RemoteDesktop.Client.Android
                     }
                     else if (RTPConfiguration.isEncodeWithOpus)
                     {
-                        //// little endian 8000Hz
-                        //byte[] csd_0 = new byte[19] {
-                        //    (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
-                        //    (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
-                        //    (byte) 0x34, (byte) 0x00, (byte) 0x40, (byte) 0x1F, (byte) 0x00,
-                        //    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
-                        //};
-                        //little endian 48000Hz(pre - skip value is updated from new create ogg file hexdump)
-                        byte[] csd_0 = new byte[19] {
-                            (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
-                            (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
-                            (byte) 0x38, (byte) 0x01, (byte) 0x80, (byte) 0xBB, (byte) 0x00,
-                            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
-                        };
-                        //// big endian 48000Hz
-                        //byte[] csd_0 = new byte[19] {
-                        //    (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
-                        //    (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
-                        //    (byte) 0x00, (byte) 0x34, (byte) 0x00, (byte) 0x00, (byte) 0xBB,
-                        //    (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00
-                        //};
-                        // little endian 48000Hz (pre-skip value is set to 0)
-                        //byte[] csd_0 = new byte[19] {
-                        //    (byte) 0x4F, (byte) 0x70, (byte) 0x75, (byte) 0x73, (byte) 0x48,
-                        //    (byte) 0x65, (byte) 0x61, (byte) 0x64, (byte) 0x01, (byte) 0x01,
-                        //    (byte) 0x00, (byte) 0x00, (byte) 0x80, (byte) 0xBB, (byte) 0x00,
-                        //    (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
-                        //};
-                        m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_0, "opus");
+                        if (m_Player.Opened == false)
+                        {
+                            m_Player.Open("hoge", RTPConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                            m_Player.Play();
+                        }
+
+                        concentusOpusDecoder = OpusDecoder.Create(RTPConfiguration.SamplesPerSecond, config.Channels);
+                        //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_0, "opus");
                     }
                     else if (RTPConfiguration.isEncodeWithOggOpus)
                     {
@@ -186,6 +167,17 @@ namespace RemoteDesktop.Client.Android
 
                 byte[] data_buf = new byte[encoded_frame_ms.Length - encoded_frame_ms.Position];
                 encoded_frame_ms.Read(data_buf, 0, data_buf.Length);
+
+                if (RTPConfiguration.isEncodeWithOpus)
+                {
+                    int frameSize = RTPConfiguration.samplesPerPacket; // must be same as framesize used in input, you can use OpusPacketInfo.GetNumSamples() to determine this dynamically
+                    short[] outputBuffer = new short[frameSize];
+
+                    int thisFrameSize = concentusOpusDecoder.Decode(data_buf, 0, data_buf.Length, outputBuffer, 0, frameSize, false);
+                    m_Player.WriteData(Utils.convertShortArrToBytes(outputBuffer), false);
+                    return;
+                }
+
                 Console.WriteLine(Utils.getFormatedCurrentTime() + " Socket_EndDataRecievedCallback and addEncodeSamplesData " + data_buf.Length.ToString() + " bytes");
                 m_DPlayer.mCallback.addEncodedSamplesData(data_buf, data_buf.Length);
             }

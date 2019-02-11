@@ -50,8 +50,8 @@ namespace RemoteDesktop.Android.Core
             public static bool isUseDPCM = false; // flag for server and client
             public static bool isEncodeWithDpcmOrUseRawPCM = false; // flag for server
             public static bool isEncodeWithAAC = false; // flag for server
-            public static bool isEncodeWithOpus = false;
-            public static bool isEncodeWithOggOpus = true;
+            public static bool isEncodeWithOpus = true;
+            public static bool isEncodeWithOggOpus = false;
             public static bool isUseOggfilePkg = true;
             public static int caputuedPcmBufferSamples = 0; //128; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
             public static int h246EncoderBitPerSec = 5 * 1024 * 8;
@@ -62,6 +62,7 @@ namespace RemoteDesktop.Android.Core
             public static int ffmpegStdoutFirstSendBytes = 512; //1024 * 8; //1024 * 2; //最初はためて送ってみる
             public static bool isUseLossySoundDecoder = true;
             public static int encoderBps = 8 * 1024;
+            public static int samplesPerPacket = 960;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";
