@@ -61,7 +61,7 @@ namespace RemoteDesktop.Android.Core
             public static bool isUseFFMPEG = false;
             public static int ffmpegStdoutFirstSendBytes = 512; //1024 * 8; //1024 * 2; //最初はためて送ってみる
             public static bool isUseLossySoundDecoder = true;
-            public static int encoderBps = 8 * 1024;
+            public static int encoderBps = 6 * 1024; //8 * 1024;
             public static int samplesPerPacket = 160; // <= 8000 * (1/50) //960;
 
             // for 流用元コード. Xamarin対応版では利用されない

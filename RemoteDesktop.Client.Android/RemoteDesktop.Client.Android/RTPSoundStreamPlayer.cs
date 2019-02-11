@@ -66,10 +66,10 @@ namespace RemoteDesktop.Client.Android
         private void Socket_StartDataRecievedCallback(PacketHeader pktHdr)
         {
             Console.WriteLine("Socket_StartDataRecievedCallback called compressed data size is " + pktHdr.dataSize.ToString() + " bytes");
-            GlobalConfiguration.SamplesPerSecond = pktHdr.SamplesPerSecond;
-            config.BitsPerSample = pktHdr.BitsPerSample;
-            config.Channels = pktHdr.Channels;
-            config.isConvertMulaw = pktHdr.isConvertMulaw;
+            //GlobalConfiguration.SamplesPerSecond = pktHdr.SamplesPerSecond;
+            //config.BitsPerSample = pktHdr.BitsPerSample;
+            //config.Channels = pktHdr.Channels;
+            //config.isConvertMulaw = pktHdr.isConvertMulaw;
             if (GlobalConfiguration.isUseLossySoundDecoder || GlobalConfiguration.isUseDPCM)
             {
                 if (encoded_frame_ms == null)

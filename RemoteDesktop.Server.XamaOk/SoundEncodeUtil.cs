@@ -35,7 +35,7 @@ namespace RemoteDesktop.Server.XamaOK
             _bytesSent = 0;
             _segmentFrames = GlobalConfiguration.samplesPerPacket; //1024; //960;
             mEncoder = OpusEncoder.Create(sampleRate, 1, FragLabs.Audio.Codecs.Opus.Application.Voip);
-            mEncoder.Bitrate = 1024 * 8; // 1KB/sec が最低値のようだ
+            mEncoder.Bitrate = GlobalConfiguration.encoderBps; // 1KB/sec が最低値のようだ
             _bytesPerSegment = mEncoder.FrameByteCount(_segmentFrames);
         }
 

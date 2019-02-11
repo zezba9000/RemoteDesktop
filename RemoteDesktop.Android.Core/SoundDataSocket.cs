@@ -25,14 +25,17 @@ namespace RemoteDesktop.Android.Core.Sound
     [StructLayout(LayoutKind.Sequential)]
 	public struct PacketHeader
 	{
-		public PacketTypes type;
-		public bool compressed;
-		public int dataSize, soundDataSize;
+        /*
+                public PacketTypes type;
+                public bool compressed;
+                public int dataSize, soundDataSize;
 
-        public int SamplesPerSecond;
-        public short BitsPerSample;
-        public short Channels;
-        public bool isConvertMulaw;
+                public int SamplesPerSecond;
+                public short BitsPerSample;
+                public short Channels;
+                public bool isConvertMulaw;
+        */
+        public byte dataSize;
 	}
 
 	public class SoundDataSocket : IDisposable
@@ -484,14 +487,14 @@ namespace RemoteDesktop.Android.Core.Sound
                 // send packet header
                 var pktHeader = new PacketHeader()
                 {
-                    type = PacketTypes.SoundData,
-                    compressed = compress,
-                    dataSize = dataLength,
-                    soundDataSize = soundDataSize,
-                    BitsPerSample = bitsPerSample,
-                    Channels = channel,
-                    SamplesPerSecond = samplePerSecond,
-                    isConvertMulaw = isConvertMulaw
+                    //type = PacketTypes.SoundData,
+                    //compressed = compress,
+                    dataSize = (byte) dataLength,
+                    //soundDataSize = soundDataSize,
+                    //BitsPerSample = bitsPerSample,
+                    //Channels = channel,
+                    //SamplesPerSecond = samplePerSecond,
+                    //isConvertMulaw = isConvertMulaw
 				};
 
 				SendPacketHeaderInternal(pktHeader);
