@@ -45,8 +45,8 @@ namespace RemoteDesktop.Client.Android.Droid
                 //return long.MaxValue;
                 //return bfifo.Count;
                 //return allPassedDataBytes;
-                //return -1; // size is unknown
-                return DEBUG_CONTENTS_LENGTH;
+                return -1; // size is unknown
+                //return DEBUG_CONTENTS_LENGTH;
             }
         }
 
@@ -63,10 +63,10 @@ namespace RemoteDesktop.Client.Android.Droid
             //{
             //    return -1; // エンコーダの初期化のためにいったん終わらせる
             //}
-            if (position + size > DEBUG_CONTENTS_LENGTH) //コンテンツの終わりに見せる
-            {
-                return -1;
-            }
+            //if (position + size > DEBUG_CONTENTS_LENGTH) //コンテンツの終わりに見せる
+            //{
+            //    return -1;
+            //}
 
             var currentHaveFirst = bfifo.Count;
             byte[] ret_buf;

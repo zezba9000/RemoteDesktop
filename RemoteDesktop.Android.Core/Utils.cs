@@ -89,6 +89,7 @@ namespace RemoteDesktop.Android.Core
         public delegate void ZeroMemoryWriteHandler(byte[] buffer, int offset, int count);
         public event ZeroMemoryWriteHandler writeHandler;
         private long allWroteBytes = 0;
+        private int allWriteCount = 0; //回数
 
         public override bool CanRead
         {
@@ -173,7 +174,8 @@ namespace RemoteDesktop.Android.Core
         }
 
         public override void Write(byte[] buffer, int offset, int count)
-        { 
+        {
+            allWriteCount++;
             writeHandler(buffer, offset, count);
         }
     }
