@@ -102,15 +102,12 @@ namespace RemoteDesktop.Client.Android
                 //var data = mp3data_ms.ToArray();
 
                 encoded_frame_ms.Position = 0;
-                if (m_Player == null)
+                if (m_Player.Opened == false)
                 {
                     if (GlobalConfiguration.isEncodeWithOpus)
                     {
-                        if (m_Player.Opened == false)
-                        {
-                            m_Player.Open("hoge", GlobalConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
-                            m_Player.Play();
-                        }
+                        m_Player.Open("hoge", GlobalConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.BufferCount);
+                        m_Player.Play();
 
                         concentusOpusDecoder = OpusDecoder.Create(GlobalConfiguration.SamplesPerSecond, config.Channels);
                         //m_DPlayer.setup(RTPConfiguration.SamplesPerSecond, config.Channels, -1, csd_0, "opus");

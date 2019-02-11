@@ -34,7 +34,7 @@ namespace RemoteDesktop.Server.XamaOK
         private SoundDataSocket sdsock;
         private MMDevice m_device;
         public bool IsRecording = false;
-        private GlobalConfiguration rtp_config;
+        private GlobalConfiguration config;
 
         private uint m_JitterBufferCount = 20; // max buffering num of RTPPacket at jitter buffer
         private uint m_Milliseconds = 20; // time period of jitter buffer (msec)
@@ -52,9 +52,9 @@ namespace RemoteDesktop.Server.XamaOK
             if (device == null)
                 throw new ArgumentNullException(nameof(device));
 
-            rtp_config = config;
-            m_JitterBufferCount = rtp_config.JitterBuffer;
-            m_Milliseconds = rtp_config.JitterBufferTimerPeriodMsec;
+            this.config = config;
+            m_JitterBufferCount = this.config.JitterBuffer;
+            m_Milliseconds = this.config.JitterBufferTimerPeriodMsec;
 
             m_device = device;
             this._WaveIn = new WasapiLoopbackCapture(m_device);
@@ -70,7 +70,7 @@ namespace RemoteDesktop.Server.XamaOK
                 sdsock.DataRecievedCallback += Socket_DataRecievedCallback;
                 sdsock.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
                 sdsock.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-                sdsock.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), rtp_config.SoundServerPort);
+            sdsock.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), this.config.SoundServerPort);
 
             Start(); // start capture and send stream
         }
@@ -258,9 +258,9 @@ namespace RemoteDesktop.Server.XamaOK
                 return;
             }
             Console.WriteLine("call SoundUtils.ToRTPPacket");
-            RTPPacket rtp = SoundUtils.ToRTPPacket(sdata_buf, rtp_config);
+            RTPPacket rtp = SoundUtils.ToRTPPacket(sdata_buf, config);
             Console.WriteLine("call sdsock.SendRTPPacket");
-            sdsock.SendRTPPacket(rtp, rtp_config.compress, GlobalConfiguration.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, rtp_config.isConvertMulaw);
+            sdsock.SendRTPPacket(rtp, config.compress, GlobalConfiguration.SamplesPerSecond, config.BitsPerSample, config.Channels, config.isConvertMulaw);
         }
 
         private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)

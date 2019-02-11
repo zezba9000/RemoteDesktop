@@ -33,7 +33,7 @@ namespace RemoteDesktop.Android.Core
             //public static bool isCheckAdtsFrameNum = true;
             //public static int SamplesPerSecond = 44100;
             //public static int SamplesPerSecond = 24000;
-            public static int SamplesPerSecond = 48000; // sound card native (for opus test)
+            public static int SamplesPerSecond = 8000; //48000; // sound card native (for opus test)
             public short BitsPerSample = 16;
             //public short BitsPerSample = 16;
             //public short BitsPerSample = 32;  // sound card native
@@ -62,7 +62,7 @@ namespace RemoteDesktop.Android.Core
             public static int ffmpegStdoutFirstSendBytes = 512; //1024 * 8; //1024 * 2; //最初はためて送ってみる
             public static bool isUseLossySoundDecoder = true;
             public static int encoderBps = 8 * 1024;
-            public static int samplesPerPacket = 960;
+            public static int samplesPerPacket = 160; // <= 8000 * (1/50) //960;
 
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";
