@@ -346,6 +346,9 @@ namespace RemoteDesktop.Server.XamaOK
                 {
                     m_csharpOpusEncoder = OpusEncoder.Create(RTPConfiguration.SamplesPerSecond, rtp_config.Channels, OpusApplication.OPUS_APPLICATION_VOIP);
                     m_csharpOpusEncoder.Bitrate = RTPConfiguration.encoderBps;
+                    //m_csharpOpusEncoder.PredictionDisabled = true;
+                    //m_csharpOpusEncoder.ForceMode = OpusMode.MODE_SILK_ONLY;
+                    //m_csharpOpusEncoder.ForceMode = OpusMode.MODE_CELT_ONLY;
 
                     OpusTags tags = new OpusTags();
 
@@ -354,6 +357,17 @@ namespace RemoteDesktop.Server.XamaOK
                         Array.Copy(buffer, offset, tmp_buf, 0, count);
                         Console.WriteLine("call pipeWriteHandler buffer.Length = {0}, offset = {1}, count = {2}", buffer.Length, offset, count);
                         Console.WriteLine("send {0} bytes to client at pipeWriteHandler", count);
+
+                        debug_ms.Write(buffer, offset, count);
+                        if(debug_ms.Length > 1024 * 60)
+                        {
+                            Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\concentus_opus_encoder_first_output_default_long.ogg");
+                            Environment.Exit(0);
+                        }
+                        else
+                        {
+                            return;
+                        }
                         var task = Task.Run(() =>
                         {
                             lock (this)
@@ -369,12 +383,13 @@ namespace RemoteDesktop.Server.XamaOK
 
                     //oggOut = new OpusOggWriteStream(m_csharpOpusEncoder, debug_ms, tags, RTPConfiguration.SamplesPerSecond);
                 }
+
                 byte[] conved_buf = convert32bitFloat48000HzStereoPCMTo16bitMonoPCM(e, RTPConfiguration.SamplesPerSecond);
-                short[] sdata = new short[(int)(conved_buf.Length / 2)];
-                Buffer.BlockCopy(e.Buffer, 0, sdata, 0, conved_buf.Length);
+                short[] sdata = Utils.convertBytesToShortArr(conved_buf);
                 oggOut.WriteSamples(sdata, 0, sdata.Length);
+
                 Console.WriteLine("write {0} bytes to  concentus OpusOggWriteStream", conved_buf.Length);
-                //Console.WriteLine("inner MemoryStream of concentus OpusOggWriteStream Lengh = {0}, Position = {1}", debug_ms.Length, debug_ms.Position);
+                Console.WriteLine("inner MemoryStream of concentus OpusOggWriteStream Lengh = {0}, Position = {1}", debug_ms.Length, debug_ms.Position);
             }
             else if (RTPConfiguration.isEncodeWithOpus)
             {
