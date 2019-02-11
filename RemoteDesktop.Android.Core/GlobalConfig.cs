@@ -4,12 +4,12 @@ using System.Text;
 
 namespace RemoteDesktop.Android.Core
 {
-		public class RTPConfiguration
+		public class GlobalConfiguration
 		{
 			/// <summary>
 			/// Config
 			/// </summary>
-			public RTPConfiguration()
+			public GlobalConfiguration()
 			{
 
 			}
@@ -30,7 +30,7 @@ namespace RemoteDesktop.Android.Core
 
             public static bool isRunCapturedSoundDataHndlingWithoutConn = false;
             //public static int SamplesPerSecond = 8000;
-            public static bool isCheckAdtsFrameNum = true;
+            //public static bool isCheckAdtsFrameNum = true;
             //public static int SamplesPerSecond = 44100;
             //public static int SamplesPerSecond = 24000;
             public static int SamplesPerSecond = 48000; // sound card native (for opus test)
@@ -49,10 +49,10 @@ namespace RemoteDesktop.Android.Core
             public bool isConvertMulaw = false;
             public static bool isUseDPCM = false; // flag for server and client
             public static bool isEncodeWithDpcmOrUseRawPCM = false; // flag for server
-            public static bool isEncodeWithAAC = false; // flag for server
+            //public static bool isEncodeWithAAC = false; // flag for server
             public static bool isEncodeWithOpus = true;
-            public static bool isEncodeWithOggOpus = false;
-            public static bool isUseOggfilePkg = true;
+            //public static bool isEncodeWithOggOpus = false;
+            //public static bool isUseOggfilePkg = true;
             public static int caputuedPcmBufferSamples = 0; //128; // AACの adtsフォーマットだったら 1024 * N (100とか) にする
             public static int h246EncoderBitPerSec = 5 * 1024 * 8;
             //public static float h264EncoderFrameRate = 1.0f;

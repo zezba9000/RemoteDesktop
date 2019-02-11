@@ -51,28 +51,12 @@ namespace RemoteDesktop.Server
 
         private ExtractedH264Encoder encoder;
         private int timestamp = 0; // equal frame number
-        private int aac_adts_frame_cnt = 1;
-        public static long aac_encoding_start = 0;
+        //public static long aac_encoding_start = 0;
 
         private string ffmpegPath = "C:\\Program Files\\ffmpeg-20181231-51b356e-win64-static\\bin\\ffmpeg.exe";
 
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f s16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -bsf:a aac_adtstoasc -";
-
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -sample_fmt fltp -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
-
-        // dont send first 2byte header???
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -f adts -";
-
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -profile aac_low -aac_coder fast -q:a 0.1 -f adts -";
-        private string ffmpegForAudioEncodeArgs = "-f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -profile aac_low -aac_coder fast -q:a 0.1 -f adts -";
-        private string ffmpegForPCMConvertArgs = "-f f32le -ar 48000 -ac 2 -i - -f u8 -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -";
-        //private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() +  " -f ogg -";
-        private string ffmpegForOggOpusArgs = "-loglevel debug -f f32le -ar 48000 -ac 2 -i - -c:a pcm_u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a libopus -b:a " + RTPConfiguration.encoderBps.ToString() + " -vbr on -compression_level 10 -f ogg -";
-
-
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -f adts -";
-        //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -ab 12K -profile aac_low -";
+        private string ffmpegForAudioEncodeArgs = "-f f32le -ar 48000 -ac 2 -i - -f u16le -ar " + GlobalConfiguration.SamplesPerSecond + " -ac 1 -map 0 -codec:a aac -profile aac_low -aac_coder fast -q:a 0.1 -f adts -";
+        private string ffmpegForPCMConvertArgs = "-f f32le -ar 48000 -ac 2 -i - -f u8 -ar " + GlobalConfiguration.SamplesPerSecond + " -ac 1 -";
 
         // send Raw PCM data
         //private string ffmpegForAudioEncodeArgs = "-y -loglevel debug -f f32le -ar 48000 -ac 2 -i - -f u8 -ar " + RTPConfiguration.SamplesPerSecond + " -ac 1 -map 0 -";
@@ -107,12 +91,12 @@ namespace RemoteDesktop.Server
             var screen = (screenIndex < screens.Length) ? screens[screenIndex] : screens[0];
             screenRect = screen.Bounds;
 
-            if (RTPConfiguration.isStdOutOff)
+            if (GlobalConfiguration.isStdOutOff)
             {
                 Utils.setStdoutOff();
             }
 
-            if (RTPConfiguration.isUseFFMPEG)
+            if (GlobalConfiguration.isUseFFMPEG)
             {
                 kickFFMPEG();
             }
@@ -148,17 +132,13 @@ namespace RemoteDesktop.Server
             startInfo.CreateNoWindow = true;	
             startInfo.FileName = ffmpegPath;
 
-            if (RTPConfiguration.isEncodeWithDpcmOrUseRawPCM)
+            if (GlobalConfiguration.isEncodeWithDpcmOrUseRawPCM)
             {
                 startInfo.Arguments = ffmpegForPCMConvertArgs;
-                if (RTPConfiguration.isUseDPCM)
+                if (GlobalConfiguration.isUseDPCM)
                 {
                     dpcm_encoder = new MyDpcmCodec();
                 }
-            }
-            else if (RTPConfiguration.isEncodeWithOggOpus)
-            {
-                startInfo.Arguments = ffmpegForOggOpusArgs;
             }
             else
             {
@@ -200,72 +180,13 @@ namespace RemoteDesktop.Server
                     if (readedBytes > 0){
                         byte[] tmp_buf = new byte[readedBytes];
 
-                        if (RTPConfiguration.isUseDPCM)
+                        if (GlobalConfiguration.isUseDPCM)
                         {
                             Console.WriteLine("run dpcm encoding " + readedBytes.ToString() + " bytes");
                             tmp_buf = dpcm_encoder.Encode(tmp_buf);
-                        }else if ((RTPConfiguration.isEncodeWithAAC || RTPConfiguration.isEncodeWithOggOpus) && this.cap_streamer != null && this.cap_streamer._AudioOutputWriter != null)
-                        {
-                            Array.Copy(ffmpegStdout_buf, 0, tmp_buf, 0, readedBytes);
-                            if (RTPConfiguration.isEncodeWithAAC && RTPConfiguration.isCheckAdtsFrameNum)
-                            {
-                                int frame_length = ((tmp_buf[3] & 0b11) << 11) | (tmp_buf[4] << 3) | (tmp_buf[5] >> 5);
-
-                                // ffmpegから読みだしたstdoutに複数のrdtsフレームが含まれていた場合
-                                if (frame_length != readedBytes)
-                                {
-                                    Console.WriteLine("At ffmpeg stdout handling: data contains multi adts frames. readedBytes = " + readedBytes.ToString());
-                                    int cur_base_pos = 0;
-                                    while (cur_base_pos != readedBytes)
-                                    {
-                                        aac_adts_frame_cnt++;
-                                        frame_length = ((tmp_buf[cur_base_pos + 3] & 0b11) << 11) | (tmp_buf[cur_base_pos + 4] << 3) | (tmp_buf[cur_base_pos + 5] >> 5);
-                                        Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client inner frame " + frame_length.ToString() + " bytes. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
-                                        if (RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
-                                        {
-                                            byte[] buf = new byte[frame_length];
-                                            Array.Copy(tmp_buf, cur_base_pos, buf, 0, frame_length);
-                                            this.cap_streamer._AudioOutputWriter.handleDataWithTCP(buf);
-                                        }
-                                        cur_base_pos += frame_length;
-                                    }
-
-                                    continue; // stdout の read へ戻る
-                                }
-                                aac_adts_frame_cnt++;
-                                Console.WriteLine("read from stdout of ffmpeg " + readedBytes + " Bytes and send the data to client. aac_adts_frame_cnt = " + aac_adts_frame_cnt.ToString());
-
-                                if (aac_adts_frame_cnt % 100 == 0)
-                                {
-                                    Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: current encoding speed " + ((Utils.getUnixTime() - aac_encoding_start) / (float)aac_adts_frame_cnt).ToString() + " sec/frame");
-                                }
-                            }else if(RTPConfiguration.isEncodeWithOggOpus && RTPConfiguration.ffmpegStdoutFirstSendBytes != 0 && ffmpeg_stdout_ms != null)
-                            {
-                                ffmpeg_stdout_ms.Write(tmp_buf, 0, readedBytes);
-                                if(ffmpeg_stdout_ms.Length < RTPConfiguration.ffmpegStdoutFirstSendBytes)
-                                {
-                                    continue; // 送信せずに stdout の read に戻る
-                                }
-                                else
-                                {
-                                    tmp_buf = ffmpeg_stdout_ms.ToArray();
-                                    ffmpeg_stdout_ms = null; // 送信済み
-                                    byte[] id_header = Utils.readByteArrayFromFile("F:\\work\\RDtop\\OpusIDHeaderFromValidOggFile47B.raw");
-                                    // bitstream_serialの値を合わせる. ただ、CRCの再計算はしていない。
-                                    id_header[14] = tmp_buf[14];
-                                    id_header[15] = tmp_buf[15];
-                                    id_header[16] = tmp_buf[16];
-                                    id_header[17] = tmp_buf[17];
-
-                                    // 無理やり作ったIDヘッダを横から送信する
-                                    this.cap_streamer._AudioOutputWriter.handleDataWithTCP(id_header);
-                                    //Utils.saveByteArrayToFile(tmp_buf, "F:\\work\\tmp\\ontimeCapturedPCM_ffmpeg_new_args_server_send_data_opus.ogg");
-                                    //Environment.Exit(0);
-                                }
-                            }
                         }
                         
-                        if(RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
+                        if(GlobalConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false)
                         {
                             this.cap_streamer._AudioOutputWriter.handleDataWithTCP(tmp_buf);
                         }
@@ -273,18 +194,6 @@ namespace RemoteDesktop.Server
                 }
             });
         }	
-
-        
-        //private void useFFMPEGOutputData(object sender, DataReceivedEventArgs e)	
-        //{
-        //    Process p = (Process)sender;
-        //    Console.WriteLine("useFFMPEGOutputData called!");
-
-        //    //if (!string.IsNullOrEmpty(e.Data))
-        //    if (e.Data != null && e.Data.Length > 0)
-        //    {
-        //    }
-        //}	
 
         private void PrintFFMPEGErrorData(object sender, DataReceivedEventArgs e)	
         {
@@ -346,7 +255,7 @@ namespace RemoteDesktop.Server
 				{
 					if (recreate && timer != null)
 					{
-                        if (RTPConfiguration.isStreamRawH264Data)
+                        if (GlobalConfiguration.isStreamRawH264Data)
                         {
                             timer.Tick -= Timer_Tick_bitmap_to_openH264_Encoder;
                         }
@@ -362,7 +271,7 @@ namespace RemoteDesktop.Server
 					{
 						timer = new System.Windows.Forms.Timer();
                         timer.Interval = (int) (1000f / fps); // targetFPSは呼び出し時には適切に更新が行われていることを想定
-                        if (!RTPConfiguration.isStreamRawH264Data)
+                        if (!GlobalConfiguration.isStreamRawH264Data)
                         {
                             timer.Tick += Timer_Tick;
                         }
@@ -374,10 +283,6 @@ namespace RemoteDesktop.Server
 				// update settings
 				if (metaData.type == MetaDataTypes.UpdateSettings || metaData.type == MetaDataTypes.StartCapture)
 				{
-					DebugLog.Log("Updating settings");
-                    //format = metaData.format;
-                    //format = System.Drawing.Imaging.PixelFormat.Format
-
                     format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
                     screenIndex = metaData.screenIndex;
 					compress = metaData.compressed;
@@ -478,14 +383,13 @@ namespace RemoteDesktop.Server
         // only used on Client
 		private void Socket_ConnectionFailedCallback(string error)
 		{
-			DebugLog.LogError("Failed to connect: " + error);
 		}
 
 		private void Socket_ConnectedCallback()
 		{
-			DebugLog.Log("Connected to client");
+			Console.WriteLine("Connected to client");
 
-            if (RTPConfiguration.isStreamRawH264Data)
+            if (GlobalConfiguration.isStreamRawH264Data)
             {
                 lock (this)
                 {
@@ -493,13 +397,13 @@ namespace RemoteDesktop.Server
                         if (isFixedParamUse)
                         {
                             encoder = new ExtractedH264Encoder((int)(screenRect.Height * fixedResolutionScale), (int)(screenRect.Width * fixedResolutionScale), 
-                                RTPConfiguration.h246EncoderBitPerSec, fixedTargetFPS, RTPConfiguration.h264EncoderKeyframeInterval);
+                                GlobalConfiguration.h246EncoderBitPerSec, fixedTargetFPS, GlobalConfiguration.h264EncoderKeyframeInterval);
                             encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
                         }
                         else // この時点ではクライアントから指定されたscaleは分からないので、fixedXXXXXをひとまず使っておく
                         {
                             encoder = new ExtractedH264Encoder((int)(screenRect.Height * fixedResolutionScale), (int)(screenRect.Width * fixedResolutionScale),
-                                RTPConfiguration.h246EncoderBitPerSec, fixedTargetFPS, RTPConfiguration.h264EncoderKeyframeInterval);
+                                GlobalConfiguration.h246EncoderBitPerSec, fixedTargetFPS, GlobalConfiguration.h264EncoderKeyframeInterval);
                             encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
                         }
 
@@ -527,7 +431,7 @@ namespace RemoteDesktop.Server
 
 		private void Socket_DisconnectedCallback()
 		{
-			DebugLog.Log("Disconnected from client");
+			Console.WriteLine("Disconnected from client");
             receivedMetaData = false;
 			dispatcher.InvokeAsync(delegate()
 			{
@@ -596,7 +500,7 @@ namespace RemoteDesktop.Server
                 }
 
                 CaptureScreen();
-                if(timestamp < RTPConfiguration.initialSkipCaptureNums)
+                if(timestamp < GlobalConfiguration.initialSkipCaptureNums)
                 {
                     timestamp++;
                     return;
@@ -623,7 +527,7 @@ namespace RemoteDesktop.Server
                 var bitmap_ms = Utils.getAddHeaderdBitmapStreamByPixcels(tmp_buf, convedXBmap.Width, convedXBmap.Height);
 
                 Console.WriteLine("write data as bitmap file byte data to encoder " + bitmap_ms.Length.ToString() + "Bytes timestamp=" + timestamp.ToString());
-                encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp - RTPConfiguration.initialSkipCaptureNums);
+                encoder.addBitmapFrame(bitmap_ms.ToArray(), timestamp - GlobalConfiguration.initialSkipCaptureNums);
                 timestamp++;
             }
 		}

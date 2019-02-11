@@ -15,9 +15,6 @@ using RemoteDesktop.Android.Core.Sound;
 using System.Net;
 using NAudio.MediaFoundation;
 using System.Threading;
-using Concentus.Structs;
-using Concentus.Enums;
-using Concentus.Oggfile;
 
 namespace RemoteDesktop.Server.XamaOK
 {
@@ -37,25 +34,20 @@ namespace RemoteDesktop.Server.XamaOK
         private SoundDataSocket sdsock;
         private MMDevice m_device;
         public bool IsRecording = false;
-        private RTPConfiguration rtp_config;
+        private GlobalConfiguration rtp_config;
 
-        private WinSound.JitterBuffer m_JitterBuffer;
         private uint m_JitterBufferCount = 20; // max buffering num of RTPPacket at jitter buffer
         private uint m_Milliseconds = 20; // time period of jitter buffer (msec)
         private MemoryStream debug_ms = new MemoryStream();
         private MemoryStream captured_buf = new MemoryStream();
         private OpusEncoderManager m_opusEncoder;
 
-        private OpusEncoder m_csharpOpusEncoder;
-        private OpusOggWriteStream oggOut;
-        private int concentusOggOpusPacketCount = 0;
-
         #endregion
 
         #region コンストラクタ
 
         // this call block until recieved client connection request
-        public AudioOutputWriter(MMDevice device, RTPConfiguration config)
+        public AudioOutputWriter(MMDevice device, GlobalConfiguration config)
         {
             if (device == null)
                 throw new ArgumentNullException(nameof(device));
@@ -78,7 +70,7 @@ namespace RemoteDesktop.Server.XamaOK
                 sdsock.DataRecievedCallback += Socket_DataRecievedCallback;
                 sdsock.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
                 sdsock.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-                sdsock.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), rtp_config.SoundServerPort);
+                sdsock.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), rtp_config.SoundServerPort);
 
             Start(); // start capture and send stream
         }
@@ -87,23 +79,9 @@ namespace RemoteDesktop.Server.XamaOK
 
         #region プロパティ
 
-        //public bool IsRecording
-        //{
-        //    get {
-        //        return IsRecording;
-        //    }
-
-        //    //private set;
-        //}
-
         #endregion
 
         #region メソッド
-
-        private void updateRTPConfiguration()
-        {
-            //throw new Exception();
-        }
 
         public void Start()
         {
@@ -118,7 +96,7 @@ namespace RemoteDesktop.Server.XamaOK
             this._WaveIn.StopRecording();
             this._WaveIn.Dispose();
             this._WaveIn = null;
-            if(RTPConfiguration.isEncodeWithOpus && m_opusEncoder != null)
+            if(GlobalConfiguration.isEncodeWithOpus && m_opusEncoder != null)
             {
                 m_opusEncoder.Dispose();
                 m_opusEncoder = null;
@@ -189,7 +167,7 @@ namespace RemoteDesktop.Server.XamaOK
 
             return result_buf;
         }
-
+/*
         private byte[] convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(WaveInEventArgs e)
         {
             byte[] recorded_buf = e.Buffer;
@@ -251,11 +229,11 @@ namespace RemoteDesktop.Server.XamaOK
 
                 //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(depthConvertProvider);
 
-                /*
-                var waveBufferResample = new BufferedWaveProvider(this._WaveIn.WaveFormat);
-                waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
-                mp3_buf = SoundEncodeUtil.encodePCMtoMP3(waveBufferResample);
-                */
+                
+                //var waveBufferResample = new BufferedWaveProvider(this._WaveIn.WaveFormat);
+                //waveBufferResample.AddSamples(recorded_buf, 0, recorded_length);
+                //mp3_buf = SoundEncodeUtil.encodePCMtoMP3(waveBufferResample);
+                
                 Console.WriteLine(Utils.getFormatedCurrentTime() + " converted 32bit float 64KHz stereo " + recorded_length.ToString()  + " bytes to 16bit PCM 8KHz mono and encode it to mp3 compressed data " + mp3_buf.Length.ToString() + " bytes");
             } catch (Exception ex)
             {
@@ -266,8 +244,8 @@ namespace RemoteDesktop.Server.XamaOK
 
             return mp3_buf;
         }
-
-        public void handleDataWithTCP(byte[] pcm8_buf)
+*/
+        public void handleDataWithTCP(byte[] sdata_buf)
         {
             Console.WriteLine("call handleDataWithTcp");
             if (!sdsock.IsConnected())
@@ -275,21 +253,21 @@ namespace RemoteDesktop.Server.XamaOK
                 return;
             }
             // こういうケースがあるようだ
-            if(pcm8_buf.Length == 0)
+            if(sdata_buf.Length == 0)
             {
                 return;
             }
             Console.WriteLine("call SoundUtils.ToRTPPacket");
-            RTPPacket rtp = SoundUtils.ToRTPPacket(pcm8_buf, rtp_config);
+            RTPPacket rtp = SoundUtils.ToRTPPacket(sdata_buf, rtp_config);
             Console.WriteLine("call sdsock.SendRTPPacket");
-            sdsock.SendRTPPacket(rtp, rtp_config.compress, RTPConfiguration.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, rtp_config.isConvertMulaw);
+            sdsock.SendRTPPacket(rtp, rtp_config.compress, GlobalConfiguration.SamplesPerSecond, rtp_config.BitsPerSample, rtp_config.Channels, rtp_config.isConvertMulaw);
         }
 
         private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
         {
             Console.WriteLine($"{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff} : {e.BytesRecorded} bytes");
 
-            if (RTPConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false && sdsock.IsConnected() == false)
+            if (GlobalConfiguration.isRunCapturedSoundDataHndlingWithoutConn == false && sdsock.IsConnected() == false)
             {
                 return;
             }
@@ -300,13 +278,9 @@ namespace RemoteDesktop.Server.XamaOK
             }
 
 
-            if (RTPConfiguration.isUseFFMPEG)
+            if (GlobalConfiguration.isUseFFMPEG)
             {
-                if (MainApplicationContext.aac_encoding_start == 0)
-                {
-                    MainApplicationContext.aac_encoding_start = Utils.getUnixTime();
-                }
-                if (RTPConfiguration.caputuedPcmBufferSamples == 0)
+                if (GlobalConfiguration.caputuedPcmBufferSamples == 0)
                 {
                     if (e.BytesRecorded > 0)
                     {
@@ -317,7 +291,7 @@ namespace RemoteDesktop.Server.XamaOK
                 else
                 {
                     captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
-                    int needed_samples = RTPConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
+                    int needed_samples = GlobalConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
                                                                                     // 指定されたサンプル数が溜まったら書き込む (adtsでは 1フレーム = 1024サンプル)
                     if (captured_buf.Length / (4 * 2) >= needed_samples)
                     {
@@ -340,79 +314,14 @@ namespace RemoteDesktop.Server.XamaOK
                     }
                 }
             }
-            else if (RTPConfiguration.isEncodeWithOggOpus && RTPConfiguration.isUseOggfilePkg)
+            else if (GlobalConfiguration.isEncodeWithOpus)
             {
-                if(m_csharpOpusEncoder == null)
-                {
-                    m_csharpOpusEncoder = OpusEncoder.Create(RTPConfiguration.SamplesPerSecond, rtp_config.Channels, OpusApplication.OPUS_APPLICATION_VOIP);
-                    m_csharpOpusEncoder.Bitrate = RTPConfiguration.encoderBps;
-                    //m_csharpOpusEncoder.PredictionDisabled = true;
-                    //m_csharpOpusEncoder.ForceMode = OpusMode.MODE_SILK_ONLY;
-                    //m_csharpOpusEncoder.ForceMode = OpusMode.MODE_CELT_ONLY;
-
-                    OpusTags tags = new OpusTags();
-
-                    void pipeWriteHandler(byte[] buffer, int offset, int count){
-                        byte[] tmp_buf = new byte[count];
-                        Array.Copy(buffer, offset, tmp_buf, 0, count);
-                        Console.WriteLine("call pipeWriteHandler buffer.Length = {0}, offset = {1}, count = {2}", buffer.Length, offset, count);
-                        Console.WriteLine("send {0} bytes to client at pipeWriteHandler", count);
-
-                        //debug_ms.Write(buffer, offset, count);
-                        //if(debug_ms.Length > 1024 * 60)
-                        //{
-                        //    Utils.saveByteArrayToFile(debug_ms.ToArray(), "F:\\work\\tmp\\concentus_opus_encoder_first_output_default_long.ogg");
-                        //    Environment.Exit(0);
-                        //}
-                        //else
-                        //{
-                        //    return;
-                        //}
-                        var task = Task.Run(() =>
-                        {
-                            lock (this)
-                            {
-                                concentusOggOpusPacketCount++;
-                                handleDataWithTCP(tmp_buf);
-                            }
-                        });
-                    }
-
-                    ZeroMemoryPipeStream pipe_stream = new ZeroMemoryPipeStream();
-                    pipe_stream.writeHandler += pipeWriteHandler;
-                    oggOut = new OpusOggWriteStream(m_csharpOpusEncoder, pipe_stream, tags, RTPConfiguration.SamplesPerSecond);
-
-                    //oggOut = new OpusOggWriteStream(m_csharpOpusEncoder, debug_ms, tags, RTPConfiguration.SamplesPerSecond);
-                }
-
-                if(concentusOggOpusPacketCount > 20 && oggOut != null)
-                {
-                    oggOut.Finish();
-                    oggOut = null;
-                    return;
-                }
-                
-                if(oggOut != null) // Finishを呼び出していない
-                {
-                    byte[] conved_buf = convert32bitFloat48000HzStereoPCMTo16bitMonoPCM(e, RTPConfiguration.SamplesPerSecond);
-                    short[] sdata = Utils.convertBytesToShortArr(conved_buf);
-                    oggOut.WriteSamples(sdata, 0, sdata.Length);
-
-                    Console.WriteLine("write {0} bytes to  concentus OpusOggWriteStream", conved_buf.Length);
-                    //Console.WriteLine("inner MemoryStream of concentus OpusOggWriteStream Lengh = {0}, Position = {1}", debug_ms.Length, debug_ms.Position);
-                }
-            }
-            else if (RTPConfiguration.isEncodeWithOpus)
-            {
-                //captured_buf.Write(e.Buffer, 0, e.BytesRecorded);
-                //int needed_samples = RTPConfiguration.caputuedPcmBufferSamples; //1024 * 100; //1024;
-
                 if (m_opusEncoder == null)
                 {
-                    m_opusEncoder = new OpusEncoderManager(this, RTPConfiguration.SamplesPerSecond);
+                    m_opusEncoder = new OpusEncoderManager(this, GlobalConfiguration.SamplesPerSecond);
                 }
 
-                byte[] conved_pcm = convert32bitFloat48000HzStereoPCMTo16bitMonoPCM(e, RTPConfiguration.SamplesPerSecond);
+                byte[] conved_pcm = convert32bitFloat48000HzStereoPCMTo16bitMonoPCM(e, GlobalConfiguration.SamplesPerSecond);
                 Console.WriteLine(Utils.getFormatedCurrentTime() + " DEBUG: pass " + conved_pcm.Length.ToString() + " bytes to opus encoder");
 
                 // エンコーダクラスが流量制御をして送信まで行う
@@ -420,21 +329,7 @@ namespace RemoteDesktop.Server.XamaOK
             }
             else
             {
-                byte[] mp3_buf = convertIEEE32bitFloatTo8bitPCMAndEncodeToMP3(e);
-                if (mp3_buf == null)
-                {
-                    return;
-                }
-
-                try
-                {
-                    handleDataWithTCP(mp3_buf);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    resetAllInstanseState();
-                }
+                throw new Exception("condition is invalid");
             }
         }
 
@@ -456,17 +351,17 @@ namespace RemoteDesktop.Server.XamaOK
         // only used on Client
 		private void Socket_ConnectionFailedCallback(string error)
 		{
-			DebugLog.LogError("Failed to connect: " + error);
+			Console.WriteLine("Failed to connect: " + error);
 		}
 
 		private void Socket_ConnectedCallback()
 		{
-			DebugLog.Log("Connected to client");
+            Console.WriteLine("Connected to client");
 		}
 
 		private void Socket_DisconnectedCallback()
 		{
-			DebugLog.Log("Disconnected from client");
+			Console.WriteLine("Disconnected from client");
 			MainApplicationContext.dispatcher.InvokeAsync(delegate()
 			{
 				//sdsock.ReListen(); // resetAllInstanseStateでやるので不要

@@ -231,7 +231,6 @@ namespace RemoteDesktop.Android.Core.Sound
 					{
 						string error = string.Format("socket.EndConnect failed: {0}\n{1}", e.SocketErrorCode, e.Message);
 						FireConnectionFailedCallback(error);
-						DebugLog.LogError(error);
 						disconnected = true;
 						return;
 					}
@@ -239,7 +238,6 @@ namespace RemoteDesktop.Android.Core.Sound
 					{
 						string error = "socket.EndConnect failed: " + e.Message;
 						FireConnectionFailedCallback(error);
-						DebugLog.LogError(error);
 						disconnected = true;
 						return;
 					}
@@ -256,7 +254,6 @@ namespace RemoteDesktop.Android.Core.Sound
 					{
 						string error = string.Format("socket.EndConnect failed: {0}\n{1}", e.SocketErrorCode, e.Message);
 						FireConnectionFailedCallback(error);
-						DebugLog.LogError(error);
 						disconnected = true;
 						return;
 					}
@@ -264,7 +261,6 @@ namespace RemoteDesktop.Android.Core.Sound
 					{
 						string error = "socket.EndConnect failed: " + e.Message;
 						FireConnectionFailedCallback(error);
-						DebugLog.LogError(error);
 						disconnected = true;
 						return;
 					}
@@ -279,7 +275,6 @@ namespace RemoteDesktop.Android.Core.Sound
 				}
 				catch (Exception e)
 				{
-					DebugLog.LogError("Failed to BeginReceive SocketConnection: " + e.Message);
 					disconnected = true;
 					return;
 				}

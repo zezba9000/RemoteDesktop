@@ -74,7 +74,7 @@ namespace RemoteDesktop.Android.Core
                 }
             }
 
-        public static Byte[] ToRTPData(Byte[] data, RTPConfiguration config)
+        public static Byte[] ToRTPData(Byte[] data, GlobalConfiguration config)
         {
             //Neues RTP Packet erstellen
             RTPPacket rtp = ToRTPPacket(data, config);
@@ -136,7 +136,7 @@ namespace RemoteDesktop.Android.Core
                 return result;
             }
 
-            public static RTPPacket ToRTPPacket(Byte[] linearData, RTPConfiguration config)
+            public static RTPPacket ToRTPPacket(Byte[] linearData, GlobalConfiguration config)
             {
                 //Daten Nach MuLaw umwandeln
                 Byte[] mulaws = linearData;

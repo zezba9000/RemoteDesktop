@@ -83,7 +83,7 @@ namespace RemoteDesktop.Client.Android
             //    //DisplayAlert("", "Tap", "OK");
             //};
             //image.GestureRecognizers.Add(gr);
-            if (RTPConfiguration.isStdOutOff)
+            if (GlobalConfiguration.isStdOutOff)
             {
                 Utils.setStdoutOff();
             }
@@ -374,7 +374,7 @@ namespace RemoteDesktop.Client.Android
             socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
             socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             //socket.Connect(host.endpoints[0]);
-            socket.Connect(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
+            socket.Connect(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
         }
 
 
@@ -469,7 +469,7 @@ namespace RemoteDesktop.Client.Android
                         }
 
                         // init compression
-                        if (metaData.compressed || RTPConfiguration.isStreamRawH264Data)
+                        if (metaData.compressed || GlobalConfiguration.isStreamRawH264Data)
                         {
                             if (compressedStream == null)
                             {
@@ -519,7 +519,7 @@ namespace RemoteDesktop.Client.Android
 
                         //} else 
 
-                        if (RTPConfiguration.isStreamRawH264Data)
+                        if (GlobalConfiguration.isStreamRawH264Data)
                         {
                             //Utils.startTimeMeasure("H264_a_frame_decompress");
 
@@ -557,7 +557,7 @@ namespace RemoteDesktop.Client.Android
 
                             //Console.WriteLine("elapsed for h264 one frame decompress: " + Utils.stopMeasureAndGetElapsedMilliSeconds("H264_a_frame_decompress").ToString() + " msec");
                             return;
-                        } else if (RTPConfiguration.isConvJpeg) {
+                        } else if (GlobalConfiguration.isConvJpeg) {
                             Utils.startTimeMeasure("Bitmap_decompress");
 
                             if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
@@ -595,7 +595,7 @@ namespace RemoteDesktop.Client.Android
                             }
                             catch (Exception e)
                             {
-                                DebugLog.LogError("Bad compressed image: " + e.Message);
+                                Console.WriteLine(e);
                             }
                         }
 
@@ -638,7 +638,7 @@ namespace RemoteDesktop.Client.Android
                 {
                     try
                     {
-                        if (metaData.compressed || RTPConfiguration.isConvJpeg || RTPConfiguration.isStreamRawH264Data)
+                        if (metaData.compressed || GlobalConfiguration.isConvJpeg || GlobalConfiguration.isStreamRawH264Data)
                         {
                             compressedStream.Write(local_buf, 0, dataSize);
                         }

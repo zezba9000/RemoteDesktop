@@ -24,7 +24,7 @@ namespace RemoteDesktop.Server.XamaOK
         {
             aservice = new AudioService();
             var devices = aservice.GetActiveRender();
-            _AudioOutputWriter = new AudioOutputWriter(devices.First(), new RTPConfiguration());
+            _AudioOutputWriter = new AudioOutputWriter(devices.First(), new GlobalConfiguration());
         }
 
         //private void startDataRecieveCaptureSound()

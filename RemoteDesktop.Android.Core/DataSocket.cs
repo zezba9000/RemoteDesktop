@@ -343,7 +343,7 @@ namespace RemoteDesktop.Android.Core
 
         private void debugPrinbByteArray(byte[] buf, int span)
         {
-            if (!RTPConfiguration.isStdOutOff)
+            if (!GlobalConfiguration.isStdOutOff)
             {
                 string debugStr = "contents of buffer " + span.ToString() + " elem span :";
                 for (int i = 0; i < buf.Length; i += span)
@@ -592,11 +592,11 @@ namespace RemoteDesktop.Android.Core
 
 
                 //            // compress if needed
-                if (RTPConfiguration.isStreamRawH264Data)
+                if (GlobalConfiguration.isStreamRawH264Data)
                 {
                     dataLength = bitmap.getInternalBuffer().Length;
                 }
-                else if (RTPConfiguration.isConvJpeg)
+                else if (GlobalConfiguration.isConvJpeg)
                 {
                     if (compressedStream == null) compressedStream = new MemoryStream();
                     else compressedStream.SetLength(0);
@@ -605,7 +605,7 @@ namespace RemoteDesktop.Android.Core
                     Array.Resize<Byte>(ref tmpBitmapArr, imageDataSize);
                     var img = SixLabors.ImageSharp.Image.LoadPixelData<SixLabors.ImageSharp.PixelFormats.Bgr565>(tmpBitmapArr, bitmap.Width, bitmap.Height);
                     var encoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
-                    encoder.Quality = RTPConfiguration.jpegEncodeQuality; //default value is 75
+                    encoder.Quality = GlobalConfiguration.jpegEncodeQuality; //default value is 75
                     img.Save(compressedStream, encoder);
                     compressedStream.Flush();
                     dataLength = (int) compressedStream.Length;
@@ -649,7 +649,7 @@ namespace RemoteDesktop.Android.Core
 
 				SendMetaDataInternal(metaData);
 
-                if (compress || RTPConfiguration.isConvJpeg)
+                if (compress || GlobalConfiguration.isConvJpeg)
                 {
                     SendBinary(compressedStream.GetBuffer(), dataLength);
                 }
