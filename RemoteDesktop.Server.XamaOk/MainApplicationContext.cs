@@ -109,14 +109,14 @@ namespace RemoteDesktop.Server
 
 
             //// start TCP socket listen for image server
-            //socket = new DataSocket(NetworkTypes.Server);
-            //socket.ConnectedCallback += Socket_ConnectedCallback;
-            //socket.DisconnectedCallback += Socket_DisconnectedCallback;
-            //socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-            //socket.DataRecievedCallback += Socket_DataRecievedCallback;
-            //socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-            //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-            //socket.Listen(IPAddress.Parse(RTPConfiguration.ServerAddress), RTPConfiguration.ImageServerPort);
+            socket = new DataSocket(NetworkTypes.Server);
+            socket.ConnectedCallback += Socket_ConnectedCallback;
+            socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            socket.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
         }
 
         // set ffmpegProc field	
