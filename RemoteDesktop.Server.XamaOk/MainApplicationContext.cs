@@ -44,9 +44,9 @@ namespace RemoteDesktop.Server
 		private System.Windows.Forms.Timer timer = null;
 		public static Dispatcher dispatcher;
 
-		//private InputSimulator input;
+		private InputSimulator input;
         private bool receivedMetaData = false;
-		//private byte inputLastMouseState;
+		private byte inputLastMouseState;
         private CaptureSoundStreamer cap_streamer;
 
         private ExtractedH264Encoder encoder;
@@ -102,21 +102,23 @@ namespace RemoteDesktop.Server
             }
 
             // 音声配信サーバ
-            cap_streamer = new CaptureSoundStreamer();
+            if(GlobalConfiguration.isEnableSoundStreaming) cap_streamer = new CaptureSoundStreamer();
 
             //// init input simulation
-            //input = new InputSimulator();
+            if(GlobalConfiguration.isEnableInputDeviceController) input = new InputSimulator();
 
-
-            //// start TCP socket listen for image server
-            socket = new DataSocket(NetworkTypes.Server);
-            socket.ConnectedCallback += Socket_ConnectedCallback;
-            socket.DisconnectedCallback += Socket_DisconnectedCallback;
-            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
-            socket.DataRecievedCallback += Socket_DataRecievedCallback;
-            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
-            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-            socket.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+            if (GlobalConfiguration.isEnableImageStreaming)
+            {
+                //// start TCP socket listen for image server
+                socket = new DataSocket(NetworkTypes.Server);
+                socket.ConnectedCallback += Socket_ConnectedCallback;
+                socket.DisconnectedCallback += Socket_DisconnectedCallback;
+                socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+                socket.DataRecievedCallback += Socket_DataRecievedCallback;
+                socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+                socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+                socket.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+            }
         }
 
         // set ffmpegProc field	
@@ -326,48 +328,48 @@ namespace RemoteDesktop.Server
 						timer.Start();
 					});
 				}
-				//else if (metaData.type == MetaDataTypes.UpdateMouse)
-				//{
-				//	// mouse pos
-				//	Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
+                else if (metaData.type == MetaDataTypes.UpdateMouse)
+                {
+                    // mouse pos
+                    Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
 
-				//	// mouse clicks
-				//	if (inputLastMouseState != metaData.mouseButtonPressed)
-				//	{
-				//		// handle state changes
-				//		if (inputLastMouseState == 1) input.Mouse.LeftButtonUp();
-				//		else if (inputLastMouseState == 2) input.Mouse.RightButtonUp();
-				//		else if (inputLastMouseState == 3) input.Mouse.XButtonUp(2);
+                    // mouse clicks
+                    if (inputLastMouseState != metaData.mouseButtonPressed)
+                    {
+                        // handle state changes
+                        if (inputLastMouseState == 1) input.Mouse.LeftButtonUp();
+                        else if (inputLastMouseState == 2) input.Mouse.RightButtonUp();
+                        else if (inputLastMouseState == 3) input.Mouse.XButtonUp(2);
 
-				//		// handle new state
-				//		if (metaData.mouseButtonPressed == 1) input.Mouse.LeftButtonDown();
-				//		else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
-				//		else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
-				//	}
+                        // handle new state
+                        if (metaData.mouseButtonPressed == 1) input.Mouse.LeftButtonDown();
+                        else if (metaData.mouseButtonPressed == 2) input.Mouse.RightButtonDown();
+                        else if (metaData.mouseButtonPressed == 3) input.Mouse.XButtonDown(2);
+                    }
 
-				//	// mouse scroll wheel
-				//	if (metaData.mouseScroll != 0) input.Mouse.VerticalScroll(metaData.mouseScroll);
+                    // mouse scroll wheel
+                    if (metaData.mouseScroll != 0) input.Mouse.VerticalScroll(metaData.mouseScroll);
 
-				//	// finish
-				//	inputLastMouseState = metaData.mouseButtonPressed;
-				//}
-				//else if (metaData.type == MetaDataTypes.UpdateKeyboard)
-				//{
-				//	VirtualKeyCode specialKey = 0;
-				//	if (metaData.specialKeyCode != 0)
-				//	{
-				//		specialKey = ConvertKeyCode((Key)metaData.specialKeyCode);
-				//		if (specialKey != 0) input.Keyboard.KeyDown(specialKey);
-				//	}
+                    // finish
+                    inputLastMouseState = metaData.mouseButtonPressed;
+                }
+                //else if (metaData.type == MetaDataTypes.UpdateKeyboard)
+                //{
+                //	VirtualKeyCode specialKey = 0;
+                //	if (metaData.specialKeyCode != 0)
+                //	{
+                //		specialKey = ConvertKeyCode((Key)metaData.specialKeyCode);
+                //		if (specialKey != 0) input.Keyboard.KeyDown(specialKey);
+                //	}
 
-				//	if (metaData.keyCode != 0)
-				//	{
-				//		var key = ConvertKeyCode((Key)metaData.keyCode);
-				//		if (key != 0) input.Keyboard.KeyPress(key);
-				//		if (specialKey != 0) input.Keyboard.KeyUp(specialKey);
-				//	}
-				//}
-			}
+                //	if (metaData.keyCode != 0)
+                //	{
+                //		var key = ConvertKeyCode((Key)metaData.keyCode);
+                //		if (key != 0) input.Keyboard.KeyPress(key);
+                //		if (specialKey != 0) input.Keyboard.KeyUp(specialKey);
+                //	}
+                //}
+            }
 		}
 
 		private void Socket_EndDataRecievedCallback()

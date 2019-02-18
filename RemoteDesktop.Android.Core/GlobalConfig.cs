@@ -65,6 +65,10 @@ namespace RemoteDesktop.Android.Core
             public static int encoderBps = 6 * 1024; //8 * 1024;
             public static int samplesPerPacket = 320; // <= 8000 * (1/25) //160; // <= 8000 * (1/50) //960;
 
+            public static bool isEnableImageStreaming = false;
+            public static bool isEnableSoundStreaming = false;
+            public static bool isEnableInputDeviceController = true;
+
             // for 流用元コード. Xamarin対応版では利用されない
             public String FileName = "";
             public String localAddress = "";

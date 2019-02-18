@@ -83,7 +83,7 @@ namespace RemoteDesktop.Android.Core
 
 		public short mouseX, mouseY; // mouseX is used as frame number (DEBUG)
 		public sbyte mouseScroll;
-		//public byte mouseButtonPressed, keyCode, specialKeyCode;
+		public byte mouseButtonPressed, keyCode, specialKeyCode;
 	}
 
 	public class DataSocket : IDisposable

@@ -110,11 +110,11 @@ namespace RemoteDesktop.Client.Android
             ////image.MouseWheel += Image_MouseWheel;
             ////KeyDown += Window_KeyDown;
 
-
             //Utils.getLocalIP();
-            connectToSoundServer(); // start recieve sound data which playing on remote PC
 
-            connectToImageServer(); // staart recieve captured bitmap image data 
+            if(GlobalConfiguration.isEnableImageStreaming) connectToSoundServer(); // start recieve sound data which playing on remote PC
+            if(GlobalConfiguration.isEnableImageStreaming) connectToImageServer(); // staart recieve captured bitmap image data
+
         }
 
         void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs args)
