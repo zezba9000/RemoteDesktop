@@ -17,25 +17,29 @@ namespace RemoteDesktop.Client.Android
             this.socket = socket;
             this.layout = layout;
 
-			var pressLabel = new Label
-			{
-				Text = "Tap me",
-				FontSize = 30
-			};
+			//var pressLabel = new Label
+			//{
+			//	Text = "Tap me",
+			//	FontSize = 30
+			//};
 
             var tapViewGestures = new ViewGestures
-			{
-				//BackgroundColor = Color.Transparent,
-				BackgroundColor = Color.MistyRose,
-				Content = pressLabel,
-				AnimationEffect = ViewGestures.AnimationType.atScaling,
-				AnimationScale = -5,
-				HorizontalOptions = LayoutOptions.Center
+            {
+                //BackgroundColor = Color.Transparent,
+                BackgroundColor = Color.MistyRose,
+                //Content = pressLabel,
+                AnimationEffect = ViewGestures.AnimationType.atScaling,
+                AnimationScale = -5,
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                VerticalOptions = LayoutOptions.FillAndExpand
 			};
             //tapViewGestures.Tap += (s, e) => DisplayAlert("Tap", "Gesture finished", "OK");
             tapViewGestures.SwipeLeft += (s, e) =>
             {
-                Device.BeginInvokeOnMainThread(() => { inputUpdate(null); });
+                Device.BeginInvokeOnMainThread(() => {
+                    Console.WriteLine("Swipe!");
+                    //inputUpdate(null);
+                });
             };
 
             layout.Children.Add(tapViewGestures, new Rectangle(0, 0, MainPage.width, MainPage.height));

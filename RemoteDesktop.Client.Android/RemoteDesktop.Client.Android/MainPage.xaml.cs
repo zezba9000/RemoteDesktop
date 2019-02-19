@@ -94,8 +94,7 @@ namespace RemoteDesktop.Client.Android
                 Utils.setStdoutOff();
             }
 
-            //DEBUG
-            if (GlobalConfiguration.isEnableInputDeviceController == false)
+            if (GlobalConfiguration.isEnableImageStreaming)
             {
                 canvas = new SKCanvasView
                 {
@@ -122,9 +121,23 @@ namespace RemoteDesktop.Client.Android
 
             //Utils.getLocalIP();
 
-            if(GlobalConfiguration.isEnableImageStreaming) connectToSoundServer(); // start recieve sound data which playing on remote PC
+            socket = new DataSocket(NetworkTypes.Client);
+
+            if(GlobalConfiguration.isEnableSoundStreaming) connectToSoundServer(); // start recieve sound data which playing on remote PC
             if(GlobalConfiguration.isEnableImageStreaming) connectToImageServer(); // staart recieve captured bitmap image data
             if(GlobalConfiguration.isEnableInputDeviceController) connectToInputServer();
+
+            if (GlobalConfiguration.isEnableImageStreaming || GlobalConfiguration.isEnableInputDeviceController)
+            {
+                socket.ConnectedCallback += Socket_ConnectedCallback;
+                socket.DisconnectedCallback += Socket_DisconnectedCallback;
+                socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+                socket.DataRecievedCallback += Socket_DataRecievedCallback;
+                socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+                socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+                // DEBUG: comment-out
+                socket.Connect(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+            }
 
         }
 
@@ -261,10 +274,9 @@ namespace RemoteDesktop.Client.Android
         {
             // handle connect
             SetConnectionUIStates(UIStates.Streaming);
-
-            socket = new DataSocket(NetworkTypes.Client);
             input = new InputManager(socket, layout);
 /*
+            socket = new DataSocket(NetworkTypes.Client);
             socket.ConnectedCallback += Socket_ConnectedCallback;
             socket.DisconnectedCallback += Socket_DisconnectedCallback;
             socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
@@ -272,15 +284,15 @@ namespace RemoteDesktop.Client.Android
             socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
             socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             //socket.Connect(host.endpoints[0]);
-*/
             socket.Connect(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+*/
         }
 
         private void connectToImageServer()
         {
             // handle connect
             SetConnectionUIStates(UIStates.Streaming);
-
+/*
             socket = new DataSocket(NetworkTypes.Client);
             socket.ConnectedCallback += Socket_ConnectedCallback;
             socket.DisconnectedCallback += Socket_DisconnectedCallback;
@@ -290,6 +302,7 @@ namespace RemoteDesktop.Client.Android
             socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
             //socket.Connect(host.endpoints[0]);
             socket.Connect(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+*/
         }
 
 
@@ -353,7 +366,7 @@ namespace RemoteDesktop.Client.Android
             //Thread.Sleep(200); 
 
             //DEBUG
-            if (GlobalConfiguration.isEnableInputDeviceController) return;
+            //if (GlobalConfiguration.isEnableInputDeviceController) return;
 
             //Imageコンポーネントの差し替えにともなってバッファアドレスが変わるかもしれないので
             //待つ

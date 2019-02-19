@@ -104,6 +104,7 @@ namespace RemoteDesktop.Server
             // 音声配信サーバ
             if(GlobalConfiguration.isEnableSoundStreaming) cap_streamer = new CaptureSoundStreamer();
 
+/*
             //// init input simulation
             if (GlobalConfiguration.isEnableInputDeviceController)
             {
@@ -118,8 +119,9 @@ namespace RemoteDesktop.Server
                 socket.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
                 input = new InputSimulator();
             }
+*/
 
-            if (GlobalConfiguration.isEnableImageStreaming)
+            if (GlobalConfiguration.isEnableImageStreaming || GlobalConfiguration.isEnableInputDeviceController)
             {
                 //// start TCP socket listen for image server
                 socket = new DataSocket(NetworkTypes.Server);
@@ -130,6 +132,10 @@ namespace RemoteDesktop.Server
                 socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
                 socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
                 socket.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+                if (GlobalConfiguration.isEnableInputDeviceController)
+                {
+                    input = new InputSimulator();
+                }
             }
         }
 
