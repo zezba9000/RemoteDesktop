@@ -291,7 +291,11 @@ namespace RemoteDesktop.Server
 					{
 						timer = new System.Windows.Forms.Timer();
                         timer.Interval = (int) (1000f / fps); // targetFPSは呼び出し時には適切に更新が行われていることを想定
-                        if (!GlobalConfiguration.isStreamRawH264Data)
+                        if (GlobalConfiguration.isStreamRawH264Data)
+                        {
+                            timer.Tick += Timer_Tick_bitmap_to_openH264_Encoder;
+                        }
+                        else
                         {
                             timer.Tick += Timer_Tick;
                         }
@@ -328,10 +332,10 @@ namespace RemoteDesktop.Server
 				// start / stop
 				if (metaData.type == MetaDataTypes.StartCapture)
 				{
-					dispatcher.InvokeAsync(delegate()
-					{
-						CreateTimer(false, (int)targetFPS);
-					});
+					//dispatcher.InvokeAsync(delegate()
+					//{
+					//	CreateTimer(false, (int)targetFPS);
+					//});
 				}
 				else if (metaData.type == MetaDataTypes.PauseCapture)
 				{
@@ -432,7 +436,7 @@ namespace RemoteDesktop.Server
                             encoder.encodedDataGenerated += h264RawDataHandlerSendTCP;
                         }
 
-
+/*
                         void CreateTimer(bool recreate, int fps)
                         {
                             if (timer == null)
@@ -449,7 +453,7 @@ namespace RemoteDesktop.Server
 					    {
 						    CreateTimer(false, (int)targetFPS);
 					    });
-
+*/
                 }
             }
 		}
