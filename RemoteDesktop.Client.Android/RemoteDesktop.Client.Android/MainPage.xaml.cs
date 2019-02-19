@@ -47,8 +47,8 @@ namespace RemoteDesktop.Client.Android
         private byte mouseScrollCount = 0;
         private byte inputMouseButtonPressed = 0;
 
-        private int width = 432; // dp based app display area size is set
-        private int height = 708; // dp based app display area size is set
+        public static int width = 432; // dp based app display area size is set
+        public static int height = 708; // dp based app display area size is set
 
         private RTPSoundStreamPlayer player = null;
         private AbsoluteLayout layout;
@@ -243,8 +243,8 @@ namespace RemoteDesktop.Client.Android
             Console.WriteLine("OnSizeAllocated: " + width.ToString() + "x" + height.ToString());
 
             this.isAppDisplaySizeGot = true;
-            this.width = (int)width;
-            this.height = (int)height;
+            MainPage.width = (int)width;
+            MainPage.height = (int)height;
             base.OnSizeAllocated(width, height);
         }
 

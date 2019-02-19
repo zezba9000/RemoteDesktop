@@ -31,7 +31,7 @@ namespace RemoteDesktop.Client.Android
                 Device.BeginInvokeOnMainThread(() => { inputUpdate(null); });
             };
 
-            layout.Children.Add(tapViewGestures);
+            layout.Children.Add(tapViewGestures, new Rectangle(0, 0, MainPage.width, MainPage.height));
         }
 
         private void inputUpdate(object state)
