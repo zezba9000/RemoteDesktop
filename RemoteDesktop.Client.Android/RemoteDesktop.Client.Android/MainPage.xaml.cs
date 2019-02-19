@@ -94,15 +94,19 @@ namespace RemoteDesktop.Client.Android
                 Utils.setStdoutOff();
             }
 
-            canvas = new SKCanvasView
+            //DEBUG
+            if (GlobalConfiguration.isEnableInputDeviceController == false)
             {
-                VerticalOptions = LayoutOptions.FillAndExpand
-            };
-            canvas.PaintSurface += OnCanvasViewPaintSurface;
-            // Skiaを利用する場合、ビットマップデータのバッファはここで用意してしまう
-            skiaBufStreams = new MemoryStream[2];
-            skiaBufStreams.SetValue(new MemoryStream(), 0);
-            skiaBufStreams.SetValue(new MemoryStream(), 1);
+                canvas = new SKCanvasView
+                {
+                    VerticalOptions = LayoutOptions.FillAndExpand
+                };
+                canvas.PaintSurface += OnCanvasViewPaintSurface;
+                // Skiaを利用する場合、ビットマップデータのバッファはここで用意してしまう
+                skiaBufStreams = new MemoryStream[2];
+                skiaBufStreams.SetValue(new MemoryStream(), 0);
+                skiaBufStreams.SetValue(new MemoryStream(), 1);
+            }
 
             layout = new AbsoluteLayout();
             Content = layout;

@@ -17,10 +17,17 @@ namespace RemoteDesktop.Client.Android
             this.socket = socket;
             this.layout = layout;
 
+			var pressLabel = new Label
+			{
+				Text = "Tap me",
+				FontSize = 30
+			};
+
             var tapViewGestures = new ViewGestures
 			{
-				BackgroundColor = Color.Transparent,
-				//Content = pressLabel,
+				//BackgroundColor = Color.Transparent,
+				BackgroundColor = Color.MistyRose,
+				Content = pressLabel,
 				AnimationEffect = ViewGestures.AnimationType.atScaling,
 				AnimationScale = -5,
 				HorizontalOptions = LayoutOptions.Center
