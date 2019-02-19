@@ -348,6 +348,9 @@ namespace RemoteDesktop.Client.Android
             // 可能性があるので少し待つ
             //Thread.Sleep(200); 
 
+            //DEBUG
+            if (GlobalConfiguration.isEnableInputDeviceController) return;
+
             //Imageコンポーネントの差し替えにともなってバッファアドレスが変わるかもしれないので
             //待つ
             var tcs = new TaskCompletionSource<bool>();
