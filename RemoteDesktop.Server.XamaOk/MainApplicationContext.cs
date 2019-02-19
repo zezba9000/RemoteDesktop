@@ -105,7 +105,19 @@ namespace RemoteDesktop.Server
             if(GlobalConfiguration.isEnableSoundStreaming) cap_streamer = new CaptureSoundStreamer();
 
             //// init input simulation
-            if(GlobalConfiguration.isEnableInputDeviceController) input = new InputSimulator();
+            if (GlobalConfiguration.isEnableInputDeviceController)
+            {
+                //// start TCP socket listen for image server
+                socket = new DataSocket(NetworkTypes.Server);
+                socket.ConnectedCallback += Socket_ConnectedCallback;
+                //socket.DisconnectedCallback += Socket_DisconnectedCallback;
+                //socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+                //socket.DataRecievedCallback += Socket_DataRecievedCallback;
+                socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+                //socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+                socket.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+                input = new InputSimulator();
+            }
 
             if (GlobalConfiguration.isEnableImageStreaming)
             {
@@ -297,7 +309,8 @@ namespace RemoteDesktop.Server
                         resolutionScale = fixedResolutionScale;
                     }
                     receivedMetaData = true;
-					if (metaData.type == MetaDataTypes.UpdateSettings)
+					//if (metaData.type == MetaDataTypes.UpdateSettings)
+					if (metaData.type == MetaDataTypes.StartCapture)
 					{
 						dispatcher.InvokeAsync(delegate()
 						{
@@ -330,6 +343,9 @@ namespace RemoteDesktop.Server
 				}
                 else if (metaData.type == MetaDataTypes.UpdateMouse)
                 {
+                    var curPos = Cursor.Position;
+                    Cursor.Position = new Point(curPos.X + 10, curPos.Y);
+/*
                     // mouse pos
                     Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
 
@@ -352,6 +368,7 @@ namespace RemoteDesktop.Server
 
                     // finish
                     inputLastMouseState = metaData.mouseButtonPressed;
+*/
                 }
                 //else if (metaData.type == MetaDataTypes.UpdateKeyboard)
                 //{
@@ -391,7 +408,7 @@ namespace RemoteDesktop.Server
 		{
 			Console.WriteLine("Connected to client");
 
-            if (GlobalConfiguration.isStreamRawH264Data)
+            if (GlobalConfiguration.isEnableImageStreaming && GlobalConfiguration.isStreamRawH264Data)
             {
                 lock (this)
                 {

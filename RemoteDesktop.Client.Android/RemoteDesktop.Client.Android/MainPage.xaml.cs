@@ -42,9 +42,10 @@ namespace RemoteDesktop.Client.Android
 
         //private Timer inputTimer;
         //private bool mouseUpdate;
-        //private Point mousePoint;
-        //private sbyte mouseScroll;
-        //private byte mouseScrollCount, inputMouseButtonPressed;
+        private Point mousePoint;
+        private sbyte mouseScroll;
+        private byte mouseScrollCount = 0;
+        private byte inputMouseButtonPressed = 0;
 
         private int width = 432; // dp based app display area size is set
         private int height = 708; // dp based app display area size is set
@@ -68,6 +69,11 @@ namespace RemoteDesktop.Client.Android
 
         private int h264DecodedHeight = -1;
         private int h264DecodedWidth = -1;
+
+        private int PC_SCREEN_X = 1920;
+        private int PC_SCREEN_Y = 1080;
+
+        private InputManager input;
 
         public MainPage()
         {
@@ -114,6 +120,7 @@ namespace RemoteDesktop.Client.Android
 
             if(GlobalConfiguration.isEnableImageStreaming) connectToSoundServer(); // start recieve sound data which playing on remote PC
             if(GlobalConfiguration.isEnableImageStreaming) connectToImageServer(); // staart recieve captured bitmap image data
+            if(GlobalConfiguration.isEnableInputDeviceController) connectToInputServer();
 
         }
 
@@ -204,121 +211,6 @@ namespace RemoteDesktop.Client.Android
             Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
         }
 
-        //void OnCanvasViewPaintSurface(object sender, SKPaintSurfaceEventArgs args)
-        //{
-        //    SKImageInfo info = args.Info;
-        //    SKSurface surface = args.Surface;
-        //    SKCanvas canvas = surface.Canvas;
-
-        //    if (!(isBitDisplayComponetsAdded && isBitDisplayCompOrBufInited))
-        //    {
-        //        return;
-        //    }
-
-        //    float fit_width = metaData.width;
-        //    float fit_height = metaData.height;
-
-        //    float x_ratio = info.Height / (float)metaData.height;
-        //    float y_ratio = info.Width / (float)metaData.width;
-        //    if (x_ratio < y_ratio)
-        //    {
-        //        fit_width *= x_ratio;
-        //        fit_height *= x_ratio;
-        //    }
-        //    else
-        //    {
-        //        fit_width *= y_ratio;
-        //        fit_height *= y_ratio;
-        //    }
-
-        //    SKRect destRect = new SKRect(info.Width - fit_width, 0, fit_width, fit_height);
-        //    SKRect sourceRect = new SKRect(0, 0, metaData.width, metaData.height);
-
-        //    if (RTPConfiguration.isConvJpeg)
-        //    {
-        //        byte[] bitmap_data = null;
-        //        long dataLength = -1;
-        //        // curUpdateTargetComoonentOrBuf は既に更新中のものになっているはずなので、以下はその前提
-        //        if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-        //        {
-        //            bitmap_data = skiaBufStreams[1].ToArray();
-        //            dataLength = skiaBufStreams[1].Length;
-        //            skiaBufStreams[1].Position = 0;
-        //        }
-        //        else
-        //        {
-        //            bitmap_data = skiaBufStreams[0].ToArray();
-        //            dataLength = skiaBufStreams[0].Length;
-        //            skiaBufStreams[0].Position = 0;
-        //        }
-        //        if(dataLength == 0)
-        //        {
-        //            return;
-        //        }
-        //        SKImage skimage = SKImage.FromEncodedData(bitmap_data);
-
-        //        canvas.Clear();
-        //        canvas.Scale(1, -1, 0, info.Height / 2);
-        //        canvas.DrawImage(skimage, sourceRect, destRect);
-        //    }
-        //    else
-        //    {
-        //        byte[] bitmap_data = null;
-        //        long dataLength = -1;
-        //        // curUpdateTargetComoonentOrBuf は既に更新中のものになっているはずなので、以下はその前提
-        //        if (curUpdateTargetComoonentOrBuf == BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1)
-        //        {
-        //            bitmap_data = skiaBufStreams[1].ToArray();
-        //            dataLength = skiaBufStreams[1].Length;
-        //            skiaBufStreams[1].Position = 0;
-        //        }
-        //        else
-        //        {
-        //            bitmap_data = skiaBufStreams[0].ToArray();
-        //            dataLength = skiaBufStreams[0].Length;
-        //            skiaBufStreams[0].Position = 0;
-        //        }
-        //        if(dataLength == 0)
-        //        {
-        //            return;
-        //        }
-        //        //SKBitmap skbitmap = new SKBitmap(metaData.width, metaData.height, SKColorType.Rgba8888, SKAlphaType.Opaque);
-        //        SKBitmap skbitmap = new SKBitmap();
-
-        //        // pin the managed array so that the GC doesn't move it
-        //        GCHandle gcHandle = GCHandle.Alloc(new byte[1] { 0 }, GCHandleType.Pinned);
-        //        if (RTPConfiguration.isConvTo16bit)
-        //        {
-        //            gcHandle.Free();
-        //            //gcHandle = GCHandle.Alloc(Utils.convertBitmapAbgr16_1555toBGR32(bitmap_data), GCHandleType.Pinned);
-        //            gcHandle = GCHandle.Alloc(bitmap_data, GCHandleType.Pinned);
-        //        }
-        //        else
-        //        {
-        //            throw new Exception("this pass is can not be executed!");
-        //            //gcHandle.Free();
-        //            //gcHandle = GCHandle.Alloc(Utils.convertBitmapBGR24toBGRA32(bitmap_data), GCHandleType.Pinned);
-        //        }
-
-
-
-        //        // install the pixels with the color type of the pixel data
-        //        //var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Bgra8888, SKAlphaType.Opaque);
-        //        var skinfo = new SKImageInfo(metaData.width, metaData.height, SKColorType.Rgb565, SKAlphaType.Opaque);
-
-        //        //skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, null, delegate { gcHandle.Free(); }, null);
-        //        skbitmap.InstallPixels(skinfo, gcHandle.AddrOfPinnedObject(), skinfo.RowBytes, delegate { gcHandle.Free(); }, null);
-
-        //        // Display the bitmap
-        //        canvas.Clear();
-        //        canvas.Scale(1, -1, 0, info.Height / 2);
-        //        canvas.DrawBitmap(skbitmap, sourceRect, destRect);
-        //    }
-
-
-        //    Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
-        //}
-
         protected override void OnDisappearing()
         {
             //player.togglePlayingUDP();
@@ -359,6 +251,25 @@ namespace RemoteDesktop.Client.Android
         private void SetConnectionUIStates(UIStates state)
         {
             uiState = state;
+        }
+
+        private void connectToInputServer()
+        {
+            // handle connect
+            SetConnectionUIStates(UIStates.Streaming);
+
+            socket = new DataSocket(NetworkTypes.Client);
+            input = new InputManager(socket, layout);
+/*
+            socket.ConnectedCallback += Socket_ConnectedCallback;
+            socket.DisconnectedCallback += Socket_DisconnectedCallback;
+            socket.ConnectionFailedCallback += Socket_ConnectionFailedCallback;
+            socket.DataRecievedCallback += Socket_DataRecievedCallback;
+            socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
+            socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
+            //socket.Connect(host.endpoints[0]);
+*/
+            socket.Connect(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
         }
 
         private void connectToImageServer()
@@ -728,37 +639,39 @@ namespace RemoteDesktop.Client.Android
         //    base.OnLocationChanged(e);
         //}
 
-        //private void InputUpdate(object state)
-        //{
+/*
+        private void InputUpdate(object state)
+        {
 
-        //    lock (this)
-        //    {
-        //        if (!mouseUpdate) return;
-        //        mouseUpdate = false;
+            lock (this)
+            {
+                //if (!mouseUpdate) return;
+                //mouseUpdate = false;
 
-        //        if (connectedToLocalPC || isDisposed || uiState != UIStates.Streaming || socket == null || bitmap == null) return;
+                //if (connectedToLocalPC || isDisposed || uiState != UIStates.Streaming || socket == null || bitmap == null) return;
 
-        //        Dispatcher.InvokeAsync(delegate ()
-        //        {
-        //            if (isDisposed || uiState != UIStates.Streaming || socket == null || bitmap == null) return;
+                var task = Task.Run(() =>
+                {
+                    //if (isDisposed || uiState != UIStates.Streaming || socket == null || bitmap == null) return;
 
-        //            var metaData = new MetaData()
-        //            {
-        //                type = MetaDataTypes.UpdateMouse,
-        //                mouseX = (short)((mousePoint.X / image.ActualWidth) * this.metaData.screenWidth),
-        //                mouseY = (short)((mousePoint.Y / image.ActualHeight) * this.metaData.screenHeight),
-        //                mouseScroll = mouseScroll,
-        //                mouseButtonPressed = inputMouseButtonPressed,
-        //                dataSize = -1
-        //            };
+                    var metaData = new MetaData()
+                    {
+                        type = MetaDataTypes.UpdateMouse,
+                        mouseX = (short)((mousePoint.X / image.ActualWidth) * this.metaData.screenWidth),
+                        mouseY = (short)((mousePoint.Y / image.ActualHeight) * this.metaData.screenHeight),
+                        mouseScroll = mouseScroll,
+                        mouseButtonPressed = inputMouseButtonPressed,
+                        dataSize = -1
+                    };
 
-        //            socket.SendMetaData(metaData);
-        //        });
+                    socket.SendMetaData(metaData);
+                });
 
-        //        if (mouseScrollCount == 0) mouseScroll = 0;
-        //        else --mouseScrollCount;
-        //    }
-        //}
+                //if (mouseScrollCount == 0) mouseScroll = 0;
+                //else --mouseScrollCount;
+            }
+        }
+*/
 
         //private void ApplyCommonMouseEvent(MouseEventArgs e)
         //{

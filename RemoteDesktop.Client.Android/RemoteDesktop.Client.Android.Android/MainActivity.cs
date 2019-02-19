@@ -6,6 +6,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
+using ScnViewGestures.Plugin.Forms.Droid.Renderers;
 
 namespace RemoteDesktop.Client.Android.Droid
 {
@@ -20,6 +21,7 @@ namespace RemoteDesktop.Client.Android.Droid
             Xamarin.Forms.Forms.SetFlags("FastRenderers_Experimental");
             base.OnCreate(savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
+            ViewGesturesRenderer.Init();
             LoadApplication(new App());
         }
     }
