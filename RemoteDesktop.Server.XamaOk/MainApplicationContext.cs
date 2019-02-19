@@ -131,7 +131,7 @@ namespace RemoteDesktop.Server
                 socket.DataRecievedCallback += Socket_DataRecievedCallback;
                 socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
                 socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
-                socket.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+                socket.Listen(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageAndInputServerPort);
                 if (GlobalConfiguration.isEnableInputDeviceController)
                 {
                     input = new InputSimulator();

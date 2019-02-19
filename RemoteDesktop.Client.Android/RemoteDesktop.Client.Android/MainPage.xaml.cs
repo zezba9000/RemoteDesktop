@@ -136,7 +136,7 @@ namespace RemoteDesktop.Client.Android
                 socket.StartDataRecievedCallback += Socket_StartDataRecievedCallback;
                 socket.EndDataRecievedCallback += Socket_EndDataRecievedCallback;
                 // DEBUG: comment-out
-                socket.Connect(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageServerPort);
+                socket.Connect(IPAddress.Parse(GlobalConfiguration.ServerAddress), GlobalConfiguration.ImageAndInputServerPort);
             }
 
         }

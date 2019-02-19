@@ -27,7 +27,7 @@ namespace RemoteDesktop.Android.Core
             //public static String ServerAddress = "192.168.137.1";
             public String SoundDeviceName = "";
 			public int SoundServerPort = 10000;
-            public static int ImageServerPort = 8889;
+            public static int ImageAndInputServerPort = 8889;
 
             public static bool isRunCapturedSoundDataHndlingWithoutConn = false;
             //public static int SamplesPerSecond = 8000;
