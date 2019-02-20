@@ -267,8 +267,8 @@ namespace RemoteDesktop.Server
 
 		private void Socket_StartDataRecievedCallback(MetaData metaData)
 		{
-			lock (this)
-			{
+//			lock (this)
+//			{
 				if (isDisposed) return;
 
 				void CreateTimer(bool recreate, int fps)
@@ -354,7 +354,23 @@ namespace RemoteDesktop.Server
                 else if (metaData.type == MetaDataTypes.UpdateMouse)
                 {
                     var curPos = Cursor.Position;
-                    Cursor.Position = new Point(curPos.X + 10, curPos.Y);
+                    switch (metaData.mouseButtonPressed)
+                    {
+                        case 1:
+                            Cursor.Position = new Point(curPos.X, curPos.Y - 10);
+                            break;
+                        case 2:
+                            Cursor.Position = new Point(curPos.X, curPos.Y + 10);
+                            break;
+                        case 3:
+                            Cursor.Position = new Point(curPos.X - 10, curPos.Y);
+                            break;
+                        case 4:
+                            Cursor.Position = new Point(curPos.X + 10, curPos.Y);
+                            break;
+                        
+                    }
+
 /*
                     // mouse pos
                     Cursor.Position = new Point(metaData.mouseX, metaData.mouseY);
@@ -396,7 +412,7 @@ namespace RemoteDesktop.Server
                 //		if (specialKey != 0) input.Keyboard.KeyUp(specialKey);
                 //	}
                 //}
-            }
+//            }
 		}
 
 		private void Socket_EndDataRecievedCallback()
@@ -585,8 +601,8 @@ namespace RemoteDesktop.Server
 
 		private void CaptureScreen()
 		{
-            lock (this)
-            {
+//            lock (this)
+//            {
                 if (bitmap == null || bitmap.PixelFormat != format)
                 {
                     currentScreenIndex = screenIndex;
@@ -641,7 +657,7 @@ namespace RemoteDesktop.Server
                 {
                     scaledGraphics.DrawImage(bitmap, 0, 0, scaledBitmap.Width, scaledBitmap.Height);
                 }
-            }
+//            }
         }
 
 		//private VirtualKeyCode ConvertKeyCode(Key keycode)

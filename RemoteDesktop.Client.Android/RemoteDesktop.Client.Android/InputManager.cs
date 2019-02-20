@@ -34,18 +34,44 @@ namespace RemoteDesktop.Client.Android
                 VerticalOptions = LayoutOptions.FillAndExpand
 			};
             //tapViewGestures.Tap += (s, e) => DisplayAlert("Tap", "Gesture finished", "OK");
+            tapViewGestures.SwipeRight += (s, e) =>
+            {
+                Device.BeginInvokeOnMainThread(() => {
+                    Console.WriteLine("Swipe!");
+
+                    inputUpdate(1); //UP
+                });
+            };
             tapViewGestures.SwipeLeft += (s, e) =>
             {
                 Device.BeginInvokeOnMainThread(() => {
                     Console.WriteLine("Swipe!");
-                    //inputUpdate(null);
+
+                    inputUpdate(2); //DOWN
+                });
+            };
+            tapViewGestures.SwipeUp += (s, e) =>
+            {
+                Device.BeginInvokeOnMainThread(() => {
+                    Console.WriteLine("Swipe!");
+
+                    inputUpdate(3); //LEFT
+                });
+            };
+            tapViewGestures.SwipeDown += (s, e) =>
+            {
+                Device.BeginInvokeOnMainThread(() => {
+                    Console.WriteLine("Swipe!");
+
+                    inputUpdate(4); //RIGHT
                 });
             };
 
             layout.Children.Add(tapViewGestures, new Rectangle(0, 0, MainPage.width, MainPage.height));
         }
 
-        private void inputUpdate(object state)
+//        private void inputUpdate(object state)
+        private void inputUpdate(int code)
         {
 
             lock (this)
@@ -70,7 +96,7 @@ namespace RemoteDesktop.Client.Android
                                                 mouseScroll = mouseScroll,
                                                 mouseButtonPressed = inputMouseButtonPressed,
                         */
-                        mouseButtonPressed = 1,
+                        mouseButtonPressed = (byte)code,
                         dataSize = -1
                     };
 

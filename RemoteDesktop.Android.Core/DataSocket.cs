@@ -467,8 +467,9 @@ namespace RemoteDesktop.Android.Core
 							if (metaData.dataSize == -1)
 							{
 								FireEndDataRecievedCallback();
-//								metaDataBufferRead = 0;
-//								state = new ReceiveState();
+								metaDataBufferRead = 0;
+								state = new ReceiveState();
+
                                 Console.WriteLine("metaData.dataSize == -1. FireEndDataRecievedCallback state.bytesRead=" + state.bytesRead.ToString() + " state.size=" + state.size.ToString());
 						        FireEndDataRecievedCallback();
                                 Console.WriteLine("metaData.dataSize == -1. call socket.BeginReceive func to read next frame because finished read all data of current frame. metaDataBufferRead: " + metaDataBufferRead.ToString());
