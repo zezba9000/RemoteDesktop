@@ -66,7 +66,23 @@ namespace RemoteDesktop.Client.Android
                     inputUpdate(4); //RIGHT
                 });
             };
+            tapViewGestures.Tap += (s, e) =>
+            {
+                Device.BeginInvokeOnMainThread(() => {
+                    Console.WriteLine("Tap!");
 
+                    inputUpdate(5); // left click
+                });
+            };
+            tapViewGestures.LongTap += (s, e) =>
+            {
+                Device.BeginInvokeOnMainThread(() => {
+                    Console.WriteLine("Long Tap!");
+
+                    inputUpdate(6); // right click
+                });
+            };
+            
             layout.Children.Add(tapViewGestures, new Rectangle(0, 0, MainPage.width, MainPage.height));
         }
 

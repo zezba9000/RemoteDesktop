@@ -320,7 +320,7 @@ namespace RemoteDesktop.Server
                     }
                     receivedMetaData = true;
 					//if (metaData.type == MetaDataTypes.UpdateSettings)
-					if (metaData.type == MetaDataTypes.StartCapture)
+					if (GlobalConfiguration.isEnableImageStreaming && metaData.type == MetaDataTypes.StartCapture)
 					{
 						dispatcher.InvokeAsync(delegate()
 						{
@@ -368,8 +368,13 @@ namespace RemoteDesktop.Server
                         case 4:
                             Cursor.Position = new Point(curPos.X + 10, curPos.Y);
                             break;
-                        
-                    }
+                        case 5:
+                            input.Mouse.LeftButtonClick();
+                            break;
+                        case 6:
+                            input.Mouse.RightButtonClick();
+                            break;
+                }
 
 /*
                     // mouse pos
