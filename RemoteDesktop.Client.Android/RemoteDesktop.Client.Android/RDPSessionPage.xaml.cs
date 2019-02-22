@@ -98,7 +98,9 @@ namespace RemoteDesktop.Client.Android
             {
                 canvas = new SKCanvasView
                 {
-                    VerticalOptions = LayoutOptions.FillAndExpand
+                    //VerticalOptions = LayoutOptions.FillAndExpand
+                    VerticalOptions = LayoutOptions.FillAndExpand,
+                    HorizontalOptions = LayoutOptions.FillAndExpand
                 };
                 canvas.PaintSurface += OnCanvasViewPaintSurface;
                 // Skiaを利用する場合、ビットマップデータのバッファはここで用意してしまう
@@ -172,6 +174,7 @@ namespace RemoteDesktop.Client.Android
 
             float x_ratio = info.Width / (float)original_width;
             float y_ratio = info.Height / (float) original_height;
+            //if (x_ratio < y_ratio)
             if (x_ratio < y_ratio)
             {
                 fit_width *= x_ratio;
@@ -224,9 +227,10 @@ namespace RemoteDesktop.Client.Android
             // Display the bitmap
             canvas.Clear();
             canvas.Scale(1, -1, 0, info.Height / 2);
-            canvas.DrawBitmap(skbitmap, sourceRect, destRect);
+            //canvas.DrawBitmap(skbitmap, sourceRect, destRect);
+            canvas.DrawBitmap(skbitmap, sourceRect, sourceRect);
 
-            Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString());
+            Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString() + " scaled image size =" + fit_width.ToString() + "x" + fit_height.ToString());
         }
 
         protected override void OnDisappearing()
