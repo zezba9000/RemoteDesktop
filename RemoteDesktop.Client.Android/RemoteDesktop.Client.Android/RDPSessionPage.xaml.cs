@@ -171,20 +171,22 @@ namespace RemoteDesktop.Client.Android
 
             float fit_width = original_width;
             float fit_height = original_height;
-
-            float x_ratio = info.Width / (float)original_width;
-            float y_ratio = info.Height / (float) original_height;
-            //if (x_ratio < y_ratio)
-            if (x_ratio < y_ratio)
-            {
-                fit_width *= x_ratio;
-                fit_height *= x_ratio;
-            }
-            else
-            {
-                fit_width *= y_ratio;
-                fit_height *= y_ratio;
-            }
+            /*
+                        float x_ratio = info.Width / (float)original_width;
+                        float y_ratio = info.Height / (float) original_height;
+                        if (x_ratio < y_ratio)
+                        {
+                            fit_width *= x_ratio;
+                            fit_height *= x_ratio;
+                        }
+                        else
+                        {
+                            fit_width *= y_ratio;
+                            fit_height *= y_ratio;
+                        }
+            */
+            fit_width = info.Width;
+            fit_height = info.Height;
 
             SKRect destRect = new SKRect(info.Width - fit_width, 0, fit_width, fit_height);
             SKRect sourceRect = new SKRect(0, 0, original_width, original_height);
