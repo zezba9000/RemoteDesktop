@@ -15,7 +15,7 @@
                     <local:MasterPageItem Title="Reminders" IconSource="reminders.png" TargetType="{x:Type local:ReminderPage}" />
 -->                    
                     <local:MasterPageItem Title="Setting" IconSource="todo.png" TargetType="{x:Type local:SettingPage}" />
-                    <local:MasterPageItem Title="RDPSession" IconSource="todo.png" TargetType="{x:Type local:RDPSessionPage}" />                    
+                    <local:MasterPageItem Title="RDPSession" IconSource="todo.png" TargetType="{x:Type local:RDPSessionPage}" />
                 </x:Array>
             </ListView.ItemsSource>
             <ListView.ItemTemplate>
