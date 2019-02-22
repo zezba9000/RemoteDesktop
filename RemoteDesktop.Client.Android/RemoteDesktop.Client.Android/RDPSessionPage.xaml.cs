@@ -57,7 +57,7 @@ namespace RemoteDesktop.Client.Android
         private bool isAppDisplaySizeGot = false;
         private bool isBitDisplayComponetsAdded = false;
         private int totalDisplayedFrames = 0;
-        private bool isBitDisplayCompOrBufInited = false;
+//        private bool isBitDisplayCompOrBufInited = false;
 
         private SKCanvasView canvas = null;
         private MemoryStream[] skiaBufStreams;
@@ -99,8 +99,8 @@ namespace RemoteDesktop.Client.Android
                 canvas = new SKCanvasView
                 {
                     //VerticalOptions = LayoutOptions.FillAndExpand
-                    VerticalOptions = LayoutOptions.FillAndExpand,
-                    HorizontalOptions = LayoutOptions.FillAndExpand
+                    VerticalOptions = LayoutOptions.Fill,
+                    HorizontalOptions = LayoutOptions.Fill
                 };
                 canvas.PaintSurface += OnCanvasViewPaintSurface;
                 // Skiaを利用する場合、ビットマップデータのバッファはここで用意してしまう
@@ -164,8 +164,8 @@ namespace RemoteDesktop.Client.Android
             }
 
 
-            if (!(isBitDisplayComponetsAdded && isBitDisplayCompOrBufInited))
-            {
+            //if (!(isBitDisplayComponetsAdded && isBitDisplayCompOrBufInited))
+            if (!isBitDisplayComponetsAdded) {
                 return;
             }
 
@@ -227,8 +227,8 @@ namespace RemoteDesktop.Client.Android
             // Display the bitmap
             canvas.Clear();
             canvas.Scale(1, -1, 0, info.Height / 2);
-            //canvas.DrawBitmap(skbitmap, sourceRect, destRect);
-            canvas.DrawBitmap(skbitmap, sourceRect, sourceRect);
+            canvas.DrawBitmap(skbitmap, sourceRect, destRect);
+            //canvas.DrawBitmap(skbitmap, sourceRect, sourceRect);
 
             Console.WriteLine("double_image: canvas size =" + info.Width.ToString() + "x" + info.Height.ToString() + " scaled image size =" + fit_width.ToString() + "x" + fit_height.ToString());
         }
@@ -357,10 +357,10 @@ namespace RemoteDesktop.Client.Android
             layout.Children.Add(canvas, new Rectangle(0, 0, width, height));
         }
 
-        private void displayComponentOrBufferToggle()
-        {
-            // do nothing
-        }
+        //private void displayComponentOrBufferToggle()
+        //{
+        //    // do nothing
+        //}
 
         // Imageコンポーネントへのデータ更新通知もここで行う
         private void dataUpdateTargetImageComponentToggle()
@@ -402,29 +402,38 @@ namespace RemoteDesktop.Client.Android
             {
                 lock (this)
                 {
+                    this.metaData = metaData;
+
+                    if (isAppDisplaySizeGot == false)
+                    {
+                        return;
+                    }
+
                     if (isAppDisplaySizeGot && (isBitDisplayComponetsAdded == false))
                     {
                         addBitmatDisplayComponentToLayout();
+                        curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2;
+                        //isBitDisplayComponetsAdded = true;
                     }
 
-                    this.metaData = metaData;
+
                     try
                     {
-
+/*
                         // create bitmap
                         if (isBitDisplayCompOrBufInited == false)
                         {
-                            setNewBitmapDisplayComponentAndBitmap(BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1);
-                            setNewBitmapDisplayComponentAndBitmap(BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2);
+                            //setNewBitmapDisplayComponentAndBitmap(BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_1);
+                            //setNewBitmapDisplayComponentAndBitmap(BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2);
 
                             curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2;
                             isBitDisplayCompOrBufInited = true;
                         }
-
-                        if (isBitDisplayComponetsAdded)
-                        {
-                            displayComponentOrBufferToggle(); // 直前のデータ受信でデータを更新したデータもしくは、それに対応するImageコンポーネントを表示させる
-                        }
+*/
+                        //if (isBitDisplayComponetsAdded)
+                        //{
+                        //    displayComponentOrBufferToggle(); // 直前のデータ受信でデータを更新したデータもしくは、それに対応するImageコンポーネントを表示させる
+                        //}
 
                         // init compression
                         if (metaData.compressed || GlobalConfiguration.isStreamRawH264Data)

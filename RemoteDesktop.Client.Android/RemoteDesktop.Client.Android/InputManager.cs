@@ -30,8 +30,10 @@ namespace RemoteDesktop.Client.Android
                 //Content = pressLabel,
                 AnimationEffect = ViewGestures.AnimationType.atScaling,
                 AnimationScale = -5,
-                HorizontalOptions = LayoutOptions.FillAndExpand,
-                VerticalOptions = LayoutOptions.FillAndExpand
+//                HorizontalOptions = LayoutOptions.FillAndExpand,
+//                VerticalOptions = LayoutOptions.FillAndExpand
+                HorizontalOptions = LayoutOptions.Fill,
+                VerticalOptions = LayoutOptions.Fill
 			};
             //tapViewGestures.Tap += (s, e) => DisplayAlert("Tap", "Gesture finished", "OK");
             tapViewGestures.SwipeRight += (s, e) =>
