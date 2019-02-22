@@ -11,6 +11,7 @@ namespace RemoteDesktop.Client.Android
 
             masterPage.listView.ItemSelected += OnItemSelected;
 
+
             if (Device.RuntimePlatform == Device.UWP)
             {
                 MasterBehavior = MasterBehavior.Popover;
