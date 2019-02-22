@@ -30,6 +30,12 @@ namespace RemoteDesktop.Client.Android
             //    IconSource = "reminders.png",
             //    TargetType = typeof(ReminderPageCS)
             //});
+            masterPageItems.Add(new MasterPageItem
+            {
+                Title = "RDPSession",
+                IconSource = "todo.png",
+                TargetType = typeof(RDPSessionPage)
+            });
 
             listView = new ListView
             {

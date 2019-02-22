@@ -15,10 +15,10 @@ using Concentus.Structs;
 
 namespace RemoteDesktop.Client.Android
 {
-	public class RTPSoundStreamPlayer
+	public class TCPSoundStreamPlayer
 	{
 
-		public RTPSoundStreamPlayer()
+		public TCPSoundStreamPlayer()
 		{
 			Init();
 		}
@@ -48,6 +48,11 @@ namespace RemoteDesktop.Client.Android
             {
                 sdsock.Dispose();
                 sdsock = null;
+                if (concentusOpusDecoder != null)
+                {
+                    concentusOpusDecoder.ResetState();
+                    concentusOpusDecoder = null;
+                }
 				m_Player.Close();
 			}
 			else

@@ -22,6 +22,7 @@ namespace RemoteDesktop.Client.Android
         public void Close()
         {
             pdecoder.Close();
+            pdecoder = null;
             Opened = false;
         }
     }

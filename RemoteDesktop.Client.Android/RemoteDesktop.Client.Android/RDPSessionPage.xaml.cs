@@ -50,7 +50,7 @@ namespace RemoteDesktop.Client.Android
         public static int width = 432; // dp based app display area size is set
         public static int height = 708; // dp based app display area size is set
 
-        private RTPSoundStreamPlayer player = null;
+        private TCPSoundStreamPlayer player = null;
         private AbsoluteLayout layout;
 
         private BITMAP_DISPLAY_COMPONENT_TAG curUpdateTargetComoonentOrBuf = BITMAP_DISPLAY_COMPONENT_TAG.COMPONENT_2;
@@ -107,6 +107,7 @@ namespace RemoteDesktop.Client.Android
                 skiaBufStreams.SetValue(new MemoryStream(), 1);
             }
 
+            Title = "RDPSession";
             layout = new AbsoluteLayout();
             Content = layout;
 
@@ -230,13 +231,31 @@ namespace RemoteDesktop.Client.Android
 
         protected override void OnDisappearing()
         {
-            //player.togglePlayingUDP();
-            player.togglePlayingTCP();
+            if(player != null)
+            {
+                // サウンド回りの終了処理はこの呼び出しで全て行われる
+                player.togglePlayingTCP();
+            }
+            if (socket != null)
+            {
+                // input server および image server との通信に利用しているソケットの終了処理
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    socket.Dispose();
+                    socket = null;
+                    SetConnectionUIStates(UIStates.Stopped);
+                });
+            }
+            if(vdecoder != null)
+            {
+                vdecoder.Close();
+                vdecoder = null;
+            }
         }
 
         public void connectToSoundServer()
         {
-            player = new RTPSoundStreamPlayer();
+            player = new TCPSoundStreamPlayer();
             player.togglePlayingTCP();
         }
 

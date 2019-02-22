@@ -22,10 +22,9 @@ namespace RemoteDesktop.Android.Core
 
         //Attribute
             public static int bmpFileHeaderBytes = 54;
-            //public static String ServerAddress = "192.168.0.11";
+            public static String ServerAddress = "192.168.0.11";
             //public static String ServerAddress = "25.9.65.156";
             //public static String ServerAddress = "192.168.137.1";
-            public static String ServerAddress = "127.0.0.1";
             public String SoundDeviceName = "";
 			public int SoundServerPort = 10000;
             public static int ImageAndInputServerPort = 8889;
@@ -66,7 +65,7 @@ namespace RemoteDesktop.Android.Core
             public static int encoderBps = 6 * 1024; //8 * 1024;
             public static int samplesPerPacket = 320; // <= 8000 * (1/25) //160; // <= 8000 * (1/50) //960;
 
-            public static bool isEnableImageStreaming = false;
+            public static bool isEnableImageStreaming = true;
             public static bool isEnableSoundStreaming = false;
             public static bool isEnableInputDeviceController = true;
 
