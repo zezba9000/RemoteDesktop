@@ -3,13 +3,17 @@ using Xamarin.Forms;
 
 namespace RemoteDesktop.Client.Android
 {
-    public partial class MainPage : MasterDetailPage
+    public class MainPageCS : MasterDetailPage
     {
-        public MainPage()
-        {
-            InitializeComponent();
+        MasterPageCS masterPage;
 
-            masterPage.listView.ItemSelected += OnItemSelected;
+        public MainPageCS()
+        {
+            masterPage = new MasterPageCS();
+            Master = masterPage;
+            Detail = new NavigationPage(new TodoListPageCS());
+
+            masterPage.ListView.ItemSelected += OnItemSelected;
 
             if (Device.RuntimePlatform == Device.UWP)
             {
@@ -23,7 +27,7 @@ namespace RemoteDesktop.Client.Android
             if (item != null)
             {
                 Detail = new NavigationPage((Page)Activator.CreateInstance(item.TargetType));
-                masterPage.listView.SelectedItem = null;
+                masterPage.ListView.SelectedItem = null;
                 IsPresented = false;
             }
         }

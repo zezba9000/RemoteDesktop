@@ -60,7 +60,16 @@
     <None Update="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
+    <None Update="MasterPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="RDPSessionPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
     <None Update="SettingOverlay.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="TodoListPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
   </ItemGroup>

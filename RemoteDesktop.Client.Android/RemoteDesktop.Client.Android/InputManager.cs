@@ -83,7 +83,7 @@ namespace RemoteDesktop.Client.Android
                 });
             };
             
-            layout.Children.Add(tapViewGestures, new Rectangle(0, 0, MainPage.width, MainPage.height));
+            layout.Children.Add(tapViewGestures, new Rectangle(0, 0, RDPSessionPage.width, RDPSessionPage.height));
         }
 
 //        private void inputUpdate(object state)
