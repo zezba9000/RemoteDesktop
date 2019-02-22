@@ -2,9 +2,9 @@
 
 namespace RemoteDesktop.Client.Android
 {
-	public partial class TodoListPage : ContentPage
+	public partial class SettingPage : ContentPage
 	{
-		public TodoListPage ()
+		public SettingPage ()
 		{
 			InitializeComponent ();
 		}

@@ -9,7 +9,7 @@
 	<MasterDetailPage.Detail>
 		<NavigationPage>
 			<x:Arguments>
-				<local:TodoListPage />
+				<local:SettingPage />
 			</x:Arguments>
 		</NavigationPage>
 	</MasterDetailPage.Detail>

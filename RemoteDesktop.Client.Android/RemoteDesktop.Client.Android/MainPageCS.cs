@@ -11,7 +11,7 @@ namespace RemoteDesktop.Client.Android
         {
             masterPage = new MasterPageCS();
             Master = masterPage;
-            Detail = new NavigationPage(new TodoListPageCS());
+            Detail = new NavigationPage(new SettingPageCS());
 
             masterPage.ListView.ItemSelected += OnItemSelected;
 

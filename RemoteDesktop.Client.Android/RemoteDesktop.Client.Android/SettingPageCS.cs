@@ -2,11 +2,11 @@
 
 namespace RemoteDesktop.Client.Android
 {
-	public class TodoListPageCS : ContentPage
+	public class SettingPageCS : ContentPage
 	{
-		public TodoListPageCS ()
+		public SettingPageCS ()
 		{
-			Title = "TodoList Page";
+			Title = "Setting";
 			Content = new StackLayout { 
 				Children = {
 					new Label {

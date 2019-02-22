@@ -231,6 +231,11 @@ namespace RemoteDesktop.Client.Android
 
         protected override void OnDisappearing()
         {
+            DisposePageHavingResources();
+        }
+
+        private void DisposePageHavingResources()
+        {
             if(player != null)
             {
                 // サウンド回りの終了処理はこの呼び出しで全て行われる
@@ -241,7 +246,7 @@ namespace RemoteDesktop.Client.Android
                 // input server および image server との通信に利用しているソケットの終了処理
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    socket.Dispose();
+                    if(socket != null) socket.Dispose();
                     socket = null;
                     SetConnectionUIStates(UIStates.Stopped);
                 });
@@ -252,7 +257,6 @@ namespace RemoteDesktop.Client.Android
                 vdecoder = null;
             }
         }
-
         public void connectToSoundServer()
         {
             player = new TCPSoundStreamPlayer();
@@ -658,12 +662,13 @@ namespace RemoteDesktop.Client.Android
 
         private void Socket_DisconnectedCallback()
         {
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                socket.Dispose();
-                socket = null;
-                SetConnectionUIStates(UIStates.Stopped);
-            });
+            DisposePageHavingResources();
+            //Device.BeginInvokeOnMainThread(() =>
+            //{
+            //    socket.Dispose();
+            //    socket = null;
+            //    SetConnectionUIStates(UIStates.Stopped);
+            //});
         }
 
         //protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)

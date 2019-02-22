@@ -22,7 +22,7 @@ namespace RemoteDesktop.Client.Android
             {
                 Title = "TodoList",
                 IconSource = "todo.png",
-                TargetType = typeof(TodoListPageCS)
+                TargetType = typeof(SettingPageCS)
             });
             //masterPageItems.Add(new MasterPageItem
             //{
