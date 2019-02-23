@@ -1,4 +1,5 @@
 ﻿using RemoteDesktop.Android.Core;
+using System;
 using Xamarin.Forms;
 
 namespace RemoteDesktop.Client.Android
@@ -29,13 +30,14 @@ namespace RemoteDesktop.Client.Android
                     } }
                 }
 			};
+            ipAddrEntry.Completed += OnCompleted;
 		}
 
-        protected override void OnDisappearing()
+        // コントロールからカーソルが離れた瞬間に発火するイベント
+        private void OnCompleted(object sender, EventArgs eventArgs)
         {
-            base.OnDisappearing();
-
             GlobalConfiguration.ServerAddress = ipAddrEntry.Text;
         }
+
     }
 }
