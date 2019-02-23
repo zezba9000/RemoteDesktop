@@ -6,7 +6,6 @@ namespace RemoteDesktop.Client.Android
 {
 	public class SettingPage : ContentPage
 	{
-        public static string filledIPAddress = "";
         private Entry ipAddrEntry;
 
 		public SettingPage ()
@@ -20,6 +19,7 @@ namespace RemoteDesktop.Client.Android
                         VerticalOptions = LayoutOptions.Center
                         //VerticalOptions = LayoutOptions.CenterAndExpand
                     },
+                    //{ ipAddrEntry = new Entry {
                     { ipAddrEntry = new Entry {
                         Text = GlobalConfiguration.ServerAddress,
                         Keyboard = Keyboard.Url,
@@ -30,13 +30,17 @@ namespace RemoteDesktop.Client.Android
                     } }
                 }
 			};
-            ipAddrEntry.Completed += OnCompleted;
+            ipAddrEntry.Unfocused += OnUnfocused;
 		}
 
         // コントロールからカーソルが離れた瞬間に発火するイベント
-        private void OnCompleted(object sender, EventArgs eventArgs)
+        private void OnUnfocused(object sender, EventArgs eventArgs)
         {
-            GlobalConfiguration.ServerAddress = ipAddrEntry.Text;
+            GlobalConfiguration.ServerAddress = ((Entry)sender).Text;
+            //Device.BeginInvokeOnMainThread(() =>
+            //{
+            //    DisplayAlert("", ((Entry)sender).Text, "OK");
+            //});
         }
 
     }
